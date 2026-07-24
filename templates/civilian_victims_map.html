@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block meta-title %}
+    <meta name="og:title" content="Verified Civilian Victims by Location">
+{% endblock %}
+
+{% block page-content %}
+
+{% load static %}
+
+<main id="main">
+    
+    <!-- ======= Breadcrumbs ======= -->
+    <div class="breadcrumbs">
+      <nav>
+        <div class="container">
+            <ol>
+              <li><a href="{% url 'app-index' %}">Home</a></li>
+              <li><a>Verified Civilian Victims by Location</a></li>
+            </ol>
+        </div>
+      </nav>
+    </div><!-- End Breadcrumbs -->
+
+     <!-- ======= Civilian Victims Photo Section ======= -->
+  <section id="portfolio" class="portfolio sections-bg">
+      <div class="row" style="padding-left: 40px; padding-right: 40px;">
+          <div class="col-lg-4"></div>
+          <div class="col-lg-4">
+              <form method="POST" id="myForm">
+                        {% csrf_token %}
+                        <div class="form-group">
+                          <span id="woreda">Woreda</span>
+                          <select class="selectpicker form-control" data-live-search="true" name="woreda" id="selectWoreda" required>
+                            <option selected="" disabled="">Select Woreda</option>
+                            {% for woreda in woreda_list%}
+                            <option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </form>
+          </div>
+      </div>
+      
+    <div class="container" data-aos="fade-up">
+                      
+                      <br>
+      
+      {{ geolocation|safe }}
+      
+      </div>
+  </section>
+  <!-- End civilian victim Section -->  
+  
+  <!-- Admlte Js file -->
+    <script src="{% static 'admlte/js/jquery.min.js' %}"></script>
+  
+  <Script>
+        $(document).ready(function() {
+            
+          // filter by name
+          $('#selectWoreda').on('change', function() {
+            const civilian_woreda = $(this).val();
+            
+            // slugify woreda name
+            // Replace spaces with hyphens
+            var slug = civilian_woreda.replace(/\s+/g, '-');
+            
+            // Remove special characters
+            slug = slug.replace(/[^\w-]+/g, '');
+            
+            // Convert to lowercase
+            slug = slug.toLowerCase();
+            
+            if (civilian_woreda) {
+              window.location.href = '/Civilina-victims-location-information/' + slug;
+            }
+          });
+          
+        });
+    </script>
+
+  </main><!-- End #main -->
+
+{% endblock %}

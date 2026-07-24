@@ -1,0 +1,32 @@
+<div class="photo-archive-fragment">
+  <div id="photo-archive-grid" class="row gy-4 portfolio-container">
+    {% if filtered_count %}
+      {% include 'public_partials/photo_archive_cards.html' %}
+    {% else %}
+    <div class="col-12">
+      {% include 'public_partials/empty_state.html' with title="No photo archives found" body="No photo archives matched the current filters." %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if filtered_count %}
+  <div id="photo-archive-load-more" class="victim-photo-footer mt-4">
+    <div class="victim-photo-footer__info">
+      {{ page.end_index }} of {{ filtered_count }} entries
+    </div>
+    <div class="victim-photo-footer__action">
+      {% if page.has_next %}
+      <button
+        class="btn btn-dark"
+        hx-get="{% url 'archive-photo' %}?{{ next_querystring }}&append=1"
+        hx-target="#photo-archive-grid"
+        hx-swap="beforeend"
+        hx-indicator="#page-shell-indicator"
+      >
+        Load More
+      </button>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>

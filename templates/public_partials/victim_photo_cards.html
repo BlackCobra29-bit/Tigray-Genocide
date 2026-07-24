@@ -1,0 +1,25 @@
+<style>
+  #borderimg2 {
+    border: 17px solid transparent;
+    border-image: url(https://www.laframe.com/cdn-cgi/image/quality%3D85/assets/images/Custom%20Frames/Custom%20A/Frame/A15_OK.jpg) 20% round;
+  }
+</style>
+
+{% for victim in civilian_queryset %}
+<div class="col-xl-2 col-md-6 portfolio-item filter-app col-md-55" id="col-md-55">
+  <div style="box-shadow: none;">
+    <a style="font-size: 12px; font-family: interstate,sans-serif; text-decoration: none; font-weight: 700; color: #003b63; display: block; text-align: center; margin-top: 20px;" href="/View-victim-info/{{ victim.id }}" title="More Details">
+      <div id="borderimg2">
+        <img src="{{ victim.picture.url }}" class="img-fluid" style="border-radius: 0px; height: 170px; width: auto; display: block; margin-left: auto; margin-right: auto; transition: none;" id="civilian_victim" alt="Civilian Victim" loading="lazy">
+      </div>
+      <div>
+        <h4 style="font-size: 12px; font-family: interstate,sans-serif; font-weight: 700; color: #003b63; line-height: 1.35; margin: 20px 0 0; text-align: center;">{{ victim.full_name.title }}</h4>
+      </div>
+    </a>
+  </div>
+</div>
+{% empty %}
+<div class="col-12">
+  {% include 'public_partials/empty_state.html' with title="No victims found" body="No verified civilian victims matched the current filters." %}
+</div>
+{% endfor %}

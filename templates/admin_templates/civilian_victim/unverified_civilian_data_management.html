@@ -1,0 +1,156 @@
+{% extends 'admin_templates/base.html' %}
+
+{% load custom %}
+
+{% block admin_page_content %}
+
+{% if request.user.is_superuser == True %}
+
+<style>
+    .btn-sm{
+        line-height: 0.8;
+    }
+</style>
+
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+
+        <div class="col-md-12 col-sm-6  ">
+          
+          {% if messages %}
+          {% for message in messages %}
+          <div class="alert alert-success alert-dismissible " role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
+            </button>
+            <span class="fa fa-check-circle"></span> {{ message }}
+          </div>
+          {% endfor %}
+          {% endif %}
+
+            <div class="x_panel">
+              <div class="x_title">
+                <h2><small>Unidentified civilian victims data management</small></h2>
+                <ul class="nav navbar-right panel_toolbox">
+                  <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                  </li>
+                </ul>
+                <div class="clearfix"></div>
+              </div>
+              <div class="x_content">
+                <div class="tab-content" id="myTabContent">
+                  <div class="tab-pane fade show active" id="approved_post" role="tabpanel" aria-labelledby="profile-tab">
+                    <div class="card-box table-responsive">
+                      <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+                        <thead>
+                          <tr>
+                            <th>Action</th>
+                            <th>Location</th>
+                            <th>Number of Civilian Victims</th>
+                            <th>Atrocity</th>
+                            <th style="white-space: nowrap;">Woreda</th>
+                            <th>Source</th>
+                            <th>Source Link</th>
+                            <th>Remark:</th>
+                            <th>Date Created</th>
+                          </tr>
+                        </thead>
+      
+      
+                        <tbody>
+          
+                          {% for victim in unverified_civilian_victims %}
+                          <tr>
+                            <td>
+                              <a href="/Update-unverified-civilian-victim/{{ victim.id }}" data-toggle="tooltip" data-placement="top" title="Update Item"><i class="bi bi-pencil-fill"></i></a>
+                              &nbsp;
+                              <a href="/Delete-unverified-civilian-victim/{{ victim.id }}" data-toggle="tooltip" data-placement="top" title="Delete Item"><i class="bi bi-trash"></i></a>
+                            </td>
+                            <td style="white-space: nowrap;">{{ victim.location }}</td>
+                            <td>{{ victim.number_of_civilian }}</td>
+                            <td style="white-space: nowrap;">
+                              {{ victim.perpetrator }}
+                            </td>
+                            <td style="white-space: nowrap;">
+                              {{ victim.woreda }}
+                            </td>
+                        <td>
+                         {% if victim.source %}
+                             {% if victim.source_link|urlize == victim.source_link %}
+                              {{ victim.source }}
+                              {% else %}
+                                
+
+                                {% if ',' in victim.source and ',' in victim.source_link  %}
+                                    {% with source_list=victim.source|split_string:', ' %}
+                                        {% with link_list=victim.source_link|split_string:', ' %}
+                                            {% for source_item, link_item in source_list|zip_lists:link_list %}
+                                             
+                                             {% if link_item|urlize == link_item %}
+                                            {{ source_item }}
+                                            {% else %}
+                                                <a href="{{ link_item }}" id="source_link" target="_blank"><i class="fa fa-link"></i> {{ source_item }}</a>
+                                                {% endif %}
+                                                
+                                                {% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                    {% endwith %}
+                                {% else %}
+                                    <a href="{{ victim.source_link|extract_and_join_urls }}" id="source_link" target="_blank"><i class="fa fa-link"></i> {{ victim.source }}</a>
+                                {% endif %}
+
+
+                              {% endif %}
+                               {% else %}
+                            <i>Unknown</i>
+                          {% endif %}
+                        </td>
+                            <td>{{ victim.source_link }}</td>
+                            <td style="white-space: nowrap;">
+                                {% if victim.remark %} 
+                                      {% autoescape off %}
+                                        {{ victim.remark|urlize }}
+                                      {% endautoescape %} 
+                                    {% else %} 
+                                        <i>Unknown</i> 
+                                    {% endif %}
+                            </td>
+                            <td>{{ victim.date_created|date:"F d, Y" }}</td>
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <h1 class="error-number">403</h1> 
+        <h2>Sorry, You don't have administrative privileges to access this page</h2>
+      </div>
+      </div>
+      </div>
+{% endif %}
+<!-- /page content -->
+{% endblock %}

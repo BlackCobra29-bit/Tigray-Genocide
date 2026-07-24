@@ -1,0 +1,113 @@
+{% extends 'admin_templates/base.html' %}
+
+{% load static %}
+
+{% block admin_page_content %}
+{% if request.user.is_superuser == True %}
+
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+
+      <div class="col-md-12 col-sm-12">
+        
+        {% if messages %}
+        {% for message in messages %}
+        {% if message.tags == 'success' %}
+        <div class="alert alert-success alert-dismissible " role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
+          </button>
+          <span class="fa fa-check-circle"></span> {{ message }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <div class="x_panel">
+          <div class="x_title">
+            <h2><small>Update unidentified civilian Victims data</small></h2>
+            <ul class="nav navbar-right panel_toolbox">
+              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+              </li>
+            </ul>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <div class="row">
+
+              <form action="" data-parsley-validate method="POST" enctype="multipart/form-data" id="myForm">
+                {% csrf_token %}
+
+              <div class="col-md-6 col-sm-12  form-group">
+                Location <span class="required" style="color: #dc3545;">*</span>
+                {{ form.location }}
+              </div>
+
+              <div class="col-md-6 col-sm-12 form-group">
+                  Number of Civilian Victims <span class="required" style="color: #dc3545;">*</span> 
+                  {{ form.number_of_civilian }}
+              </div>
+
+            <div class="col-md-4 col-sm-12  form-group">
+              Atrocity <span class="required" style="color: #dc3545;">*</span>
+              {{ form.perpetrator }}
+            </div>
+
+            <div class="col-md-4 col-sm-12  form-group">
+              Woreda <span class="required" style="color: #dc3545;">*</span>
+              {{ form.woreda }}
+            </div>
+
+              <div class="col-md-6 col-sm-12  form-group">
+                Source <span class="required" style="color: #dc3545;">*</span> 
+                {{ form.source }}
+              </div>
+
+              <div class="col-md-6 col-sm-12  form-group">
+                Source Link <span class="required" style="color: #dc3545;">*</span> 
+                {{ form.source_link }}
+              </div>
+
+                <div class="col-md-6 col-sm-12  form-group">
+                  Remark: (<i>optional</i>)
+                  {{ form.remark }}
+                </div>
+
+              <div class="form-group">
+                <div class="col-md-11 col-sm-9  offset-md-5"><br>
+                  <button type="submit" class="btn btn-success">Submit</button>
+                </div>
+                </div>
+
+              </form>
+
+            </div>
+    </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <h1 class="error-number">403</h1> 
+        <h2>Sorry, You don't have administrative privileges to access this page</h2>
+      </div>
+      </div>
+      </div>
+{% endif %}
+<!-- /page content -->
+{% endblock %}

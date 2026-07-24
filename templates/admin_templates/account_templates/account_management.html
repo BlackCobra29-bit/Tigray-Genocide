@@ -1,0 +1,112 @@
+{% extends 'admin_templates/base.html' %}
+
+{% block admin_page_content %}
+
+{% if request.user.is_superuser == True %}
+
+<style>
+    .btn-sm {
+        line-height: 0.8;
+    }
+</style>
+
+<!-- page content -->
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+        </div>
+        <div class="clearfix"></div>
+
+        <div class="row">
+
+            <div class="col-md-12 col-sm-6  ">
+
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-success alert-dismissible " role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                            aria-hidden="true">×</span>
+                    </button>
+                    <span class="fa fa-check-circle"></span> {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2><small>Administrator accounts management</small></h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            </li>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="approved_post" role="tabpanel"
+                                aria-labelledby="profile-tab">
+                                <div class="row">
+
+                                    {% if is_notsuperuser %}
+                                    {% for admin in is_notsuperuser %}
+                                    <div class="col-md-4 col-sm-4  profile_details">
+                                        <div class="well profile_view">
+                                            <div class="col-sm-12">
+                                                <div class="left col-sm-7">
+                                                    <h2><strong>{{ admin.first_name }} {{ admin.last_name }}</strong></h2>
+                                                    <p><strong>Account created: </strong> {{ admin.administrator.date_created|date:"F d, Y" }} </p>
+                                                </div>
+                                                <div class="right col-sm-5 text-center">
+                                                    <img src="{{ admin.administrator.admin_photo.url }}" alt=""
+                                                        class="img-circle img-fluid" style="height: 80px; width: 80px;">
+                                                </div>
+                                            </div>
+                                            <div class=" bottom text-center">
+                                                <div class=" col-sm-6 emphasis">
+                                                    <a href="/Update-permissions/{{ admin.id }}">
+                                                        <button type="button" class="btn btn-warning btn-sm">
+                                                            <i class="bi bi-pencil"> </i> Permission
+                                                        </button>
+                                                    </a>
+                                                </div>
+                                                <div class=" col-sm-6 emphasis">
+                                                    <a href="/Deativate-admin-account/{{ admin.id }}">
+                                                        <button type="button" class="btn btn-danger btn-sm float-right">
+                                                            <i class="bi bi-trash"> </i> Delete
+                                                        </button>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                    {% else %}
+                                    <h1>Oops! It appears that there are no admin accounts registered at the moment, except for the super admin.</h1>
+                                    {% endif %}
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- page content -->
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+        </div>
+        <div class="clearfix"></div>
+
+        <div class="row">
+            <h1 class="error-number">403</h1>
+            <h2>Sorry, You don't have administrative privileges to access this page</h2>
+        </div>
+    </div>
+</div>
+{% endif %}
+<!-- /page content -->
+{% endblock %}

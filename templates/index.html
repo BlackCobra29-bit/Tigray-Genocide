@@ -1,0 +1,431 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% load humanize %}
+
+{% block meta-title %}
+    <meta name="og:title" content="Tigray Genocide Homepage">
+{% endblock %}
+
+{% block page-content %}
+
+<!-- ======= Hero Section ======= -->
+<section id="hero" class="hero homepage-hero" style="--hero-image: linear-gradient(rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.6)), url('{{ hero_image }}');">
+  <div class="container position-relative">
+    <div class="row justify-content-center gy-5" data-aos="fade-in">
+      <div class="col-12 col-lg-10 col-xl-8 homepage-hero__content d-flex flex-column justify-content-center text-center">
+        <h2 class="animate-charcter2" style="color: #e31515;">Tigray Genocide
+          <span></span>
+        </h2>
+        <h2 class="animate-charcter" style="color: #dfeb0a;">ኲናት ፅንተት ትግራይ
+          <span></span>
+        </h2>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End Hero Section -->
+
+<main id="main">
+    
+    <!-- ======= Stats Counter Section ======= -->
+    <section id="stats-counter" class="stats-counter">
+      <div class="container" data-aos="fade-up">
+
+        <div class="row gy-4 align-items-center">
+
+            <div class="col-lg-3">
+            <div class="stats-item d-flex align-items-center">
+              <span id="count_civilian"></span>
+              <p><strong>Verified Civilian Victims</strong></p>
+            </div><!-- End Stats Item -->
+            </div>
+
+          <div class="col-lg-3">
+            <div class="stats-item d-flex align-items-center">
+              <span id="count_unverified_civilian"></span>
+              <p><strong>Unidentified Civilian Victims</strong></p>
+            </div><!-- End Stats Item -->
+            </div>
+
+          <div class="col-lg-3">
+            <div class="stats-item d-flex align-items-center">
+              <span id="count_articles"></span>
+              <p><strong>Analysis Articles</strong></p>
+            </div><!-- End Stats Item -->
+            </div>
+            
+          <div class="col-lg-3">
+            <div class="stats-item d-flex align-items-center">
+              <span id="count_photo"></span>
+              <p><strong>Photo Archives</strong></p>
+            </div><!-- End Stats Item -->
+            </div>
+            
+            <div class="col-lg-3">
+              <div class="stats-item d-flex align-items-center">
+                <span id="count_video"></span>
+                <p><strong>Video Archives</strong></p>
+              </div><!-- End Stats Item -->
+              </div>
+
+        </div>
+      </div>
+    </section><!-- End Stats Counter Section -->
+
+  <!-- ======= Live Reporting Section ======= -->
+  <section id="services" class="services sections-bg">
+    <div class="container" data-aos="fade-up">
+
+      <div class="section-header">
+        <h2><span class="fa fa-signal"></span> Dynamic Live Report</h2>
+        <p><span class="fa fa-info-circle" style="color: green;"></span>This report draws on live data from the system database.</p>
+      </div>
+
+      <div class="row gy-4" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="col-lg-6 col-md-6">
+          <div class="service-item  position-relative">
+              
+          <!-- Your custom legend -->
+            <div class="legend">
+                <p><b>Note:</b> The data in this chart includes both verified and unidentified  civilian victims</p>
+                <br>
+              <ul>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> West ({{ home_page_config.linePercentages.0|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> East ({{ home_page_config.linePercentages.1|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> Central ({{ home_page_config.linePercentages.2|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> North West ({{ home_page_config.linePercentages.3|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> South ({{ home_page_config.linePercentages.4|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> South East ({{ home_page_config.linePercentages.5|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> Mekelle ({{ home_page_config.linePercentages.6|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> Other ({{ home_page_config.linePercentages.7|safe }}%)</li>
+                <!-- Add more list items for additional series -->
+              </ul>
+            </div>
+            <br>
+                <div id="chartContainer" style="height: 250px;"></div>
+          </div>
+        </div>
+        <!-- End Service Item -->
+
+        <div class="col-lg-6 col-md-6">
+          <div class="service-item  position-relative">
+          <!-- Your custom legend -->
+            <div class="legend">
+                <p><b>Note:</b> The data in this chart is based on verified civilian victims.</p>
+                <br>
+              <ul>
+                <li><span class="legend-color homepage-legend-age-0"></span> < 10 ({{ home_page_config.barPercentages.0|safe }}%)</li>
+                <li><span class="legend-color homepage-legend-age-1"></span> 10-18 ({{ home_page_config.barPercentages.1|safe }}%)</li>
+                <li><span class="legend-color homepage-legend-age-2"></span> 18-33 ({{ home_page_config.barPercentages.2|safe }}%)</li>
+                <li><span class="legend-color homepage-legend-age-3"></span> 33-49 ({{ home_page_config.barPercentages.3|safe }}%)</li>
+                <li><span class="legend-color homepage-legend-age-4"></span> 49-64 ({{ home_page_config.barPercentages.4|safe }}%)</li>
+                <li><span class="legend-color homepage-legend-age-5"></span> 64-80 ({{ home_page_config.barPercentages.5|safe }}%)</li>
+                <li><span class="legend-color homepage-legend-age-6"></span> 80-95 ({{ home_page_config.barPercentages.6|safe }}%)</li>
+                <li><span class="legend-color homepage-legend-age-7"></span> Unknown ({{ home_page_config.barPercentages.7|safe }}%)</li>
+                <!-- Add more list items for additional series -->
+              </ul>
+            </div>
+            <br>
+                <div id="chartContainer2" style="height: 250px;"></div>
+          </div>
+        </div>
+        <!-- End Service Item -->
+
+        <div class="col-lg-6 col-md-6">
+          <div class="service-item  position-relative">
+          <!-- Your custom legend -->
+            <div class="legend">
+                <p><b>Note:</b> The data in this chart includes both verified and unidentified  civilian victims.</p>
+            </div>
+            <div class="plotly-chart">
+              {{ pie_chart_html|safe }}
+            </div>
+          </div>
+        </div>
+        <!-- End Service Item -->
+
+        <div class="col-lg-6 col-md-6">
+          <div class="service-item  position-relative">
+          <!-- Your custom legend -->
+            <div class="legend">
+                <p><b>Note:</b> The data in this chart is based on verified civilian victims.</p>
+            </div>
+            <div class="plotly-chart">
+              {{ doughnut_chart_html|safe }}
+            </div>
+          </div>
+        </div>
+        <!-- End Service Item -->
+
+      </div>
+
+    </div>
+  </section>
+  <!-- End Our Services Section -->
+  
+  <!-- ======= Civilian Victims Photo Section ======= -->
+  {% if civilian_victims %}
+  <section id="portfolio" class="portfolio sections-bg">
+    <div class="container" data-aos="fade-up">
+      
+      <div class="section-header">
+        <h2><span class="fas fa-users"></span> Civilian Victims</h2>
+        <p><span class="fa fa-info-circle" style="color: green;"></span>Click on the civilian victim's name for more information.</p>
+      </div>
+
+      <div class="portfolio-isotope" data-portfolio-filter="*" data-portfolio-layout="masonry"
+        data-portfolio-sort="original-order" data-aos="fade-up" data-aos-delay="100">
+          
+        <div class="row gy-4 portfolio-container">
+          {% for victim in civilian_victims %}
+          <div class="col-xl-2 col-md-6 portfolio-item filter-app col-md-55" id="col-md-55">
+            <div style="box-shadow: none;"> 
+              <a style="font-size: 12px; font-family: interstate,sans-serif; font-weight: bold;text-decoration: none;
+              font-weight: 700; color: #003b63; display: block; text-align: center; margin-top: 20px;" href="/View-victim-info/{{ victim.id }}" title="More Details">
+                
+                <div id="borderimg2">
+                    <img src="{{ victim.picture.url }}" class="img-fluid" style="border-radius: 0px; height: 170px; width: auto; display: block; margin-left: auto; margin-right: auto; transition: none;" id="civilian_victim" alt="Civilian Victim">
+                </div>
+                
+              <div>
+                <h4 >
+                    {{ victim.full_name.title }}
+                </a>
+                </h4>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
+        </div>
+
+      </div>
+  </section>
+  <!-- End civilian victim Section -->  
+
+  <div class="text-center">
+    <a href="{% url 'civilian-victim-photo-page' %}"><button id="see-more-btn"><span class="fa fa-arrow-alt-circle-right"></span> See More</button></a>
+  </div>
+  {% endif %}
+
+  <!-- ======= Analysis Section ======= -->
+  {% if analysis_articles %}
+  <section id="recent-posts" class="recent-posts sections-bg">
+    <div class="container" data-aos="fade-up">
+
+      <div class="section-header">
+        <h2><span class="fa fa-pen"></span> Analysis Articles</h2>
+      </div>
+
+      <div class="row gy-4">
+        {% for article in analysis_articles %}
+        <div class="col-xl-4 col-md-6">
+          <article>
+
+            <div class="post-img">
+              <img src="{{ article.thumbnail.url }}" style="height: 239px; width: 100%;" alt="" class="img-fluid">
+            </div>
+
+            <h2 class="title">
+              <a href="/View-article/{{ article.id }}">{{ article.title }}</a>
+            </h2>
+
+            <div class="d-flex align-items-center">
+              <img src="{{ article.author.administrator.admin_photo.url }}" alt="" class="img-fluid post-author-img flex-shrink-0">
+              <div class="post-meta">
+                <p class="post-author">{{ article.author.first_name }} {{ article.author.last_name }}</p>
+                <p class="post-date">
+                  <time> {{ article.date_created|date:"d-M-Y" }}</time>
+                </p>
+              </div>
+            </div>
+
+          </article>
+        </div>
+        <!-- End post list item -->
+        {% endfor %}
+
+      </div>
+      <!-- End recent posts list -->
+
+    </div>
+  </section>
+  <!-- End Recent Blog Posts Section -->
+  <div class="text-center">
+    <a href="{% url 'archive-photo' %}"><button id="see-more-btn"><span class="fa fa-arrow-alt-circle-right"></span> See More</button></a>
+  </div>
+  {% endif %}
+
+<!-- ======= Photo Archive Section ======= -->
+{% if photo_archives %}
+<section id="portfolio" class="portfolio sections-bg">
+  <div class="container" data-aos="fade-up">
+
+    <div class="section-header">
+      <h2><span
+        class="bi bi-camera-video-fill"></span> Photo Archives</h2>
+    </div>
+
+    <div class="portfolio-isotope" data-portfolio-filter="*" data-portfolio-layout="masonry"
+      data-portfolio-sort="original-order" data-aos="fade-up" data-aos-delay="100">
+
+
+      <div class="row gy-4 portfolio-container">
+        
+        {% for item in photo_archives %}
+        <div class="col-xl-4 col-md-6 portfolio-item filter-app">
+          <div class="portfolio-wrap">
+              {% if item.graphic == True %}
+                <a href="{{ item.photo.url }}" data-gallery="portfolio-gallery-app" class="glightbox" data-title="{{ item.description }}">
+                    <img src="{% static 'img/graphic_img.png' %}" style="height: 200px; width: 100%;" class="img-fluid" alt="">
+                </a>
+              {% else %}
+              <a href="{{ item.photo.url }}" data-gallery="portfolio-gallery-app" class="glightbox" data-title="{{ item.description }}">
+                <img src="{{ item.photo.url }}" style="height: 239px; width: 100%;" class="img-fluid" alt="">
+              </a>
+              {% endif %}  
+            <div class="portfolio-info">
+              <h4>
+                <span class="bi bi-geo-alt" id="calendar">
+                    {% if item.location %}
+                    {{ item.location }}, {{ item.woreda }} Woreda
+                    {% else %}
+                    <i>Unknown</i>, {{ woreda }} Woreda
+                    {% endif %}
+                </span>
+                <span class="far fa-calendar" id="gps">
+                  {% if item.date_of_event %}
+                  {{ item.date_of_event|date:"d-M-Y" }}
+                  {% else %}
+                  <i>Undated</i>
+                  {% endif %}
+                </span>
+              </h4>
+              <p>
+                {{ item.description|urlize }}
+              </p>
+            </div>
+          </div>
+        </div><!-- End Portfolio Item -->
+        {% endfor %}
+
+      </div><!-- End Portfolio Container -->
+
+    </div>
+
+  </div>
+</section><!-- End Photo Archive Section -->
+  
+  <div class="text-center">
+    <a href="{% url 'archive-photo' %}"><button id="see-more-btn"><span class="fa fa-arrow-alt-circle-right"></span> See More</button></a>
+  </div>
+  {% endif %}
+
+  <!-- ======= Video Archive Section ======= -->
+  {% if video_archives %}
+  <section id="portfolio" class="portfolio sections-bg">
+    <div class="container" data-aos="fade-up">
+
+      <div class="section-header">
+        <h2><span
+          class="bi bi-camera-video-fill"></span> Video Archives</h2>
+      </div>
+
+      <div class="portfolio-isotope" data-portfolio-filter="*" data-portfolio-layout="masonry"
+        data-portfolio-sort="original-order" data-aos="fade-up" data-aos-delay="100">
+
+
+        <div class="row gy-4 portfolio-container">
+
+            {% for item in video_archives %}
+            <div class="col-xl-4 col-md-6 portfolio-item filter-app">
+              <div class="portfolio-wrap">
+                <a href="/Watch-video/{{ item.id }}">
+                 <iframe width="100%" height="200px" src="https://www.youtube.com/embed/{% with video_id=item.online_link|cut:"https://www.youtube.com/watch?v=" %}{{ video_id }}{% endwith %}" frameborder="0" allowfullscreen></iframe>
+                  <!-- end of hidden image -->
+                </a> 
+                <div class="portfolio-info">
+                      <h4>
+                      <span class="bi bi-geo-alt" id="calendar">
+                        {% if item.location %}
+                        {{ item.location }}, {{ item.woreda }} Woreda
+                        {% else %}
+                        <i>Unknown</i>, {{ woreda }} Woreda
+                        {% endif %}
+                      </span>
+                      <span class="far fa-calendar" id="gps">
+                        {% if item.date_of_event %}
+                        {{ item.date_of_event|date:"d-M-Y" }}
+                        {% else %}
+                        <i>Undated</i>
+                        {% endif %}
+                      </span>
+                  </h4>
+                  <p>
+                      {{ item.description|slice:":96" }}
+                      <span id="more_{{ item.id }}" class="hidden">{{ item.description|slice:"96:" }}</span>
+                      
+                      {% if item.description|length > 96 %}
+                          <a class="seeMore" data-id="{{ item.id }}" style="cursor: pointer">See more</a>
+                          <a class="showLess hidden" data-id="{{ item.id }}" style="cursor: pointer">Show less</a>
+                      {% endif %}
+                  </p>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+
+        </div><!-- End Portfolio Container -->
+
+      </div>
+
+    </div>
+  </section><!-- End Photo Archive Section -->
+  
+  <div class="text-center">
+    <a href="{% url 'archive-video' %}"><button id="see-more-btn"><span class="fa fa-arrow-alt-circle-right"></span> See More</button></a>
+  </div>
+  {% endif %}
+
+  
+
+    <!-- ======= Our Services Section ======= -->
+    <section id="services" class="services sections-bg">
+      <div class="container" data-aos="fade-up">
+
+        <div class="section-header">
+          <h2>Send Information</h2>
+        </div>
+
+        <div class="row gy-4" data-aos="fade-up" data-aos-delay="100">
+
+          <div class="col-lg-4 col-md-6" style="">
+            <div class="service-item  position-relative" style="background: url({% static 'img/send-info-img.png' %})">
+              <h3><i class="bi bi-people"></i> Civilian Vicitm Information</h3>
+              <p>{{ "You can send us information regarding Tigrayan civilian victims using the form provided." }}</p>
+              <a href="{% url 'send-information' %}" class="readmore stretched-link" hx-boost="false">Continue <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </div><!-- End Service Item -->
+
+          <div class="col-lg-4 col-md-6">
+            <div class="service-item position-relative" style="background: url({% static 'img/send-info-img.png' %})">
+              <h3><i class="bi bi-camera-video-fill"></i> Photo/Video Archives</h3>
+              <p> You can send us information regarding Photo/Video archives using the form provided.</p>
+              <a href="{% url 'send-archive' %}" class="readmore stretched-link" hx-boost="false">Continue <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </div><!-- End Service Item -->
+
+        </div>
+
+      </div>
+    </section><!-- End Our Services Section -->
+
+</main>
+<!-- End #main -->
+
+{{ home_page_config|json_script:"home-page-config" }}
+
+{% endblock %}

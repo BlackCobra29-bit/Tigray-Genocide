@@ -1,0 +1,98 @@
+{% extends 'admin_templates/base.html' %}
+
+{% block admin_page_content %}
+
+{% if Administrator.analysis_role == True or request.user.is_superuser == True %}
+
+<style>
+  .btn-sm {
+    line-height: 0.8;
+  }
+</style>
+
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+
+      <div class="col-md-3"></div>
+
+      <div class="col-md-4 col-sm-4  profile_details">
+        <form method="POST">
+          {% csrf_token %}
+        <div class="well profile_view">
+          <div class="col-sm-12">
+            <h4 class="brief" style="font-weight: bold;">Are You Sure to Remove?</h4>
+            <div class="left col-sm-12">
+              <h2>{{ object.full_name }}</h2>
+              <p><strong>Article Title: </strong> {{ object.title }} </p>
+              <ul class="list-unstyled">
+                <li>
+                  <strong>Article Author: </strong> 
+                  {{ object.author.first_name }} {{ object.author.last_name }}
+                </li>
+                <li>
+                  <strong>Date Created: </strong>
+                  {{ object.date_created|date:"d-M-Y" }}
+                </li>
+              </ul>
+            </div>  
+          </div>
+
+          <div class=" bottom text-center">
+            <div class=" col-sm-6 emphasis">    
+              <!-- Small modal -->
+              <button type="button" class="btn btn-info" data-toggle="modal" data-target=".bs-example-modal-sm">Remove</button>
+            </div>
+          </div>
+
+              <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
+                  <div class="modal-content">
+
+                    <div class="modal-header">
+                      <h4 class="modal-title" id="myModalLabel2"><i class="fas fa-exclamation-triangle text-warning"></i> Warning</h4>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <p>Are you sure to remove this data?</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      <button type="submit" class="btn btn-info">Confirm</button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+              <!-- /modals -->
+        </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- /page content -->
+<!-- /page content -->
+{% else %}
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <h1 class="error-number">403</h1> 
+        <h2>Sorry, You don't have administrative privileges to access this page</h2>
+      </div>
+      </div>
+      </div>
+{% endif %}
+{% endblock %}

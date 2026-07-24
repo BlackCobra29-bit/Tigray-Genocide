@@ -1,0 +1,72 @@
+<div class="card">
+  <div class="card-body unverified-table-card">
+    <table id="example1" class="table table-bordered table-striped unverified">
+      <thead>
+        <tr>
+          <th>Index</th>
+          <th>Location</th>
+          <th>Number of Civilian Victims</th>
+          <th class="unverified-mobile-hidden">Atrocity</th>
+          <th class="unverified-mobile-hidden" style="white-space: nowrap;">Woreda</th>
+          <th class="unverified-mobile-hidden">Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for victim in civilian_victims %}
+        <tr>
+          <td style="white-space: nowrap;">
+            <button
+              type="button"
+              class="remark-toggle"
+              aria-expanded="false"
+              aria-controls="unverified-remark-{{ page_obj.number }}-{{ forloop.counter0 }}"
+            >
+              <i class="fa fa-plus"></i>
+            </button>
+            <span class="ml-2">{{ page_obj.start_index|add:forloop.counter0 }}</span>
+          </td>
+          <td>{{ victim.location }}</td>
+          <td>{{ victim.number_of_civilian }}</td>
+          <td class="unverified-mobile-hidden">{{ victim.perpetrator }}</td>
+          <td class="unverified-mobile-hidden">{{ victim.woreda }}</td>
+          <td class="unverified-mobile-hidden">{% include 'public_partials/source_links.html' with source=victim.source source_link=victim.source_link %}</td>
+        </tr>
+        <tr id="unverified-remark-{{ page_obj.number }}-{{ forloop.counter0 }}" class="remark-row d-none">
+          <td colspan="6">
+            <div class="unverified-mobile-details">
+              <div class="unverified-detail-item">
+                <strong>Atrocity:</strong>
+                <span>{{ victim.perpetrator }}</span>
+              </div>
+              <div class="unverified-detail-item">
+                <strong>Woreda:</strong>
+                <span>{{ victim.woreda }}</span>
+              </div>
+              <div class="unverified-detail-item">
+                <strong>Source:</strong>
+                <span>{% include 'public_partials/source_links.html' with source=victim.source source_link=victim.source_link %}</span>
+              </div>
+            </div>
+            <div class="unverified-detail-item">
+              <strong>Remark:</strong>
+              <span>
+                {% if victim.remark %}
+                  {{ victim.remark }}
+                {% else %}
+                  <i>Unknown</i>
+                {% endif %}
+              </span>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center p-4">
+            {% include 'public_partials/empty_state.html' with title="No unidentified victims found" body="No unidentified civilian victims matched the current filters." %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

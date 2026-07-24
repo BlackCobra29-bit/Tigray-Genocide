@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% load custom %}
+
+{% block page-content %}
+
+<main id="main">
+
+    <style>
+        td,
+        th {
+            font-size: 14px;
+        }
+
+        table {
+            border-color: gray;
+        }
+
+        .table-bordered {
+            border: 1px solid #dee2e6;
+        }
+        #source_link:hover{
+            text-decoration: underline;
+        }
+    </style>
+
+    <!-- ======= Breadcrumbs ======= -->
+    <div class="breadcrumbs">
+        <nav>
+            <div class="container">
+                <ol>
+                    <li><a href="{% url 'app-index' %}">Home</a></li>
+                </ol>
+            </div>
+        </nav>
+    </div><!-- End Breadcrumbs -->
+
+    <!-- ======= victim info Section ======= -->
+    <section id="blog" class="blog">
+        <div class="container" data-aos="fade-up">
+
+            <div class="row gy-4 posts-list">
+                
+                
+                        <a href="{% url 'civilian-victim-photo-page' %}" style="margin-left: 100px"><span class="fa fa-backward"></span> Back</a>
+
+                <div class="col-xl-4 col-md-6">
+                        
+                    <article style="box-shadow: none;">
+          
+                          <style>
+                              #borderimg2 {
+                                  border: 17px solid transparent;
+                                  border-image: url(https://www.laframe.com/cdn-cgi/image/quality%3D85/assets/images/Custom%20Frames/Custom%20A/Frame/A15_OK.jpg) 20% round;
+                                }
+                          </style>
+                        
+                  
+                        <div id="borderimg2">
+                            <img src="{{ item.picture.url }}" style="height: auto; width: auto; display: block; margin-left: auto; margin-right: auto;" class="img-fluid" id="civilian_victim">
+                        </div>
+
+                    </article>
+                </div><!-- End list item -->
+                
+                <br><br>
+
+                <div class="col-xl-6 col-md-6">
+                    <article>
+
+                        <ul style="list-style:square">
+                            <li><b>Full name</b>: {{ item.full_name|title }}</li>
+                            <li><b>Gender</b>: {{ item.gender }}</li>
+                            <li><b>Age</b>: {% if item.age %} {{ item.age }} {% else %} <i>Unknown</i> {% endif %}
+                            </li>
+                            <li>
+                                <b>Atrocity</b>:
+                                {{ item.perpetrator }}
+
+                            </li>
+                            <li><b>Place of Killing</b>: {% if item.place_of_killing %} {{ item.place_of_killing }} {% else %} <i>Unknown</i> {% endif %}</li>
+                            <li>
+                                <b>Woreda</b>:
+                                {{ item.woreda }}
+
+                            </li>
+                            <li>
+                                <b>Zone</b>:
+                                {{ item.zone }}
+
+                            </li>
+                            <li><b>Date of Event</b>: {% if item.date_of_event %} {{ item.date_of_event|date:"d-M-Y" }} {% else %} <i>Undated</i> {% endif %}</li>
+                            <li><b>Source</b>: 
+                             {% if item.source %}
+                             {% if item.source_link|urlize == item.source_link %}
+                              {{ item.source }}
+                              {% else %}
+                                
+
+                                {% if ',' in item.source and ',' in item.source_link  %}
+                                    {% with source_list=item.source|split_string:', ' %}
+                                        {% with link_list=item.source_link|split_string:', ' %}
+                                            {% for source_item, link_item in source_list|zip_lists:link_list %}
+                                             
+                                             {% if link_item|urlize == link_item %}
+                                            {{ source_item }}
+                                            {% else %}
+                                                <a href="{{ link_item }}" id="source_link" target="_blank"><i class="fa fa-link"></i> {{ source_item }}</a>
+                                                {% endif %}
+                                                
+                                                {% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                    {% endwith %}
+                                {% else %}
+                                    <a href="{{ item.source_link|extract_and_join_urls }}" id="source_link" target="_blank"><i class="fa fa-link"></i> {{ item.source }}</a>
+                                {% endif %}
+
+
+                              {% endif %}
+                               {% else %}
+                            <i>Unknown</i>
+                          {% endif %}
+                            </li>
+                            <li><b>Remark</b>: {% if item.remark %}
+                              {% autoescape off %}
+                                {{ item.remark|urlize }}
+                              {% endautoescape %}  {% else %} <i>Unknown</i> {% endif %}</li>
+                        </ul>
+
+                    </article>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+    <!-- End victim info Section -->
+</main>
+
+{% endblock %}

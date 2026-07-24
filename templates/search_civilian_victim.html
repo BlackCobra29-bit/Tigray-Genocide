@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block page-content %}
+
+{% load static %}
+
+<main id="main">
+
+    <!-- ======= Breadcrumbs ======= -->
+    <div class="breadcrumbs">
+      <nav>
+        <div class="container">
+            <ol>
+              <li><a href="{% url 'app-index' %}">Home</a></li>
+              <li><a>By Photo</a></li>
+            </ol>
+        </div>
+      </nav>
+    </div><!-- End Breadcrumbs -->
+
+     <!-- ======= Civilian Victims Photo Section ======= -->
+  <section id="portfolio" class="portfolio sections-bg" style="padding-bottom: 200px">
+    <div class="container" data-aos="fade-up">
+      {% if result %}
+      <div class="text-center mb-4">
+        <p><span class="fa fa-info-circle" style="color: green;"></span> Click on the civilian victim's name for more information.</p>
+      </div>
+      {% endif %}
+      
+      
+      
+    <div class="row">
+        <div class="col-lg-5">
+        </div>
+        <div class="col-lg-2">
+            <div class="form-group">
+                  <a href="{% url 'civilian-victim-photo-page' %}" class="btn btn-default btn-xs"><span class="fa fa-backward"></span> Back</a>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <br><br>
+      
+
+      <div class="portfolio-isotope" data-portfolio-filter="*" data-portfolio-layout="masonry"
+        data-portfolio-sort="original-order" data-aos="fade-up" data-aos-delay="100">
+
+        <div class="row gy-4 portfolio-container">
+            {% if result %} 
+            {% for victim in result %}
+            <div class="col-xl-2 col-md-6 portfolio-item filter-app col-md-55" id="col-md-55">
+              <div style="box-shadow: none;">
+              <a style="font-size: 12px; font-family: interstate,sans-serif; font-weight: bold;text-decoration: none;
+              font-weight: 700; color: #003b63; display: block; text-align: center; margin-top: 20px;" href="/View-victim-info/{{ victim.id }}" title="More Details">
+                <img src="{{ victim.picture.url }}" class="img-fluid" style="border-radius: 0px; height: 170px; width: auto; display: block; margin-left: auto; margin-right: auto; transition: none;" id="civilian_victim" alt="Civilian Victim">
+              <div>
+                <h4 >
+                    {{ victim.full_name.title }}
+                  </a>
+                  </h4>
+                </div>
+              </div>
+            </div>
+            <!-- End Portfolio Item -->
+            {% endfor %}
+            {% else %}
+                <div class="col-12">
+                  {% include 'public_partials/empty_state.html' with title="No victims found" body="No verified civilian victims matched this search." %}
+                </div>
+            {% endif %}
+
+        </div>
+
+      </div>
+  </section>
+  <!-- End civilian victim Section -->  
+
+  </main><!-- End #main -->
+
+{% endblock %}

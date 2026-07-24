@@ -1,0 +1,102 @@
+{% load humanize %}
+
+<div class="card">
+  <div class="card-body victim-table-card">
+    <table id="example1" class="table table-bordered table-striped verified">
+      <thead>
+        <tr>
+          <th>Index</th>
+          <th>Full Name</th>
+          <th>Gender</th>
+          <th>Age</th>
+          <th class="victim-mobile-hidden">Atrocity</th>
+          <th class="victim-mobile-hidden" style="white-space: nowrap;">Place of Killing</th>
+          <th class="victim-mobile-hidden" style="white-space: nowrap;">Woreda</th>
+          <th class="victim-mobile-hidden">Source</th>
+          <th class="victim-mobile-hidden" style="white-space: nowrap;">Date of Event</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for victim in civilian_victims %}
+        <tr>
+          <td style="white-space: nowrap;">
+            <button
+              type="button"
+              class="remark-toggle"
+              aria-expanded="false"
+              aria-controls="verified-remark-{{ page_obj.number }}-{{ forloop.counter0 }}"
+            >
+              <i class="fa fa-plus"></i>
+            </button>
+            <span class="ml-2">{{ page_obj.start_index|add:forloop.counter0 }}</span>
+          </td>
+          <td class="victim-name-cell">
+            <a
+              href="{% url 'view-victim-info' victim.id %}"
+              style="color: inherit;"
+              hx-boost="false"
+              hx-get="{% url 'view-victim-info' victim.id %}"
+              hx-target="#page-shell"
+              hx-select="#page-shell"
+              hx-swap="outerHTML transition:true"
+              hx-push-url="true"
+              hx-indicator="#page-shell-indicator"
+            >{{ victim.full_name.title }}</a>
+          </td>
+          <td>{{ victim.gender }}</td>
+          <td>{% if victim.age %}{{ victim.age }}{% else %}<i>Unknown</i>{% endif %}</td>
+          <td class="victim-mobile-hidden">{{ victim.perpetrator }}</td>
+          <td class="victim-mobile-hidden">{% if victim.place_of_killing %}{{ victim.place_of_killing }}{% else %}<i>Unknown</i>{% endif %}</td>
+          <td class="victim-mobile-hidden">{{ victim.woreda }}</td>
+          <td class="victim-mobile-hidden">{% include 'public_partials/source_links.html' with source=victim.source source_link=victim.source_link %}</td>
+          <td class="victim-mobile-hidden">{% if victim.date_of_event %}{{ victim.date_of_event|date:"d-M-Y" }}{% else %}<i>Undated</i>{% endif %}</td>
+        </tr>
+        <tr id="verified-remark-{{ page_obj.number }}-{{ forloop.counter0 }}" class="remark-row d-none">
+          <td colspan="9">
+            <div class="victim-mobile-details">
+              <div class="victim-detail-item">
+                <strong>Atrocity:</strong>
+                <span>{{ victim.perpetrator }}</span>
+              </div>
+              <div class="victim-detail-item">
+                <strong>Place of Killing:</strong>
+                <span>{% if victim.place_of_killing %}{{ victim.place_of_killing }}{% else %}<i>Unknown</i>{% endif %}</span>
+              </div>
+              <div class="victim-detail-item">
+                <strong>Woreda:</strong>
+                <span>{{ victim.woreda }}</span>
+              </div>
+              <div class="victim-detail-item">
+                <strong>Source:</strong>
+                <span>{% include 'public_partials/source_links.html' with source=victim.source source_link=victim.source_link %}</span>
+              </div>
+              <div class="victim-detail-item">
+                <strong>Date of Event:</strong>
+                <span>{% if victim.date_of_event %}{{ victim.date_of_event|date:"d-M-Y" }}{% else %}<i>Undated</i>{% endif %}</span>
+              </div>
+            </div>
+            <div class="victim-detail-item victim-remark-detail">
+              <strong>Remark:</strong>
+              <span>
+                {% if victim.remark %}
+                  {% autoescape off %}
+                    {{ victim.remark|urlize }}
+                  {% endautoescape %}
+                {% else %}
+                  <i>Unknown</i>
+                {% endif %}
+              </span>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" class="text-center p-4">
+            {% include 'public_partials/empty_state.html' with title="No victims found" body="No verified civilian victims matched the current filters." %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

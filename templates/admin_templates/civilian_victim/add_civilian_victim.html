@@ -1,0 +1,280 @@
+{% extends 'admin_templates/base.html' %}
+
+{% load static %}
+
+{% block admin_page_content %}
+{% if Administrator.civilian_role == True or request.user.is_superuser == True %}
+
+ <style>
+  #loadingIndicator {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  }
+</style>
+
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+
+      <div class="col-md-12 col-sm-12">
+        
+        {% if messages %}
+        {% for message in messages %}
+        {% if message.tags == 'success' %}
+        <div class="alert alert-success alert-dismissible " role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
+          </button>
+          <span class="fa fa-check-circle"></span> {{ message }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <div class="x_panel">
+          <div class="x_title">
+            <h2><small>Add civilian Victims information</small></h2>
+            <ul class="nav navbar-right panel_toolbox">
+              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+              </li>
+            </ul>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <div class="row">
+
+              <p class="text-muted font-13 m-b-30">
+                <code>*</code> Optional fields can be empty
+              </p>
+
+              <form action="" data-parsley-validate method="POST" enctype="multipart/form-data" id="myForm">
+                {% csrf_token %}
+
+              <div class="col-md-6 col-sm-12  form-group">
+                Fullname <span class="required" style="color: #dc3545;">*</span> 
+                <input type="text" class="form-control" name="fullname" required>
+              </div>
+
+              <div class="col-md-6 col-sm-12  form-group">
+                Gender <span class="required" style="color: #dc3545;">*</span>  
+                <select class="form-control" name="gender" required>
+                  <option selected="" disabled=""></option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Unknown">Unknown</option>
+                </select>
+              </div>
+
+              <div class="col-md-4 col-sm-12  form-group">
+                Age (<i>optional</i>)
+                <input type="number" class="form-control" name="age">
+              </div>
+
+              <div class="col-md-4 col-sm-12  form-group">
+                Atrocity <span class="required" style="color: #dc3545;">*</span>  
+                <select class="form-control" name="perpetrator" required>
+                  <option selected="" disabled=""></option>
+                  <option value="Died from lack of food">Died from lack of food</option>
+                  <option value="Died from lack of medicine">Died from lack of medicine</option>
+                  <option value="Killed by Ethiopian forces">Killed by Ethiopian forces</option>
+                  <option value="Killed by Eritrean forces">Killed by Eritrean forces</option>
+                  <option value="Killed by Ethiopian and Eritrean forces">Killed by Ethiopian and Eritrean forces</option>
+                  <option value="Killed by Amhara militia and Fano">Killed by Amhara militia and Fano</option>
+                </select>
+              </div>
+
+              <div class="col-md-4 col-sm-12  form-group">
+                <span id="place_of_killing">Place of Killing</span> <span> (<i>optional</i>)</span>
+                <input type="text" class="form-control" name="place">
+              </div>
+
+              <div class="col-md-6 col-sm-12  form-group">
+                <span id="woreda">Woreda</span>: <span class="required" style="color: #dc3545;">*</span>
+                <select class="selectpicker form-control" data-live-search="true" name="woreda" required="">
+                  <option selected="" disabled=""></option>
+                  {% for woreda in woreda_list%}
+                    <option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-md-6 col-sm-12  form-group">
+                Source Link: <span class="required" style="color: #dc3545;">*</span> (Link, Phone number or email address of the source) 
+                <input type="text" class="form-control" name="source_link" required>
+              </div>
+
+              <div class="col-md-6 col-sm-12  form-group">
+                Source (Family and relatives, Media, Reports, etc.) (<i>optional</i>)
+                <input type="text" class="form-control" name="source">
+              </div>
+
+              <div class="col-md-6 col-sm-12  form-group">
+                Date of Event (<i>optional</i>) <code>(dd-mm-yy GC format)</code>
+                <input type="date" class="form-control" placeholder="" name="date_of_event">
+              </div>
+
+              <div class="col-md-6 col-sm-12  form-group">
+                Remark: (<i>optional</i>)
+                <textarea class="form-control" name="remark" rows="3"></textarea>
+              </div>
+
+              <div class="col-md-6">
+                Photo (<i>optional</i>)
+                <input type="file" class="form-control" name="photo">
+              </div>
+
+              <div class="form-group">
+                <div class="col-md-11 col-sm-9  offset-md-5"><br>
+                  <button type="submit" class="btn btn-success">Submit</button>
+                </div>
+                </div>
+
+              </form>
+
+            </div>
+    </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Your loading indicator -->
+    <div id="loadingIndicator">
+      <img src="{% static 'img/Spinner-loading.gif' %}" alt="Loading...">
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- select2 css and js files -->
+<script src="{% static 'js/select.js' %}"></script>
+
+<style>
+    #parsley-id-15 {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        margin-top: 5px; /* Adjust as needed */
+        list-style: none;
+        padding-left: 10px;
+    }
+
+</style>
+
+<script>
+$(document).ready(function() {
+  $('#myForm').submit(function(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    // Display loading indicator
+    $('#loadingIndicator').show();
+
+    var formData = new FormData($(this)[0]); // Get form data
+
+    $.ajax({
+      url: "{% url 'admin-add-civilian' %}", // Replace with the actual URL name
+      type: 'POST',
+      data: formData,
+      async: true,
+      cache: false,
+      contentType: false,
+      processData: false,
+      success: function(response) {
+        // Hide loading indicator upon successful AJAX completion
+        $('#loadingIndicator').hide();
+
+        // Handle success response here
+        console.log(response); // Log response to console
+        
+        // Display SweetAlert success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          html: response.success_message, // Display success message from JSON response
+        });
+
+        // Reset the form inputs
+        $('#myForm')[0].reset();
+        // Clear and re-add options to the selectpicker for Woreda
+        $('.selectpicker').empty();
+        // Add default option
+        $('.selectpicker').append('<option selected disabled></option>');
+        // Add options from Django database
+        {% for woreda in woreda_list %}
+          $('.selectpicker').append('<option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>');
+        {% endfor %}
+        // Refresh the selectpicker
+        $('.selectpicker').selectpicker('refresh');
+      },
+      error: function(xhr, status, error) {
+        // Hide loading indicator upon AJAX error
+        $('#loadingIndicator').hide();
+
+        // Handle error here
+        console.error(xhr.responseText); // Log error response to console
+        
+        // Parse error response as JSON
+        var errorMessage = JSON.parse(xhr.responseText);
+        
+        // Display SweetAlert error message
+        Swal.fire({
+          icon: 'error',
+          title: 'Duplicate Entry Detected',
+          html: errorMessage.message, // Display error message from JSON response
+          footer: '<a href="https://tigraygenocide.com/Delete-duplicate-civilian-victim/' + errorMessage.new_duplicate_id + '" class="text-danger"><span class="bi bi-trash"></span> Click here to cancel this duplicate entry </a>',
+          confirmButtonText: 'Save Data',
+        }).then((result) => {
+          // Check if the confirmation button is clicked
+          if (result.isConfirmed) {
+            // Reload the window
+            window.location.reload();
+          }
+        });
+
+        // Reset the form inputs
+        $('#myForm')[0].reset();
+        // Clear and re-add options to the selectpicker for Woreda
+        $('.selectpicker').empty();
+        // Add default option
+        $('.selectpicker').append('<option selected disabled></option>');
+        // Add options from Django database
+        {% for woreda in woreda_list %}
+          $('.selectpicker').append('<option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>');
+        {% endfor %}
+        // Refresh the selectpicker
+        $('.selectpicker').selectpicker('refresh');
+      }
+    });
+
+    return false;
+  });
+});
+</script>
+
+{% else %}
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <h1 class="error-number">403</h1> 
+        <h2>Sorry, You don't have administrative privileges to access this page</h2>
+      </div>
+      </div>
+      </div>
+{% endif %}
+<!-- /page content -->
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'admin_templates/base.html' %}
+
+{% block admin_page_content %}
+
+{% if Administrator.analysis_role == True or request.user.is_superuser == True %}
+
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+
+      <div class="col-md-12 col-sm-12 ">
+
+        {% if messages %}
+        {% for message in messages %}
+        {% if message.tags == 'success' %}
+        <div class="alert alert-success alert-dismissible " role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
+          </button>
+          <span class="fa fa-check-circle"></span> {{ message }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <div class="x_panel">
+          <div class="x_title">
+            <h2><small>Update analysis articles information</small></h2>
+            <ul class="nav navbar-right panel_toolbox">
+              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+              </li>
+            </ul>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            <div class="row">
+
+              <form action="" data-parsley-validate method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="col-md-12 col-sm-12  form-group">
+                  Article Title: <span class="required" style="color: #dc3545;">*</span> 
+                  {{ form.title }}
+                </div>
+
+                <div class="col-md-12 col-sm-12 form-group">
+                  <br>
+                  Article Thumbnail: <span class="required" style="color: #dc3545;">*</span> 
+                  {{ form.thumbnail }}
+                </div>
+
+                <div class="col-md-12 col-sm-12  form-group">
+                  <br>
+                  Article Body: <span class="required" style="color: #dc3545;">*</span> 
+                  {{ form.content }}
+                </div>
+
+                <div class="col-md-12 col-sm-12  form-group"><br>
+                  Is it related to tegaru ENDF members? (<i>optional</i>)
+                  {{ form.endf_related }}
+                </div>
+
+                <div class="col-md-12 col-sm-12  form-group"><br>
+                  Personal Accounts (<i>optional</i>)
+                  {{ form.personal_account }}
+                </div>
+
+                <div class="col-md-6" style="display: none;">
+                  Approval (<i>optional</i>)
+                  {{ form.approval }}
+                </div>
+
+                <div class="form-group">
+                  <div class="col-md-11 col-sm-9  offset-md-5"><br>
+                     <button type="submit" class="btn btn-warning" name="save_draft" value="true">Save to Draft</button>
+                        <button type="submit" class="btn btn-success" name="publish">Publish</button>
+                  </div>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /page content -->
+{% else %}
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <h1 class="error-number">403</h1> 
+        <h2>Sorry, You don't have administrative privileges to access this page</h2>
+      </div>
+      </div>
+      </div>
+{% endif %}
+{% endblock %}

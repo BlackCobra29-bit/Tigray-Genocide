@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block meta-title %}
+    <meta name="og:title" content="Verified Civilian Victims by Photo">
+{% endblock %}
+
+{% block page-content %}
+
+<main id="main">
+
+  <style>
+    .btn-default {
+      background-color: #f8f9fa;
+      border-color: #ddd;
+      color: #444;
+    }
+  </style>
+
+  <div class="breadcrumbs">
+    <nav>
+      <div class="container">
+        <ol>
+          <li><a href="{% url 'app-index' %}">Home</a></li>
+          <li><a>Verified Civilian Victims by Photo</a></li>
+        </ol>
+      </div>
+    </nav>
+  </div>
+
+  <section id="portfolio" class="portfolio sections-bg">
+    <div class="container" data-aos="fade-up">
+      <div class="row">
+        <div class="col-12">
+          {% if civilian_queryset %}
+          <span class="fa fa-info-circle" style="color: green;"></span> Click on the civilian victim's name for more information.
+
+          <br><br>
+          {% endif %}
+
+          <form
+            class="row"
+            style="padding-left: 40px; padding-right: 40px;"
+            method="get"
+            action="{% url 'civilian-victim-photo-page' %}"
+            hx-boost="false"
+            hx-get="{% url 'civilian-victim-photo-page' %}"
+            hx-select=".victim-photo-fragment"
+            hx-target="#victim-photo-results"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+            hx-indicator="#page-shell-indicator"
+          >
+            <div class="col-lg-3">
+              <div class="form-group">
+                <label for="photo-name"><span class="fa fa-search" style="color: blue;"></span> Filter By Name</label>
+                <input type="text" class="form-control" id="photo-name" name="q" value="{{ filters.q }}" placeholder="Search By Name" hx-trigger="input changed delay:400ms, search">
+              </div>
+            </div>
+
+            <div class="col-lg-3">
+              <div class="form-group">
+                <label for="photo-atrocity"><span class="fa fa-search" style="color: blue;"></span> Filter By Atrocity</label>
+                <select class="selectpicker form-control" data-live-search="true" name="perpetrator" id="photo-atrocity" onchange="this.form.requestSubmit()">
+                  <option value="">Search By Atrocity</option>
+                  <option value="Died from lack of food" {% if filters.perpetrator == 'Died from lack of food' %}selected{% endif %}>Died from lack of food</option>
+                  <option value="Died from lack of medicine" {% if filters.perpetrator == 'Died from lack of medicine' %}selected{% endif %}>Died from lack of medicine</option>
+                  <option value="Killed by Ethiopian forces" {% if filters.perpetrator == 'Killed by Ethiopian forces' %}selected{% endif %}>Killed by Ethiopian forces</option>
+                  <option value="Killed by Eritrean forces" {% if filters.perpetrator == 'Killed by Eritrean forces' %}selected{% endif %}>Killed by Eritrean forces</option>
+                  <option value="Killed by Ethiopian and Eritrean forces" {% if filters.perpetrator == 'Killed by Ethiopian and Eritrean forces' %}selected{% endif %}>Killed by Ethiopian and Eritrean forces</option>
+                  <option value="Killed by Amhara militiaÃ‚Â andÃ‚Â Fano" {% if filters.perpetrator == 'Killed by Amhara militiaÃ‚Â andÃ‚Â Fano' %}selected{% endif %}>Killed by Amhara militiaÃ‚Â andÃ‚Â Fano</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="col-lg-3">
+              <div class="form-group">
+                <label for="photo-woreda"><span class="fa fa-search" style="color: blue;"></span> Filter By Woreda</label>
+                <select class="selectpicker form-control" data-live-search="true" name="woreda" id="photo-woreda" onchange="this.form.requestSubmit()">
+                  <option value="">Search By Woreda</option>
+                  {% for woreda in woreda_list %}
+                  <option value="{{ woreda.woreda_name }}" {% if filters.woreda == woreda.woreda_name %}selected{% endif %}>{{ woreda.woreda_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="col-lg-2">
+              <div class="form-group">
+                <br>
+                <button
+                  class="btn btn-danger"
+                  type="button"
+                  data-reset-filters="true"
+                  hx-get="{% url 'civilian-victim-photo-page' %}"
+                  hx-select=".victim-photo-fragment"
+                  hx-target="#victim-photo-results"
+                  hx-swap="innerHTML"
+                  hx-push-url="true"
+                ><span class="fas fa-1x fa-sync-alt"></span> Reset Filters</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="htmx-region">
+        <div id="victim-photo-results" class="htmx-region__content">
+          {% include 'public_partials/victim_photo_grid.html' %}
+        </div>
+        <div class="htmx-region__skeleton" aria-hidden="true">
+          <div class="htmx-region__spinner">
+            <div class="spinner-border" role="status"></div>
+            <span>Loading victim gallery...</span>
+          </div>
+          <div class="htmx-skeleton-card-grid">
+            <div class="htmx-skeleton-card">
+              <div class="htmx-skeleton htmx-skeleton-card__media"></div>
+              <div class="htmx-skeleton htmx-skeleton-line"></div>
+            </div>
+            <div class="htmx-skeleton-card">
+              <div class="htmx-skeleton htmx-skeleton-card__media"></div>
+              <div class="htmx-skeleton htmx-skeleton-line"></div>
+            </div>
+            <div class="htmx-skeleton-card">
+              <div class="htmx-skeleton htmx-skeleton-card__media"></div>
+              <div class="htmx-skeleton htmx-skeleton-line"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+{% endblock %}

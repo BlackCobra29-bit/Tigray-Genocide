@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block meta-title %}
+    <meta name="og:title" content="Video Archive">
+{% endblock %}
+
+{% block page-content %}
+
+{% load static %}
+{% load humanize %}
+
+<main id="main">
+
+
+  <!-- ======= Breadcrumbs ======= -->
+  <div class="breadcrumbs">
+    <nav>
+      <div class="container">
+        <ol>
+          <li><a href="{% url 'app-index' %}">Home</a></li>
+          <li>Video Archive</li>
+        </ol>
+      </div>
+    </nav>
+  </div><!-- End Breadcrumbs -->
+
+  <!-- ======= Video Archive Section ======= -->
+  <section id="portfolio" class="portfolio sections-bg">
+    <div class="container" data-aos="fade-up">
+      <div class="portfolio-isotope" data-portfolio-filter="*" data-portfolio-layout="masonry"
+        data-portfolio-sort="original-order" data-aos="fade-up" data-aos-delay="100">
+
+
+        <div class="row gy-4 portfolio-container">
+
+          {% for item in page %}
+            <div class="col-xl-4 col-md-6 portfolio-item filter-app">
+              <div class="portfolio-wrap">
+                <a href="/Watch-video/{{ item.id }}">
+                    
+                 <iframe width="100%" height="200px" src="https://www.youtube.com/embed/{% with video_id=item.online_link|cut:"https://www.youtube.com/watch?v=" %}{{ video_id }}{% endwith %}" frameborder="0" allowfullscreen></iframe>
+                  
+                  <!-- end of hidden image -->
+                </a> 
+                <div class="portfolio-info">
+                      <h4>
+                      <span class="bi bi-geo-alt" id="calendar">
+                        {% if item.location %}
+                        {{ item.location }}, {{ item.woreda }} Woreda
+                        {% else %}
+                        <i>Unknown</i>, {{ woreda }} Woreda
+                        {% endif %}
+                      </span>
+                      <span class="far fa-calendar" id="gps">
+                        {% if item.date_of_event %}
+                        {{ item.date_of_event|date:"d-M-Y" }}
+                        {% else %}
+                        <i>Undated</i>
+                        {% endif %}
+                      </span>
+                  </h4>
+                  <p>
+                      {{ item.description|slice:":96" }}
+                      <span id="more_{{ item.id }}" class="hidden">{{ item.description|slice:"96:" }}</span>
+                      
+                      {% if item.description|length > 96 %}
+                          <a class="seeMore" data-id="{{ item.id }}" style="cursor: pointer">See more</a>
+                          <a class="showLess hidden" data-id="{{ item.id }}" style="cursor: pointer">Show less</a>
+                      {% endif %}
+                      
+                  </p>
+                </div>
+              </div>
+            </div>
+          </a>
+          {% endfor %}
+
+          {% if not page.paginator.count %}
+          <div class="col-12">
+            {% include 'public_partials/empty_state.html' with title="No video archives found" body="There are no video archives to display at the moment." %}
+          </div>
+          {% endif %}
+
+        </div><!-- End Portfolio Container -->
+
+      </div>
+
+    </div>
+  </section><!-- End Photo Archive Section -->
+
+ {% if page.paginator.count %}
+ <!--Pagination-->
+ <div class="container p-4">
+  <div class="pagination justify-content-center">
+      <span class="step-links">
+        {% if page.has_previous %}
+            <a href="?page=1"><button class="btn btn-block btn-outline-dark btn-sm">&laquo; first</button></a>
+            <a href="?page={{ page.previous_page_number }}"><button class="btn btn-block btn-outline-dark btn-sm">previous</button></a>
+        {% endif %}
+
+          <span class="current">
+              Page {{ page.number }} of {{ page.paginator.num_pages }}
+          </span>
+
+        {% if page.has_next %}
+            <a href="?page={{ page.next_page_number }}"><button class="btn btn-block btn-outline-dark btn-sm">next</button></a>
+            <a href="?page={{ page.paginator.num_pages }}"><button class="btn btn-block btn-outline-dark btn-sm">last &raquo;</button></a>
+        {% endif %}
+      </span>
+      </div>
+  </div>
+<!--end of Pagination-->
+{% endif %}
+
+ <style>
+    .hidden {
+      display: none;
+    }
+  </style>
+
+</main>
+
+{% endblock %}

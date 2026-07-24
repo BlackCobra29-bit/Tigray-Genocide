@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block page-content %}
+
+{% load static %}
+
+<main id="main">
+
+    <!-- ======= Breadcrumbs ======= -->
+    <div class="breadcrumbs">
+        <nav>
+            <div class="container">
+                <ol>
+                    <li><a href="{% url 'app-index' %}">Home</a></li>
+                    <li>Analysis Articles</li>
+                </ol>
+            </div>
+        </nav>
+    </div><!-- End Breadcrumbs -->
+
+    <!-- ======= Blog Section ======= -->
+    <section id="blog" class="blog">
+        <div class="container" data-aos="fade-up">
+
+            <div class="row gy-4 posts-list">
+
+                {% if search_result %}
+                {% for article in search_result %}
+                <div class="col-xl-4 col-md-6">
+                    <article>
+
+                        <div class="post-img">
+                            <img src="{{ article.thumbnail.url }}" style="height: 200px; width: 100%;" alt=""
+                                class="img-fluid">
+                        </div>
+
+                        <h2 class="title">
+                            <a href="/View-article/{{ article.id }}">{{ article.title }}</a>
+                        </h2>
+
+                        <div class="d-flex align-items-center">
+                            <img src="{{ article.author.administrator.admin_photo.url }}" alt=""
+                                class="img-fluid post-author-img flex-shrink-0">
+                            <div class="post-meta">
+                                <p class="post-author-list">{{ article.author.first_name }} {{ article.author.last_name }}</p>
+                                <p class="post-date">
+                                    <time> {{ article.date_created|date:"F d, Y" }}</time>
+                                </p>
+                            </div>
+                        </div>
+
+                    </article>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="section-header">
+                    <h2 class="text-center" id="no-data"><i class="fas fa-exclamation-triangle text-warning"></i> Your search "<i>{{ search_query }}</i>" did not match any documents.</h2>
+                    <br><button class="btn btn-default" onclick="goBack()"><span class="fa fa-backward"></span> Back</button>
+                </div>
+                {% endif %}
+
+            </div><!-- End blog posts list -->
+        </div>
+    </section><!-- End Blog Section -->
+    
+    <script>
+        // Return to the previous page
+        function goBack() {
+          window.history.back();
+        }
+    </script>
+
+</main>
+
+{% endblock %}

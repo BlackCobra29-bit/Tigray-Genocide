@@ -1,0 +1,175 @@
+{% extends 'admin_templates/base.html' %}
+
+{% block admin_page_content %}
+
+{% if request.user.is_superuser == True %}
+
+<style>
+    .btn-sm{
+        line-height: 0.8;
+    }
+</style>
+
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+
+        <div class="col-md-12 col-sm-6  ">
+          
+          {% if messages %}
+          {% for message in messages %}
+          <div class="alert alert-success alert-dismissible " role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
+            </button>
+            <span class="fa fa-check-circle"></span> {{ message }}
+          </div>
+          {% endfor %}
+          {% endif %}
+
+            <div class="x_panel">
+              <div class="x_title">
+                <h2><small>Pending posts management</small></h2>
+                <ul class="nav navbar-right panel_toolbox">
+                  <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                  </li>
+                </ul>
+                <div class="clearfix"></div>
+              </div>
+              <div class="x_content">
+
+                <ul class="nav nav-tabs bar_tabs" id="myTab" role="tablist">
+                    <li class="nav-item">
+                      <a class="nav-link active" id="home-tab" data-toggle="tab" href="#civilian" role="tab" aria-controls="civilian" aria-selected="true">Civilian Victims</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="profile-tab" data-toggle="tab" href="#articles" role="tab" aria-controls="articles" aria-selected="false">Analysis Articles</a>
+                    </li>
+                  </ul>
+                  <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="civilian" role="tabpanel" aria-labelledby="home-tab">
+                        
+                        <!-- pending civilian victims part -->
+                        <div class="card-box table-responsive">
+                            <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+                              <thead>
+                                <tr>
+                                  <th>Status</th>
+                                  <th>Full Name</th>
+                                  <th>Gender</th>
+                                  <th>Age</th>
+                                  <th>Atrocity</th>
+                                  <th style="white-space: nowrap;">Place of Killing</th>
+                                  <th style="white-space: nowrap;">Woreda</th>
+                                  <th>Source</th>
+                                  <th style="white-space: nowrap;">Date of Event</th>
+                                  <th>Remark</th>
+                                  <th>Picture</th>
+                                  <th>Date Created</th>
+                                </tr>
+                              </thead>
+            
+            
+                              <tbody>
+                
+                                {% for victim in pending_civilian_victims %}
+                                <tr>
+                                  <td>
+                                    <a href="/Approve-civilian-victim-information/{{ victim.id }}" data-toggle="tooltip" data-placement="top" title="Approve Item"><i class="bi bi-check-circle-fill"></i></a>
+                                    &nbsp;
+                                    <a href="/Delete-civilian-victim/{{ victim.id }}" data-toggle="tooltip" data-placement="top" title="Delete Item"><i class="bi bi-trash"></i></a>
+                                  </td>
+                                  <td style="white-space: nowrap;">{{ victim.full_name }}</td>
+                                  <td>{{ victim.gender }}</td>
+                                  <td>{% if victim.age %} {{ victim.age }} {% else %} <i>Unknown</i> {% endif %}</td>
+                                  <td style="white-space: nowrap;">
+                                    {{ victim.perpetrator }}
+                                  </td>
+                                  <td style="white-space: nowrap;">{% if victim.place_of_killing %} {{ victim.place_of_killing }} {% else %} <i>Unknown</i> {% endif %}</td>
+                                  <td style="white-space: nowrap;">
+                                    {{ victim.woreda }}
+                                  </td>
+                                  <td>{% if victim.source %}
+                                    {% if victim.source_link %}
+                                    <a href="{{ victim.source_link }}" target="_blank">{{ victim.source }}</a> 
+                                    {% else %}
+                                    {{ victim.source }}
+                                    {% endif %}
+                                     {% else %}
+                                      <i>Unknown</i>
+                                       {% endif %}
+                                  </td>
+                                  <td>{% if victim.date_of_event %} {{ victim.date_of_event|date:"d-M-Y" }} {% else %} <i>Undated</i> {% endif %}</td>
+                                  <td>{% if victim.remark %} {{ victim.remark }} {% else %} <i>Unknown</i> {% endif %}</td>
+                                  <td style="white-space: nowrap;"><a href="{{ victim.picture.url }}" target="_blank">Open in new tab</a></td>
+                                  <td>{{ victim.date_created|date:"d-M-Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                              </tbody>
+                            </table>
+                          </div>
+                    </div>
+                    <!-- end of pending civilian -->
+
+                    <div class="tab-pane fade" id="articles" role="tabpanel" aria-labelledby="profile-tab">
+                      <div class="card-box table-responsive">
+                        <table id="datatable-fixed-header" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
+                          <thead>
+                            <tr>
+                              <th>Status</th>
+                              <th>Shared By</th>
+                              <th>Article Title</th>
+                              <th>Article THumbnail</th>
+                              <th>Date Created</th>
+                            </tr>
+                          </thead>
+        
+                          <tbody>
+            
+                            {% for item in pending_analysis_articles %}
+                            <tr>
+                              <td>
+                                <a href="/Approve-analysis-articles/{{ item.id }}" data-toggle="tooltip" data-placement="top" title="Approve Item"><i class="bi bi-check-circle-fill"></i></a>
+                                &nbsp;
+                                <a href="/Delete-analysis-article/{{ item.id }}" data-toggle="tooltip" data-placement="top" title="Delete Item"><i class="bi bi-trash"></i></a>
+                              </td>
+                              <td style="white-space: nowrap;">{{ item.author.first_name }} {{ item.author.last_name }}</td>
+                              <td>{{ item.title }}</td>
+                              <td style="white-space: nowrap;"><a href="{{ item.thumbnail.url }}" target="_blank">Open in new tab</a></td>
+                              <td>{{ item.date_created|date:"d-M-Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                  </div>
+
+              </div>
+            </div>
+          </div>
+    </div>
+  </div>
+</div>
+<!-- /page content -->
+{% else %}
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <h1 class="error-number">403</h1> 
+        <h2>Sorry, You don't have administrative privileges to access this page</h2>
+      </div>
+      </div>
+      </div>
+{% endif %}
+{% endblock %}

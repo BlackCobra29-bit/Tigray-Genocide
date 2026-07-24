@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block meta-title %}
+    <meta name="og:title" content="Photo Archive">
+{% endblock %}
+
+{% block page-content %}
+
+<main id="main">
+
+  <div class="breadcrumbs">
+    <nav>
+      <div class="container">
+        <ol>
+          <li><a href="{% url 'app-index' %}">Home</a></li>
+          <li>Photo Archive</li>
+        </ol>
+      </div>
+    </nav>
+  </div>
+
+  <section id="portfolio" class="portfolio sections-bg">
+    <div class="container" data-aos="fade-up">
+      <div class="portfolio-isotope" data-portfolio-filter="*" data-portfolio-layout="masonry" data-portfolio-sort="original-order" data-aos="fade-up" data-aos-delay="100">
+        <form
+          class="row"
+          method="get"
+          action="{% url 'archive-photo' %}"
+          hx-boost="false"
+          hx-get="{% url 'archive-photo' %}"
+          hx-select=".photo-archive-fragment"
+          hx-target="#photo-archive-results"
+          hx-swap="innerHTML"
+          hx-push-url="true"
+          hx-indicator="#page-shell-indicator"
+        >
+          <div class="col-lg-4"></div>
+          <div class="col-lg-4">
+            <div class="form-group">
+              <label for="archive-woreda"><span class="fa fa-search" style="color: blue;"></span> Filter By Woreda</label>
+              <select class="selectpicker form-control" data-live-search="true" name="woreda" id="archive-woreda" onchange="this.form.requestSubmit()">
+                <option value="">Search By Woreda</option>
+                {% for item in woreda_list %}
+                <option value="{{ item.woreda_name }}" {% if woreda == item.woreda_name %}selected{% endif %}>{{ item.woreda_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <br><br>
+          </div>
+          <div class="col-lg-2">
+            <div class="form-group">
+              <br>
+              <button
+                class="btn btn-danger"
+                type="button"
+                data-reset-filters="true"
+                hx-get="{% url 'archive-photo' %}"
+                hx-select=".photo-archive-fragment"
+                hx-target="#photo-archive-results"
+                hx-swap="innerHTML"
+                hx-push-url="true"
+              ><span class="fas fa-1x fa-sync-alt"></span> Reset</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="htmx-region">
+          <div id="photo-archive-results" class="htmx-region__content" hx-boost="false" hx-select=".photo-archive-fragment">
+            {% include 'public_partials/photo_archive_results.html' %}
+          </div>
+          <div class="htmx-region__skeleton" aria-hidden="true">
+            <div class="htmx-region__spinner">
+              <div class="spinner-border" role="status"></div>
+              <span>Loading photo archives...</span>
+            </div>
+            <div class="htmx-skeleton-card-grid">
+              <div class="htmx-skeleton-card">
+                <div class="htmx-skeleton htmx-skeleton-card__media"></div>
+                <div class="htmx-skeleton htmx-skeleton-line"></div>
+                <div class="htmx-skeleton htmx-skeleton-line"></div>
+                <div class="htmx-skeleton htmx-skeleton-line htmx-skeleton-line--sm"></div>
+              </div>
+              <div class="htmx-skeleton-card">
+                <div class="htmx-skeleton htmx-skeleton-card__media"></div>
+                <div class="htmx-skeleton htmx-skeleton-line"></div>
+                <div class="htmx-skeleton htmx-skeleton-line"></div>
+                <div class="htmx-skeleton htmx-skeleton-line htmx-skeleton-line--sm"></div>
+              </div>
+              <div class="htmx-skeleton-card">
+                <div class="htmx-skeleton htmx-skeleton-card__media"></div>
+                <div class="htmx-skeleton htmx-skeleton-line"></div>
+                <div class="htmx-skeleton htmx-skeleton-line"></div>
+                <div class="htmx-skeleton htmx-skeleton-line htmx-skeleton-line--sm"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+{% endblock %}

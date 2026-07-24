@@ -1,0 +1,515 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta property="og:image" content="{% static 'img/featured-image.PNG' %}">
+    {% block meta-title %} {% endblock %}
+    <title>Tigray Genocide</title>
+    <meta name="description" content="Explore documented events, survivor stories, and victim profiles from the Tigray genocide. Preserving truth for justice and historical record.">
+    <meta name="keywords" content="Tigray genocide, victims of Tigray, Ethiopia conflict, war crimes, humanitarian crisis, genocide documentation">
+    <meta property="og:title" content="Tigray Genocide Documentation" />
+    <meta property="og:description" content="A platform documenting victims and events of the Tigray genocide for global awareness and justice." />
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo-icon.png' %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://tigraygenocide.com/" />
+    <meta property="og:type" content="website" />
+
+
+    <!-- Favicons -->
+    <link href="{% static 'img/favicon.png' %}" rel="icon">
+    <!-- Font Awesome -->
+    <link href="{% static 'fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+    <!-- Vendor CSS Files -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
+    <!-- Template Main CSS File -->
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+    <!-- select2 css and js files -->
+    <link href="{% static 'css/select.css' %}" rel="stylesheet">
+    <!-- Keep original public table styling -->
+    <link rel="stylesheet" href="{% static 'admlte/datatable/css/dataTables.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admlte/datatable/css/responsive.bootstrap4.min.css' %}">
+  <!-- Include SweetAlert library -->
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  
+  <!-- ahrefs -->
+  <meta name="ahrefs-site-verification" content="2624bc09354c5b90cde8b48e8996287ffe8f2e078c5ca4ad27bcaa6f3eda0bab">
+
+</head>
+
+<body>
+    
+    <header id="header" class="header d-flex align-items-center">
+        <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
+            <nav id="navbar" class="navbar" hx-boost="true" hx-target="#page-shell" hx-select="#page-shell" hx-swap="outerHTML transition:true" hx-push-url="true" hx-indicator="#page-shell-indicator">
+                <ul>
+                    <li><a href="{% url 'app-index' %}" data-nav-key="home"><span class="nav-link-label"><span class="bi bi-bank"></span><span>Home</span></span></a></li>
+                    <li class="dropdown"><a href="#" data-nav-key="civilian"><span class="nav-link-label"><span class="bi bi-people"></span><span>Civilian Victims</span></span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
+                        <ul>
+                            <li><a href="{% url 'civilian_victims_by_name' %}">Verified Civilian Victims by Name</a></li>
+                            <li><a href="{% url 'civilian-victim-photo-page' %}">Verified Civilian Victims by Photo</a></li>
+                            <li><a href="{% url 'civilian-victim-map-page' %}">Verified Civilian Victims by Location</a></li>
+                            <li><a href="{% url 'unverified-civilian-victim' %}">Unidentified Civilian Victims</a></li>
+                            <li><a href="{% url 'send-information' %}" hx-boost="false">Submit Information on Civilian Victims</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown"><a href="#" data-nav-key="analysis"><span class="nav-link-label"><span class="bi bi-bar-chart"></span><span>Analysis</span></span> <i
+                                class="bi bi-chevron-down dropdown-indicator"></i></a>
+                        <ul>
+                            <li><a href="{% url 'app-articles-page' %}">Analysis Articles</a></li>
+                            <li><a href="{% url 'webinar-discussion-page' %}">Panel Discussions</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown"><a href="#" data-nav-key="archives"><span class="nav-link-label"><span
+                                    class="bi bi-camera-video-fill"></span><span>Archives</span></span> <i
+                                class="bi bi-chevron-down dropdown-indicator"></i></a>
+                        <ul>
+                            <li><a href="{% url 'archive-photo' %}">Photo Archives</a></li>
+                            <li><a href="{% url 'archive-video' %}">Video Archives</a></li>
+                            <li><a href="{% url 'send-archive' %}" hx-boost="false">Submit Photo and Video Archives</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="{% url 'about-us' %}" data-nav-key="about"><span class="nav-link-label"><span class="bi bi-person-circle"></span><span>About Us</span></span></a></li>
+                    <li><a href="{% url 'contact-us' %}" data-nav-key="contact"><span class="nav-link-label"><span class="bi bi-phone-fill"></span><span>Contact Us</span></span></a></li>
+                    <!-- <li><a href="blog.html"><span class="bi bi-currency-dollar"></span>&nbspDonate</a></li> -->
+                </ul>
+
+            </nav>
+            <!-- .navbar -->
+            <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
+            <i class="mobile-nav-toggle mobile-nav-hide d-none bi bi-x"></i>
+        </div>
+    </header>
+    <!-- End Header -->
+
+    <div id="page-content">
+        <div id="page-shell" hx-boost="true" hx-target="#page-shell" hx-select="#page-shell" hx-swap="outerHTML transition:true" hx-push-url="true" hx-indicator="#page-shell-indicator">
+            {% block page-content %}
+
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- ======= Footer ======= -->
+    <footer id="footer" class="footer" style="margin-bottom: 0">
+
+        <div class="copyright">
+            &copy; <strong><span>Tigray Genocide</span></strong>. All Rights Reserved
+        </div>
+
+    </footer>
+    <!-- End Footer -->
+    <a href="#" class="scroll-top d-flex align-items-center justify-content-center"><i
+            class="bi bi-arrow-up-short"></i></a>
+    <div id="page-shell-indicator" class="htmx-indicator page-shell-indicator">
+        <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+    </div>
+
+    <!-- Admlte Js file -->
+    <script src="{% static 'admlte/js/jquery.min.js' %}"></script>
+    <!-- Vendor JS Files -->
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'vendor/aos/aos.js' %}"></script>
+    <script src="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></script>
+    <script src="{% static 'vendor/purecounter/purecounter_vanilla.js' %}"></script>
+    <script src="{% static 'vendor/swiper/swiper-bundle.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/responsive.bootstrap4.min.js' %}"></script>
+    <!-- Parsely validation -->
+    <script src="{% static 'admin_static/js/parsley.min.js' %}"></script>
+    <!-- Template Main JS File -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/chart.js' %}"></script>
+    <!-- select2 css and js files -->
+    <script src="{% static 'js/select.js' %}"></script>
+
+    <script>
+        const currentYear = new Date().getFullYear();
+        document.getElementById('copyright_year').innerHTML = currentYear;
+    </script>
+
+    <div id="page-assets"></div>
+
+    <script>
+        function initializePublicUi(root) {
+            if (window.jQuery && $.fn.DataTable) {
+                $(root).find('table.js-server-datatable').each(function () {
+                    if (!$.fn.DataTable.isDataTable(this)) {
+                        var dataTable = $(this).DataTable({
+                            paging: false,
+                            searching: false,
+                            ordering: false,
+                            info: false,
+                            lengthChange: false,
+                            autoWidth: false,
+                            responsive: {
+                                details: {
+                                    type: 'inline',
+                                    target: 0
+                                }
+                            },
+                            columnDefs: [
+                                {
+                                    targets: 0,
+                                    className: 'all dtr-control'
+                                }
+                            ],
+                            dom: 't'
+                        });
+
+                        requestAnimationFrame(function () {
+                            dataTable.columns.adjust();
+                            if (dataTable.responsive) {
+                                dataTable.responsive.recalc();
+                            }
+                        });
+                    }
+                });
+            }
+
+            initializeHomePageVisuals(root);
+
+            if (window.jQuery && $.fn.select2) {
+                $(root).find('.selectpicker').each(function () {
+                    if (!$(this).hasClass('select2-hidden-accessible')) {
+                        $(this).select2();
+                    }
+                });
+            }
+
+            if (window.GLightbox) {
+                if (window.publicLightbox) {
+                    window.publicLightbox.destroy();
+                }
+                window.publicLightbox = GLightbox({ selector: '.glightbox' });
+            }
+
+            if (window.AOS) {
+                AOS.refreshHard();
+            }
+        }
+
+        function initializeHomePageVisuals(root) {
+            if (!root.querySelector('#home-page-config')) {
+                return;
+            }
+
+            var configNode = document.getElementById('home-page-config');
+            if (!configNode) {
+                return;
+            }
+
+            var config = {};
+            try {
+                config = JSON.parse(configNode.textContent);
+            } catch (error) {
+                return;
+            }
+
+            var counterIds = {
+                civilian: 'count_civilian',
+                unverified: 'count_unverified_civilian',
+                articles: 'count_articles',
+                photo: 'count_photo',
+                video: 'count_video'
+            };
+
+            Object.keys(counterIds).forEach(function (key) {
+                var element = document.getElementById(counterIds[key]);
+                if (element && config.counts && typeof config.counts[key] !== 'undefined') {
+                    element.textContent = Number(config.counts[key] || 0).toLocaleString();
+                }
+            });
+
+            if (!window.CanvasJS) {
+                return;
+            }
+
+            var lineDataPoints = config.lineDataPoints || [];
+            var linePercentages = config.linePercentages || [];
+            var barDataPoints = config.barDataPoints || [];
+            var barPercentages = config.barPercentages || [];
+            var zoneLabels = ['West', 'East', 'Central', 'North West', 'South', 'South East', 'Mekelle', 'Other'];
+            var ageLabels = ['< 10', '10-18', '18-33', '33-49', '49-64', '64-80', '80-95', 'Unknown'];
+
+            if (window.homeZoneChart && typeof window.homeZoneChart.destroy === 'function') {
+                window.homeZoneChart.destroy();
+            }
+            if (window.homeAgeChart && typeof window.homeAgeChart.destroy === 'function') {
+                window.homeAgeChart.destroy();
+            }
+            if (document.getElementById('chartContainer') && lineDataPoints.length) {
+                var maxIndexValue = Math.max.apply(null, lineDataPoints);
+                window.homeZoneChart = new CanvasJS.Chart('chartContainer', {
+                    animationEnabled: true,
+                    axisX: { interval: 1, title: 'Tigray Zone' },
+                    axisY2: {
+                        interlacedColor: 'rgba(1,77,101,.2)',
+                        gridColor: 'rgba(1,77,101,.1)',
+                        title: 'Number of Civilian Victims',
+                        maximum: maxIndexValue + (maxIndexValue / 2)
+                    },
+                    data: [{
+                        type: 'bar',
+                        axisYType: 'secondary',
+                        color: '#014D65',
+                        dataPoints: lineDataPoints.map(function (value, index) {
+                            return {
+                                y: value,
+                                label: zoneLabels[index],
+                                indexLabel: '{y}',
+                                indexLabelFontSize: 14,
+                                indexLabelPlacement: 'outside',
+                                markerColor: 'red',
+                                markerType: 'triangle',
+                                toolTipContent: '<b>{label}</b>(<i>' + (linePercentages[index] || 0) + '%</i>)'
+                            };
+                        })
+                    }]
+                });
+                window.homeZoneChart.render();
+            }
+
+            if (document.getElementById('chartContainer2') && barDataPoints.length) {
+                var maxChartValue = Math.max.apply(null, barDataPoints);
+                window.homeAgeChart = new CanvasJS.Chart('chartContainer2', {
+                    animationEnabled: true,
+                    theme: 'light2',
+                    axisY: {
+                        title: 'Number of Civilian Victims',
+                        gridThickness: 0,
+                        maximum: maxChartValue + (maxChartValue / 2)
+                    },
+                    axisX: { title: 'Age of victims' },
+                    data: [{
+                        type: 'column',
+                        showInLegend: true,
+                        legendMarkerColor: 'grey',
+                        indexLabelFontWeight: 'bolder',
+                        legendText: 'Civilian Victims report by Age',
+                        dataPoints: barDataPoints.map(function (value, index) {
+                            return {
+                                y: value,
+                                label: ageLabels[index],
+                                indexLabel: '{y}',
+                                indexLabelFontSize: 12,
+                                markerColor: 'red',
+                                markerType: 'triangle',
+                                toolTipContent: '<b>{label}</b>(<i>' + (barPercentages[index] || 0) + '%</i>)'
+                            };
+                        })
+                    }]
+                });
+                window.homeAgeChart.render();
+            }
+        }
+
+        function normalizePathname(pathname) {
+            if (!pathname || pathname === '/') {
+                return '/';
+            }
+
+            return pathname.replace(/\/+$/, '');
+        }
+
+        function syncNavbarActiveState() {
+            var navbar = document.getElementById('navbar');
+            if (!navbar) {
+                return;
+            }
+
+            var currentPath = normalizePathname(window.location.pathname);
+            var navMatches = {
+                home: ['/'],
+                civilian: [
+                    '/Civilian-victims-by-name',
+                    '/View-victim-info',
+                    '/Civilina-victims-photo',
+                    '/search-civilian-victim',
+                    '/Civilina-victims-location',
+                    '/Civilina-victims-location-information',
+                    '/Unverified-Civilina-victims',
+                    '/Send-information'
+                ],
+                analysis: [
+                    '/Articles-page',
+                    '/Article-category',
+                    '/View-article',
+                    '/Article-comment',
+                    '/Searched-articles',
+                    '/Webinar-discussion-page',
+                    '/View-panel-discussion'
+                ],
+                archives: [
+                    '/Archive-photo',
+                    '/Search-archive-photo',
+                    '/Archive-video',
+                    '/Watch-video',
+                    '/Send-archive'
+                ],
+                about: ['/About-us'],
+                contact: ['/Contact-us']
+            };
+
+            navbar.querySelectorAll('a[data-nav-key]').forEach(function (link) {
+                link.classList.remove('active');
+            });
+
+            Object.keys(navMatches).forEach(function (key) {
+                var isActive = navMatches[key].some(function (prefix) {
+                    var normalizedPrefix = normalizePathname(prefix);
+
+                    if (normalizedPrefix === '/') {
+                        return currentPath === '/';
+                    }
+
+                    return currentPath === normalizedPrefix || currentPath.indexOf(normalizedPrefix + '/') === 0;
+                });
+
+                if (isActive) {
+                    navbar.querySelector('a[data-nav-key="' + key + '"]')?.classList.add('active');
+                }
+            });
+        }
+
+        function setLoadingRegionState(target, isLoading) {
+            if (!target) {
+                return;
+            }
+
+            var loadingRegion = target.closest('.htmx-region');
+            if (!loadingRegion) {
+                return;
+            }
+
+            loadingRegion.classList.toggle('is-loading', isLoading);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initializePublicUi(document);
+            syncNavbarActiveState();
+        });
+
+        document.body.addEventListener('htmx:beforeRequest', function (event) {
+            setLoadingRegionState(event.detail && event.detail.target, true);
+        });
+
+        document.body.addEventListener('htmx:beforeSwap', function (event) {
+            if (!window.jQuery || !$.fn.DataTable) {
+                return;
+            }
+
+            $(event.target).find('table.js-server-datatable').each(function () {
+                if ($.fn.DataTable.isDataTable(this)) {
+                    $(this).DataTable().destroy();
+                }
+            });
+        });
+
+        document.body.addEventListener('htmx:afterSwap', function (event) {
+            setLoadingRegionState(event.target, false);
+            initializePublicUi(event.target);
+            syncNavbarActiveState();
+
+            if (event.target && event.target.id === 'page-shell') {
+                window.requestAnimationFrame(function () {
+                    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+                });
+            }
+        });
+
+        document.body.addEventListener('htmx:afterRequest', function (event) {
+            setLoadingRegionState(event.detail && event.detail.target, false);
+        });
+
+        document.body.addEventListener('htmx:responseError', function (event) {
+            setLoadingRegionState(event.detail && event.detail.target, false);
+        });
+
+        document.body.addEventListener('htmx:sendError', function (event) {
+            setLoadingRegionState(event.detail && event.detail.target, false);
+        });
+
+        document.body.addEventListener('htmx:historyRestore', function () {
+            document.querySelectorAll('.htmx-region.is-loading').forEach(function (region) {
+                region.classList.remove('is-loading');
+            });
+            initializePublicUi(document);
+            syncNavbarActiveState();
+        });
+
+        document.body.addEventListener('click', function (event) {
+            const remarkToggle = event.target.closest('.remark-toggle');
+            const resetFilters = event.target.closest('[data-reset-filters="true"]');
+            const seeMore = event.target.closest('.seeMore');
+            const showLess = event.target.closest('.showLess');
+
+            if (remarkToggle) {
+                const detailRowId = remarkToggle.getAttribute('aria-controls');
+                const detailRow = document.getElementById(detailRowId);
+
+                if (!detailRow) {
+                    return;
+                }
+
+                const isExpanded = remarkToggle.getAttribute('aria-expanded') === 'true';
+                remarkToggle.setAttribute('aria-expanded', String(!isExpanded));
+                detailRow.classList.toggle('d-none', isExpanded);
+
+                const icon = remarkToggle.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-plus', isExpanded);
+                    icon.classList.toggle('fa-minus', !isExpanded);
+                }
+
+                return;
+            }
+
+            if (resetFilters) {
+                const form = resetFilters.closest('form');
+
+                if (!form) {
+                    return;
+                }
+
+                form.reset();
+
+                if (window.jQuery && $.fn.select2) {
+                    $(form).find('.selectpicker').each(function () {
+                        $(this).val('').trigger('change');
+                    });
+                }
+
+                return;
+            }
+
+            if (seeMore) {
+                const itemId = seeMore.dataset.id;
+                document.getElementById('more_' + itemId)?.classList.remove('hidden');
+                seeMore.classList.add('hidden');
+                document.querySelector(".showLess[data-id='" + itemId + "']")?.classList.remove('hidden');
+            }
+
+            if (showLess) {
+                const itemId = showLess.dataset.id;
+                document.getElementById('more_' + itemId)?.classList.add('hidden');
+                showLess.classList.add('hidden');
+                document.querySelector(".seeMore[data-id='" + itemId + "']")?.classList.remove('hidden');
+            }
+        });
+    </script>
+    
+</body>
+
+</html>

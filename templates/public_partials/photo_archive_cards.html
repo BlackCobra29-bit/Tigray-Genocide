@@ -1,0 +1,36 @@
+{% load static %}
+
+{% for item in page %}
+<div class="col-xl-4 col-md-6 portfolio-item filter-app">
+  <div class="portfolio-wrap">
+    {% if item.graphic == True %}
+    <a href="{{ item.photo.url }}" data-gallery="portfolio-gallery-app" class="glightbox" data-title="{{ item.description }}">
+      <img src="{% static 'img/graphic_img.png' %}" style="height: 200px; width: 100%;" class="img-fluid" alt="" loading="lazy">
+    </a>
+    {% else %}
+    <a href="{{ item.photo.url }}" data-gallery="portfolio-gallery-app" class="glightbox" data-title="{{ item.description }}">
+      <img src="{{ item.photo.url }}" style="height: 239px; width: 100%;" class="img-fluid" alt="" loading="lazy">
+    </a>
+    {% endif %}
+    <div class="portfolio-info">
+      <h4>
+        <span class="bi bi-geo-alt" id="calendar">
+          {% if item.location %}
+          {{ item.location }}, {{ item.woreda }} Woreda
+          {% else %}
+          <i>Unknown</i>{% if woreda %}, {{ woreda }} Woreda{% endif %}
+          {% endif %}
+        </span>
+        <span class="far fa-calendar" id="gps">
+          {% if item.date_of_event %}
+          {{ item.date_of_event|date:"d-M-Y" }}
+          {% else %}
+          <i>Undated</i>
+          {% endif %}
+        </span>
+      </h4>
+      <p>{{ item.description|urlize }}</p>
+    </div>
+  </div>
+</div>
+{% endfor %}

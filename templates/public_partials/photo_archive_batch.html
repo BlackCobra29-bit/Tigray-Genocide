@@ -1,0 +1,23 @@
+{% include 'public_partials/photo_archive_cards.html' %}
+<div id="photo-archive-load-more" class="victim-photo-footer mt-4" hx-swap-oob="true">
+  <div class="victim-photo-footer__info">
+    {% if filtered_count %}
+    {{ page.end_index }} of {{ filtered_count }} entries
+    {% else %}
+    0 of 0 entries
+    {% endif %}
+  </div>
+  <div class="victim-photo-footer__action">
+    {% if page.has_next %}
+    <button
+      class="btn btn-dark"
+      hx-get="{% url 'archive-photo' %}?{{ next_querystring }}&append=1"
+      hx-target="#photo-archive-grid"
+      hx-swap="beforeend"
+      hx-indicator="#page-shell-indicator"
+    >
+      Load More
+    </button>
+    {% endif %}
+  </div>
+</div>

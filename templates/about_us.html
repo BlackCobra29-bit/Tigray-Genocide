@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block meta-title %}
+    <meta name="og:title" content="About us">
+{% endblock %}
+    
+{% block page-content %}
+
+{% load static %}
+
+<main id="main">
+
+    <!-- ======= Breadcrumbs ======= -->
+    <div class="breadcrumbs">
+        <nav>
+            <div class="container">
+                <ol>
+                    <li><a href="{% url 'app-index' %}">Home</a></li>
+                    <li>About Us</li>
+                </ol>
+            </div>
+        </nav>
+    </div><!-- End Breadcrumbs -->
+
+    <!-- ======= Blog Details Section ======= -->
+    <section id="blog" class="blog">
+        <div class="container" data-aos="fade-up">
+
+            <div class="row g-5">
+
+                <div class="col-lg-2"></div>
+
+                <div class="col-lg-8">
+
+                    <span style="font-size: 35px; font-weight: bold;">H</span>onoring the Civilian Victims of the Tigray Genocide: A Digital Archive and Memorial
+                    
+                    <br><br>
+
+The genocidal invasion of Tigray that began on November 4, 2020, carried out by the Ethiopian and Eritrean forces, along with the Amhara militia and Fano, has created one of the worst humanitarian crises in recent memory. And yet, the international community has largely looked away.
+
+<br><br>
+
+Our goal is simple but urgent: to build an accessible platform that tells the truth about the Tigray Genocide. We are committed to carefully recording the names, faces, and stories of the civilians who were targeted solely because of their Tigrayan identity through firsthand accounts, photographs, videos, and other pieces of evidence that reveal the full scale of the mass atrocities.
+
+<br><br>
+
+This work is more than just documentation. It is a stand for justice and a tribute to the strength of the Tigrayan people. It is also a plea to the international community: to listen, to remember, and to act. Justice cannot wait, and those responsible must be held accountable.
+
+<br><br>
+
+We invite you to join us in this effort to ensure that the civilian victims are not forgotten and that the truth of what happened in Tigray, under the full watch of the international community, is preserved for generations to come.
+
+                </div>
+
+            </div>
+    </section><!-- End Blog Details Section -->
+
+</main><!-- End #main -->
+
+{% endblock %}

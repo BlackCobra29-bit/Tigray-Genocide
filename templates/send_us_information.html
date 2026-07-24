@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  {% load static %}
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <!-- Meta, title, CSS, favicons, etc. -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta property="og:image" content="{% static 'img/featured-image.PNG' %}">
+  <meta name="og:title" content="Submit Information on Civilian Victims">
+
+  <title>Tigray Genocide</title>
+
+  <!-- Bootstrap -->
+  <link href="{% static 'admin_static/css/bootstrap.min.css' %}" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="{% static 'fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+  <!-- NProgress -->
+  <link href="{% static 'admin_static/css/nprogress.css' %}" rel="stylesheet">
+  <!-- bootstrap icons -->
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <!-- datatable css files -->
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/dataTables.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/buttons.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/fixedHeader.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/responsive.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/scroller.bootstrap.min.css' %}">
+
+  <!-- select2 css and js files -->
+  <link href="{% static 'css/select.css' %}" rel="stylesheet">
+  <!-- Custom Theme Style -->
+  <link href="{% static 'admin_static/css/custom.min.css' %}" rel="stylesheet">
+  <!-- international phone css -->
+  <link href="{% static 'css/international-telephone-input.css' %}" rel="stylesheet">
+  <!-- Include SweetAlert library -->
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+</head>
+  
+ <style>
+  #loadingIndicator {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  }
+  x_panel{
+      box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
+  }
+  body .container.body .right_col{
+      background: #f0eafd;
+  }
+  body{
+      background: #f0eafd;
+      
+  }
+</style>
+
+<body style="overflow-x: hidden">
+  <div class="container body">
+    <div class="main_container">
+
+      <br />
+
+
+      <!-- page content -->
+      <div class="right_col" role="main">
+        <div class="">
+          <div class="page-title">
+          </div>
+          <div class="clearfix"></div>
+
+          <div class="row">
+
+            <div class="col-lg-2"></div>
+
+            <div class="col-md-8 col-sm-12">
+                
+                <br>
+
+              <div class="x_panel" style="border-radius: 8px; box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12)">
+                <div class="x_content">
+                  <div class="row">
+                      
+                    <h3 class="green text-center"><strong><span class="bi bi-people"></span> Civilian Victim Information Submission Form</strong></h3>
+                    
+                        <ul>
+                            <li>ዝኣቱ መረዳእታ ብቋንቋ እንግሊዝኛ እንተዝኸውን ይምረፅ። ዘይከኣል እንተኾይኑ ግን ብቋንቋ ትግርኛ እውን ምእታው ይከኣል እዩ። እቲ ዝኣቱ መረዳእታ ብቋንቋ እንግሊዘኛ እንተኾይኑ ዕለት ናይቲ ግዳይ እውን ብኣቆፃፅራ ኣውሮፓውያን ምዃኑ ክነረጋግፅ ኣለና።</li>
+                            <li>መፀውዒ ግዳይ ሙሉእ ሽም (ሽም፣ ሽም ኣቦን ሽም ኣቦሓጎን) ክኸውን ኣለዎ። ካልኦት ይጠቕሙ እይዮም እትብልዎም መረዳእታታት እውን በቲ መልኣኺ ቅጥዒ መሰረት ምልኣኽ ይከኣል እይዩ።</li>
+                            <li>እተእትዉዎ መረዳእታ ሓቃውነቱ ዝተረጋገፀ ጥራሕ ክኸውን ንላቦ።</li>
+                            <li>ኣብ መወዳእታ ዝተልኣኹ መረዳእታታት ብ ኣማሓዳሪ እዚ መርበብ ሓበሬታ ተራእዮም ይፀድቁ።</li>
+                        </ul>
+                        
+                        You can send us information regarding Tigrayan civilian victims using the form provided below. <span style="color: #e13813">Please be assured that the sender's information will not be disclosed publicly without explicit consent.</span>
+                        
+                        <br><br>
+
+                    <form action="" id="sendForm" data-parsley-validate method="POST" enctype="multipart/form-data">
+                      {% csrf_token %}
+
+                      <p>
+                        Select Language(ቋንቋ ይምረፁ): &nbsp
+                        <input type="radio" name="language" id="tigrigna"> Tigrigna
+                        <input type="radio" name="language" id="english"> English
+                      </p>
+
+                      <div class="separator"></div>
+
+                      <p class="text-muted font-13 m-b-30">
+                        <code> <span class="fa fa-info-circle"></span> <span id="part_one">Sender Information Part</span> </code>
+                      </p>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="sender_fullname"> Sender Full Name: </span><span class="required"
+                          style="color: #dc3545;">*</span>
+                        <input type="text" class="form-control" name="sender_fullname" id="sender_name" required>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="sender_address"> Sender Address: </span> <span class="required"
+                          style="color: #dc3545;">*</span>
+                        <input type="text" class="form-control" name="sender_address" id="sender_address" required>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="sender_email"> Sender Email: </span> <span class="required"
+                          style="color: #dc3545;">*</span>
+                        <input type="email" class="form-control" name="sender_email" id="sender_email" required>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="sender_phone"> Sender Phone: </span> <span class="required"
+                          style="color: #dc3545;">*</span>
+                          <br>
+                        <div class="iti">
+                          <input type="tel" name="sender_phone" id="sender_phone" class="form-control" required>
+                        </div>
+                      </div>
+
+                      <p class="text-muted font-13 m-b-30">
+                        <code> <span class="fa fa-info-circle"></span> <span id="part_two">Civilian Victim's Information Part</span> </code>
+                      </p>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="first_name">First Name: </span> <span class="required"
+                          style="color: #dc3545;">*</span>
+                        <input type="text" class="form-control" name="first_name" id="first_name" required>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="middle_name">Middle Name: </span> <span class="required"
+                          style="color: #dc3545;">*</span>
+                        <input type="text" class="form-control" name="middle_name" id="middle_name" required>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="last_name">Last Name: </span> <span class="required" style="color: #dc3545;">*</span>
+                        <input type="text" class="form-control" name="last_name" id="last_name" required>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="gender">Gender: </span> <span class="required" style="color: #dc3545;">*</span>
+                        <select class="form-control" name="gender" id="gender" required>
+                          <option selected="" disabled=""></option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Unknown">Unknown</option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-4 col-sm-12  form-group">
+                        <span id="age">Age</span> (<i>optional</i>)
+                        <input type="number" class="form-control" name="age">
+                      </div>
+
+                      <div class="col-md-4 col-sm-12  form-group">
+                        <span id="attrocity">Atrocity</span>: <span class="required" style="color: #dc3545;">*</span>
+                        <select class="form-control" name="perpetrator" id="perpetrator" required>
+                          <option selected="" disabled=""></option>
+                          <option value="Died from lack of food">Died from lack of food</option>
+                          <option value="Died from lack of medicine">Died from lack of medicine</option>
+                          <option value="Killed by Ethiopian forces">Killed by Ethiopian forces</option>
+                          <option value="Killed by Eritrean forces">Killed by Eritrean forces</option>
+                          <option value="Killed by Ethiopian and Eritrean forces">Killed by Ethiopian and Eritrean forces</option>
+                          <option value="Killed by Amhara militia and Fano">Killed by Amhara militia and Fano</option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-4 col-sm-12  form-group">
+                        <span id="woreda">Woreda</span>: <span class="required" style="color: #dc3545;">*</span>
+                        <select class="selectpicker form-control" data-live-search="true" name="woreda" id="woreda" required>
+                          <option selected="" disabled=""></option>
+                          {% for woreda in woreda_list%}
+                          <option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="place_of_killing">Place of Killing</span> <span> (<i>optional</i>)</span>
+                        <input type="text" class="form-control" name="place">
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="date_of_event">Date of Event</span> (<i>optional</i>)
+                        <code>(dd-mm-yyyy GC format)</code>
+                        <input type="date" class="form-control" placeholder="" name="date_of_event">
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="remark">Remark</span> (<i>optional</i>)
+                        <textarea class="form-control" name="remark" rows="3"></textarea>
+                      </div>
+
+                      <div class="col-md-6">
+                        <span id="photo">Photo</span> (<i>optional</i>)
+                        <input type="file" class="form-control" name="photo" accept="image/*">
+                      </div>
+
+                      <div class="form-group">
+                        <div class="col-md-11 col-sm-9  offset-md-5"><br>
+                          <button class="btn btn-dark" onclick="goBack()"><span id="back">Back</span></button>
+                          <button type="submit" class="btn btn-success" id="submit-btn"><span id="submit">Submit</span></button>
+                        </div>
+                      </div>
+
+                    </form>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /page content -->
+
+    </div>
+  </div>
+  
+  
+    <!-- Your loading indicator -->
+    <div id="loadingIndicator">
+      <img src="{% static 'img/Spinner-loading.gif' %}" alt="Loading...">
+    </div>
+
+
+    <script>
+    document
+      .getElementById("sendForm")
+      .addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent default form submission
+        if (
+          $("#sender_name").parsley().isValid() &&
+          $("#sender_address").parsley().isValid() &&
+          $("#sender_email").parsley().isValid() &&
+          $("#sender_phone").parsley().isValid() &&
+          $("#first_name").parsley().isValid() &&
+          $("#middle_name").parsley().isValid() &&
+          $("#last_name").parsley().isValid() &&
+          $("#gender").parsley().isValid() &&
+          $("#perpetrator").parsley().isValid() &&
+          $("#woreda").parsley().isValid()
+        ) {
+          // Show the loading indicator
+          $("#loadingIndicator").show();
+
+          var submitButton = document.getElementById("submit-btn");
+          submitButton.innerHTML = "Sending...";
+          submitButton.disabled = true;
+
+          var formData = new FormData(this);
+          var xhr = new XMLHttpRequest();
+
+          xhr.open("POST", "/Send-information/");
+          xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+          xhr.onload = function () {
+            if (xhr.status === 200) {
+              var response = JSON.parse(xhr.responseText);
+              if (response.success) {
+                // Hide the loading indicator when the request is complete
+                $("#loadingIndicator").hide();
+                swal(
+                  "Form Sent!",
+                  "Your form has been sent successfully.",
+                  "success"
+                );
+                submitButton.innerHTML = "Submit";
+                submitButton.disabled = false; // Enable the button again
+                setTimeout(function() { location.reload();
+                        }, 2000);
+                
+              } else {
+                swal(
+                  "Oops!",
+                  "Failed to send form. Please try again.",
+                  "error"
+                );
+                submitButton.innerHTML = "Submit";
+                submitButton.disabled = false; // Enable the button again
+              }
+            }
+          };
+          xhr.send(formData);
+        }
+      });
+  </script>
+
+  <!-- jQuery -->
+  <script src="{% static 'admin_static/js/jquery.min.js' %}"></script>
+  <!-- Bootstrap -->
+  <script src="{% static 'admin_static/js/bootstrap.bundle.min.js' %}"></script>
+  <!-- FastClick -->
+  <script src="{% static 'admin_static/js/fastclick.js' %}"></script>
+  <!-- NProgress -->
+  <script src="{% static 'admin_static/js/nprogress.js' %}"></script>
+  <!-- Parsely validation -->
+  <script src="{% static 'admin_static/js/parsley.min.js' %}"></script>
+  <!-- datatable css files -->
+  <script src="{% static 'admin_static/datatable/js/jquery.dataTables.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.bootstrap.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.buttons.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/buttons.flash.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/buttons.html5.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/buttons.print.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.fixedHeader.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.keyTable.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.responsive.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/responsive.bootstrap.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.scroller.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/jszip.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/pdfmake.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/vfs_fonts.js' %}"></script>
+  <!-- select2 css and js files -->
+  <script src="{% static 'js/select.js' %}"></script>
+  <!-- Custom Theme Scripts -->
+  <script src="{% static 'admin_static/js/custom.min.js' %}"></script>
+  <!-- International Telephone JS File -->
+  <script src="{% static 'js/international-telephone-input.js' %}"></script>
+
+  <script>
+    $(document).ready(function () {
+      $('#tigrigna').click(function () {
+        $('#header_text').text('መረዳእታ ይልኣኩልና');
+        $('#part_one').text('ናይ ለኣካይ መረደእታ መምልኢ ቅጥዒ');
+        $('#part_two').text('ናይ ንፁሃት ግዳያት ሓበሬታ መምልኢ ቅጥዒ');
+        $('#sender_fullname').text('ሙሉእ ሽም ለኣካይ');
+        $('#sender_address').text('ኣድራሻ ለኣካይ');
+        $('#sender_email').text('ኢሜይል ኣድራሻ ለኣካይ');
+        $('#sender_phone').text('ስልኪ ቁፅሪ ለኣካይ');
+        $('#first_name').text('ሽም ግዳይ');
+        $('#middle_name').text('ሽም ኣቦ ግዳይ');
+        $('#last_name').text('ሽም ኣቦሓጎ ግዳይ');
+        $('#gender').text('ፆታ');
+        $('#age').text('ዕድመ');
+        $('#attrocity').text('ምክንያት ህልቂት');
+        $('#place_of_killing').text('ቦታ');
+        $('#woreda').text('ወረዳ');
+        $('#zone').text('ዞባ');
+        $('#date_of_event').text('ዕለተ-ፍፃመ');
+        $('#remark').text('ዝርዝር ሓበሬታ');
+        $('#back').text('ይመለሱ');
+        $('#submit').text('ይልኣኩ');
+      });
+
+      $('#english').click(function () {
+        $('#header_text').text('Send Us Information');
+        $('#part_one').text('Sender Information Part');
+        $('#part_two').text("Civilian Victim's Information Part");
+        $('#sender_fullname').text('Sender Fullname');
+        $('#sender_address').text('Sender Address');
+        $('#sender_email').text('Sender Email');
+        $('#sender_phone').text('Sender Phone');
+        $('#first_name').text('First name');
+        $('#middle_name').text('Middle name');
+        $('#last_name').text('Last name');
+        $('#gender').text('Gender');
+        $('#age').text('Age');
+        $('#attrocity').text('Atrocity');
+        $('#place_of_killing').text('Place of Killing');
+        $('#woreda').text('woreda');
+        $('#zone').text('Zone');
+        $('#date_of_event').text('Date of Event');
+        $('#remark').text('Remark');
+        $('#photo').text('Photo');
+        $('#back').text('Back');
+        $('#submit').text('Submit');
+      });
+    });
+  </script>
+
+  <script>
+    $(document).ready(function () {
+      $('.selectpicker').select2();
+    });
+  </script>
+  
+  <style>
+    .iti {
+      position: relative;
+      display: block;
+    }
+
+    input[type=tel] {
+      padding-right: 6px;
+      padding-left: 52px;
+      margin-left: 0;
+
+      position: relative;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      margin-right: 0;
+      border: 1px solid #CCC;
+      width: 100%;
+      height: 38px;
+      /* padding: 6px 12px; */
+      border-radius: 2px;
+      font-family: inherit;
+      font-size: 100%;
+      color: inherit;
+    }
+    
+  </style>
+  
+  <style>
+    #parsley-id-30 {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        margin-top: 5px; /* Adjust as needed */
+        list-style: none;
+        padding-left: 10px;
+    }
+
+</style>
+  
+  <script>
+        // Return to the previous page
+        function goBack() {
+          window.history.back();
+        }
+    </script>
+
+
+</body>
+
+</html>

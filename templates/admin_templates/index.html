@@ -1,0 +1,296 @@
+{% extends 'admin_templates/base.html' %}
+
+{% load static %}
+{% load humanize %}
+
+{% block admin_page_content %}
+
+<script src="{% static 'js/plotly-api.js' %}"></script>
+
+<style>
+  .icon {
+  display: none;
+}
+/* CSS style for our custom legend */
+.legend {
+  margin-top: 20px;
+}
+
+.legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  column-count: 2; /* Set the number of columns */
+  column-gap: 10px; /* Set the gap between columns */
+  list-style-type: none;
+}
+
+.legend li {
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 20px;
+  height: 10px;
+  margin-right: 5px;
+}
+
+/* Add additional styling as needed */
+</style>
+
+<!-- page content -->
+<div class="right_col" role="main">
+
+
+  <!-- top tiles -->
+  <div class="row" style="display: inline-block;" >
+    <div class="tile_count">
+      <div class="col-md-2 col-sm-4  tile_stats_count">
+        <span class="count_top"><i class="fa fa-user-circle"></i> Verified Civilian Victims</span>
+        <div class="count">{{ count_civilian|intcomma}}</div>
+        <span class="count_bottom"><a href="{% url 'civilian-data-management' %}"><i class="fas fa-arrow-circle-right"></i> See more</a></span>
+      </div>
+      <div class="col-md-2 col-sm-4  tile_stats_count">
+        <span class="count_top"><i class="fa fa-signal"></i> Analysis Articles</span>
+        <div class="count">{{ count_articles|intcomma }}</div>
+        <span class="count_bottom"><a href="{% url 'analysis-article-management' %}"><i class="fas fa-arrow-circle-right"></i> See more</a></span>
+      </div>
+      <div class="col-md-2 col-sm-4  tile_stats_count">
+        <span class="count_top"><i class="fa fa-users"></i> Panel Discussions</span>
+        <div class="count">{{ count_panel|intcomma}}</div>
+        <span class="count_bottom"><a href="{% url 'webinar-discussion-management' %}"><i class="fas fa-arrow-circle-right"></i> See more</a></span>
+      </div>
+      <div class="col-md-2 col-sm-4  tile_stats_count">
+        <span class="count_top"><i class="fa fa-camera"></i> Photo Archives</span>
+        <div class="count">{{ count_photo|intcomma }}</div>
+        <span class="count_bottom"><a href="{% url 'manage-photo-archive' %}"><i class="fas fa-arrow-circle-right"></i> See more</a></span>
+      </div>
+      <div class="col-md-2 col-sm-4  tile_stats_count">
+        <span class="count_top"><i class="fa fa-video"></i> Video Archives</span>
+        <div class="count">{{ count_video|intcomma }}</div>
+        <span class="count_bottom"><a href="{% url 'manage-video-archive' %}"><i class="fas fa-arrow-circle-right"></i> See more</a></span>
+      </div>
+      <div class="col-md-2 col-sm-4  tile_stats_count">
+        <span class="count_top"><i class="fa fa-check-circle"></i> Pending Posts</span>
+        <div class="count">{{ count_pending|intcomma}}</div>
+        <span class="count_bottom"><a href="{% url 'pending-posts-management' %}"><i class="fas fa-arrow-circle-right"></i> See more</a></span>
+      </div>
+    </div>
+  </div>
+    <!-- /top tiles -->
+
+  
+
+  <div class="">
+
+    <div class="row" style="display: block;">
+
+      <div class="col-md-6">
+        <div class="x_panel">
+          <div class="x_content">
+              
+              
+              
+          <!-- Your custom legend -->
+            <div class="legend">
+              <ul>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> West ({{ line_chart_items_percentage.0|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> East ({{ line_chart_items_percentage.1|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> Central ({{ line_chart_items_percentage.2|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> North West ({{ line_chart_items_percentage.3|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> South ({{ line_chart_items_percentage.4|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> South East ({{ line_chart_items_percentage.5|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> Mekelle ({{ line_chart_items_percentage.6|safe }}%)</li>
+                <li><span class="legend-color"></span><i class="fas fa-map-marker-alt mr-1"></i> Other ({{ line_chart_items_percentage.7|safe }}%)</li>
+                <!-- Add more list items for additional series -->
+              </ul>
+            </div>
+            <br>
+
+            <div id="chartContainer" style="height: 250px;"></div>
+            <br>
+            <button class="btn btn-xs btn-default" onclick="downloadLineGraph()">
+            </button>
+            
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="x_panel">
+          <div class="x_content">
+              
+              <!-- Your custom legend -->
+            <div class="legend">
+              <ul>
+                <li><span class="legend-color" style="background-color: #6D78AD;"></span> < 10 ({{ bar_chart_items_percentage.0|safe }}%)</li>
+                <li><span class="legend-color" style="background-color: #51CDA0;"></span> 10-18 ({{ bar_chart_items_percentage.1|safe }}%)</li>
+                <li><span class="legend-color" style="background-color: #DF7970"></span> 18-33 ({{ bar_chart_items_percentage.2|safe }}%)</li>
+                <li><span class="legend-color" style="background-color: #4C9CA0;"></span> 33-49 ({{ bar_chart_items_percentage.3|safe }}%)</li>
+                <li><span class="legend-color" style="background-color: #AE7D99;"></span> 49-64 ({{ bar_chart_items_percentage.4|safe }}%)</li>
+                <li><span class="legend-color" style="background-color: #C9D45C;"></span> 64-80 ({{ bar_chart_items_percentage.5|safe }}%)</li>
+                <li><span class="legend-color" style="background-color: #5592AD;"></span> 80-95 ({{ bar_chart_items_percentage.6|safe }}%)</li>
+                <li><span class="legend-color" style="background-color: #DF874D;"></span> Unknown ({{ bar_chart_items_percentage.7|safe }}%)</li>
+                <!-- Add more list items for additional series -->
+              </ul>
+            </div>
+            <br>
+
+            <div id="chartContainer2" style="height: 250px;"></div>
+            <br>
+            <button class="btn btn-xs btn-default" onclick="downloadLineGraph()">
+            </button>
+            
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="x_panel">
+          <div class="x_content">
+            {{ pi_data_points|safe }}
+            <br>
+            <button class="btn btn-xs btn-default" onclick="downloadLineGraph()">
+            </button>
+            
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="x_panel">
+          <div class="x_content">
+            {{ doughnut_data_points|safe }}
+            <br>
+            <button class="btn btn-xs btn-default" onclick="downloadLineGraph()">
+            </button>
+            
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+</div>
+<!-- /page content -->
+
+<style>
+  #symbol .modebar-btn {
+
+    display: none;
+
+  }
+  .modebar-btn {
+
+    display: none;
+
+  }
+</style>
+
+<script src="{% static 'js/chart.js' %}"></script>
+
+<script>
+  window.onload = function () {
+  
+  console.log(Math.round({{bar_chart_items_percentage.0}}))
+
+  // Zone Report
+        // to increase the maximum X-axis point of the bar chart
+            var maxIndexValue = Math.max(
+                  {{ line_data_points.0|safe }},
+                  {{ line_data_points.1|safe }},
+                  {{ line_data_points.2|safe }},
+                  {{ line_data_points.3|safe }},
+                  {{ line_data_points.4|safe }},
+                  {{ line_data_points.5|safe }},
+                  {{ line_data_points.6|safe }},
+                  {{ line_data_points.7|safe }}
+                );
+      // end
+
+
+var chart = new CanvasJS.Chart("chartContainer", {
+  animationEnabled: true,
+  axisX:{
+    interval: 1,
+    title: "Tigray Zone"
+  },
+  axisY2:{
+    interlacedColor: "rgba(1,77,101,.2)",
+    gridColor: "rgba(1,77,101,.1)",
+    title: "Number of Civilian Victims",
+    maximum: maxIndexValue + (maxIndexValue/2)
+  },
+  data: [{
+    type: "bar",
+    name: "companies",
+    axisYType: "secondary",
+    color: "#014D65",
+    dataPoints: [
+      { y: {{ line_data_points.0|safe }}, label: "West", indexLabel: "{y}", indexLabelFontSize: '14', indexLabelPlacement: "outside", markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ line_chart_items_percentage.0|safe }}%</i>)" },
+      { y: {{ line_data_points.1|safe }}, label: "East", indexLabel: "{y}", indexLabelFontSize: '14', indexLabelPlacement: "outside", markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ line_chart_items_percentage.1|safe }}%</i>)" },
+      { y: {{ line_data_points.2|safe }}, label: "Central", indexLabel: "{y}", indexLabelFontSize: '14', indexLabelPlacement: "outside", markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ line_chart_items_percentage.2|safe }}%</i>)" },
+      { y: {{ line_data_points.3|safe }}, label: "North West", indexLabel: "{y}", indexLabelFontSize: '14', indexLabelPlacement: "outside", markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ line_chart_items_percentage.3|safe }}%</i>)" },
+      { y: {{ line_data_points.4|safe }}, label: "South", indexLabel: "{y}", indexLabelFontSize: '14', indexLabelPlacement: "outside", markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ line_chart_items_percentage.4|safe }}%</i>)" },
+      { y: {{ line_data_points.5|safe }}, label: "South East", indexLabel: "{y}", indexLabelFontSize: '14', indexLabelPlacement: "outside", markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ line_chart_items_percentage.5|safe }}%</i>)" },
+      { y: {{ line_data_points.6|safe }}, label: "Mekelle", indexLabel: "{y}", indexLabelFontSize: '14', indexLabelPlacement: "outside", markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ line_chart_items_percentage.6|safe }}%</i>)" },
+      { y: {{ line_data_points.7|safe }}, label: "Other", indexLabel: "{y}", indexLabelFontSize: '14', indexLabelPlacement: "outside", markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ line_chart_items_percentage.7|safe }}%</i>)" }
+    ]
+  }]
+});
+
+chart.render();
+
+  // Age Report
+  
+  // Get the maximum value among the chart data points
+    var maxChartValue = Math.max(
+      {{ bar_data_points.0|safe }},
+      {{ bar_data_points.1|safe }},
+      {{ bar_data_points.2|safe }},
+      {{ bar_data_points.3|safe }},
+      {{ bar_data_points.4|safe }},
+      {{ bar_data_points.5|safe }},
+      {{ bar_data_points.6|safe }},
+      {{ bar_data_points.7|safe }}
+    );
+
+  var chart = new CanvasJS.Chart("chartContainer2", {
+    animationEnabled: true,
+    theme: "light2", // "light1", "light2", "dark1", "dark2",
+    axisY: {
+      title: "Number of Civilian Victims",
+      gridThickness: 0,
+      maximum: maxChartValue + (maxChartValue/2)
+    },
+    axisX: {
+        title: "Age of victims"
+    },
+    data: [{        
+      type: "column",  
+      showInLegend: true, 
+      legendMarkerColor: "grey",
+      indexLabelFontWeight: "bolder",
+      legendText: "Civilian Victims report by Age",
+      dataPoints: [      
+        { y: {{ bar_data_points.0|safe }}, label: "< 10", indexLabel: "{y}", indexLabelFontSize: '12', markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ bar_chart_items_percentage.0|safe }}%</i>)" },
+        { y: {{ bar_data_points.1|safe }},  label: "10-18", indexLabel: "{y}", indexLabelFontSize: '12', markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ bar_chart_items_percentage.1|safe }}%</i>)"  },
+        { y: {{ bar_data_points.2|safe }},  label: "18-33", indexLabel: "{y}", indexLabelFontSize: '12', markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ bar_chart_items_percentage.2|safe }}%</i>)"  },
+        { y: {{ bar_data_points.3|safe }},  label: "33-49", indexLabel: "{y}", indexLabelFontSize: '12', markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ bar_chart_items_percentage.3|safe }}%</i>)"  },
+        { y: {{ bar_data_points.4|safe }},  label: "49-64", indexLabel: "{y}", indexLabelFontSize: '12', markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ bar_chart_items_percentage.4|safe }}%</i>)" },
+        { y: {{ bar_data_points.5|safe }}, label: "64-80", indexLabel: "{y}", indexLabelFontSize: '12', markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ bar_chart_items_percentage.5|safe }}%</i>)"  },
+        { y: {{ bar_data_points.6|safe }}, label: "80-95", indexLabel: "{y}", indexLabelFontSize: '12', markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ bar_chart_items_percentage.6|safe }}%</i>)"  },
+        { y: {{ bar_data_points.7|safe }},  label: "Unknown", indexLabel: "{y}", indexLabelFontSize: '12', markerColor: "red", markerType: "triangle", toolTipContent: "<b>{label}</b>(<i>{{ bar_chart_items_percentage.7|safe }}%</i>)"  }
+      ]
+    }]
+  });
+
+  chart.render();
+
+  }
+  </script>
+
+{% endblock %}

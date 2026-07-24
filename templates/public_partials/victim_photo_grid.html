@@ -1,0 +1,30 @@
+<div class="victim-photo-fragment" id="victim-photo-section">
+  <div class="portfolio-isotope" data-portfolio-filter="*" data-portfolio-layout="masonry" data-portfolio-sort="original-order" data-aos="fade-up" data-aos-delay="100">
+    <div id="victim-photo-grid" class="row gy-4 portfolio-container">
+      {% include 'public_partials/victim_photo_cards.html' %}
+    </div>
+
+    <div id="victim-photo-load-more" class="victim-photo-footer mt-4">
+      <div class="victim-photo-footer__info">
+        {% if filtered_count %}
+        {{ page_obj.end_index }} of {{ filtered_count }} entries
+        {% else %}
+        0 of 0 entries
+        {% endif %}
+      </div>
+      <div class="victim-photo-footer__action">
+        {% if page_obj.has_next %}
+        <button
+          class="btn btn-dark"
+          hx-get="{% url 'civilian-victim-photo-page' %}?{{ next_querystring }}&append=1"
+          hx-target="#victim-photo-grid"
+          hx-swap="beforeend"
+          hx-indicator="#page-shell-indicator"
+        >
+          Load More
+        </button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

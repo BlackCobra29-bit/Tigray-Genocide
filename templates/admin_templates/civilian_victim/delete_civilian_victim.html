@@ -1,0 +1,101 @@
+{% extends 'admin_templates/base.html' %}
+
+{% block admin_page_content %}
+{% if Administrator.civilian_role == True or request.user.is_superuser == True %}
+
+<style>
+  .btn-sm {
+    line-height: 0.8;
+  }
+</style>
+
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+
+      <div class="col-md-3"></div>
+
+      <div class="col-md-4 col-sm-4  profile_details">
+        <form method="POST">
+          {% csrf_token %}
+        <div class="well profile_view">
+          <div class="col-sm-12">
+            <h4 class="brief" style="font-weight: bold;">Are You Sure to Remove?</h4>
+            <div class="left col-sm-7">
+              <h2>{{ object.full_name }}</h2>
+              <p><strong>Age: </strong> {% if object.age < 0 %} <i>Unknown</i> {% else %} {{ object.age }} {% endif %} </p>
+              <ul class="list-unstyled">
+                <li><i class="fa fa-building"></i> 
+                  Place of Killing: 
+                  {% if object.place_of_killing %} {{ object.place_of_killing }} {% else %} <i>Unknown</i> {% endif %}
+                </li>
+                <li><i class="fa fa-map-marker-alt"></i>
+                   Zone: 
+                   {{ object.zone }}
+                </li>
+              </ul>
+            </div>
+            <div class="right col-sm-5 text-center">
+              <img src="{{ object.picture.url }}" alt="" class="img-circle img-fluid" style="height: 80px; width: 80px;">
+            </div>
+          </div>
+          <div class=" bottom text-center">
+            <div class=" col-sm-6 emphasis">
+
+              <!-- Small modal -->
+              <button type="button" class="btn btn-info" data-toggle="modal" data-target=".bs-example-modal-sm">Remove</button>
+
+              <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
+                  <div class="modal-content">
+
+                    <div class="modal-header">
+                      <h4 class="modal-title" id="myModalLabel2"><i class="fas fa-exclamation-triangle text-warning"></i> Warning</h4>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <p>Are you sure to remove this data?</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      <button type="submit" class="btn btn-info">Confirm</button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+              <!-- /modals -->
+
+            </div>
+          </div>
+        </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+<!-- /page content -->
+
+{% else %}
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <h1 class="error-number">403</h1> 
+        <h2>Sorry, You don't have administrative privileges to access this page</h2>
+      </div>
+      </div>
+      </div>
+{% endif %}
+{% endblock %}

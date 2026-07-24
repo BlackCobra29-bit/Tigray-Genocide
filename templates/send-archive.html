@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  {% load static %}
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <!-- Meta, title, CSS, favicons, etc. -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta property="og:image" content="{% static 'img/featured-image.PNG' %}">
+  <meta name="og:title" content="Submit Photo and Video Archives">
+
+  <title>Tigray Genocide</title>
+
+  <!-- Bootstrap -->
+  <link href="{% static 'admin_static/css/bootstrap.min.css' %}" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="{% static 'fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+  <!-- NProgress -->
+  <link href="{% static 'admin_static/css/nprogress.css' %}" rel="stylesheet">
+  <!-- bootstrap icons -->
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <!-- datatable css files -->
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/dataTables.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/buttons.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/fixedHeader.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/responsive.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/scroller.bootstrap.min.css' %}">
+
+  <!-- select2 css and js files -->
+  <link href="{% static 'css/select.css' %}" rel="stylesheet">
+  <!-- Custom Theme Style -->
+  <link href="{% static 'admin_static/css/custom.min.css' %}" rel="stylesheet">
+  <!-- international phone css -->
+  <link href="{% static 'css/international-telephone-input.css' %}" rel="stylesheet">
+  <!-- Include SweetAlert library -->
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+</head>
+  
+ <style>
+  #loadingIndicator {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  }
+  x_panel{
+      box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
+  }
+  body .container.body .right_col{
+      background: #f0eafd;
+  }
+  body{
+      background: #f0eafd;
+      
+  }
+</style>
+
+<body style="overflow-x: hidden">
+  <div class="container body">
+    <div class="main_container">
+
+      <br />
+
+
+      <!-- page content -->
+      <div class="right_col" role="main">
+        <div class="">
+          <div class="page-title">
+          </div>
+          <div class="clearfix"></div>
+
+          <div class="row">
+
+            <div class="col-lg-2"></div>
+
+            <div class="col-md-8 col-sm-12">
+                
+                <br>
+
+              <div class="x_panel" style="border-radius: 8px; box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12)">
+                <div class="x_content">
+                  <div class="row">
+                      
+                <h3 class="green text-center"><strong><span class="bi bi-camera-video-fill"></span> Photo and Video Archive Submission Form</strong></h3>
+                
+                <br>
+                
+                <span style="font-size: 14px"><span class="fa fa-info-circle"></span> Here at Tigray Genocide, we are seeking information and firsthand accounts of genocidal war crimes committed in Tigray. This includes evidence of violence, killings, displacement, and other human rights abuses perpetrated by the Ethiopian forces, Eritrean forces, and Amhara militia/Fano.
+
+                    If you or someone you know has witnessed or experienced acts of violence in Tigray, we encourage you to share your story using the following form. You can:
+                    
+                    <br>
+                    
+                    <ul>
+                        <li>Send us written testimonies describing your personal experiences during the genocidal war on Tigray.</li>
+                        <li>Provide contact information for individuals willing to share their personal stories through interviews or written testimonies.</li>
+                        <li>Offer links to credible news articles or reports documenting specific incidents against Tigrayans in and outside Tigray (for example, any criminal incident against Tigrayans that happened in the Amhara region or other parts of Ethiopia).</li>
+                    </ul>
+                    
+                    <strong><strong>PS:</strong> <code>We prioritize safeguarding the privacy and safety of all individuals who contribute information. This includes anonymizing testimonies and taking all necessary precautions to protect identities.</code>
+                                    </span>
+                                    
+                    <br>
+
+                    <form method="POST" id="sendForm" data-parsley-validate enctype="multipart/form-data">
+                      {% csrf_token %}
+
+                      <div class="separator"></div>
+
+                      <p class="text-muted font-13 m-b-30">
+                        <code> <span class="fa fa-info-circle"></span> <span id="part_one">Sender Information Part</span> </code>
+                      </p>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="sender_fullname"> Sender Full Name: </span><span class="required"
+                          style="color: #dc3545;">*</span>
+                        <input type="text" class="form-control" name="sender_fullname" id="sender_name" required>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="sender_address"> Sender Address: </span> <span class="required"
+                          style="color: #dc3545;">*</span>
+                        <input type="text" class="form-control" name="sender_address" id="sender_address" required>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="sender_email"> Sender Email: </span> <span class="required"
+                          style="color: #dc3545;">*</span>
+                        <input type="email" class="form-control" name="sender_email" id="sender_email" required>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="sender_phone"> Sender Phone: </span> <span class="required"
+                          style="color: #dc3545;">*</span>
+                          <br>
+                        <div class="iti">
+                          <input type="tel" name="sender_phone" id="sender_phone" class="form-control" required>
+                        </div>
+                      </div>
+
+                      <p class="text-muted font-13 m-b-30">
+                        <code> <span class="fa fa-info-circle"></span> <span id="part_two">Archive's Information Part</span> </code>
+                      </p>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="location">Location: </span> <span class="required"
+                          style="color: #dc3545;">*</span>
+                        <input type="text" class="form-control" name="location" id="location" required>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="woreda">Woreda: </span> <span class="required"
+                          style="color: #dc3545;">*</span>
+                        <select class="selectpicker form-control" name="woreda">
+                            <option disabled selected></option>
+                            {% for woreda in woreda_list %}
+                                <option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>
+                            {% endfor %}
+                        </select>
+                      </div>
+
+                      <div class="col-md-6 col-sm-12  form-group">
+                        <span id="date_of_event">Date of Event</span> (<i>optional</i>)
+                        <code>(dd-mm-yyyy GC format)</code>
+                        <input type="date" class="form-control" name="date_of_event" id="date_of_event">
+                      </div>
+
+                      <div class="col-md-6">
+                        <span id="photo">Photo/Video File: </span> <span class="required"
+                          style="color: #dc3545;">*</span>
+                        <input type="file" class="form-control" name="photo" id="file" accept="image/*,video/*" required>
+                      </div>
+
+                      <div class="col-md-12 col-sm-12  form-group">
+                          <br>
+                        <span id="description">Description: </span> <span class="required" style="color: #dc3545;">*</span>
+                        <textarea class="form-control" name="description" id="description" rows="3" placeholder="Write a description..." required></textarea>
+                      </div>
+
+                      <div class="form-group">
+                        <div class="col-md-11 col-sm-9  offset-md-5"><br>
+                          <button class="btn btn-dark" onclick="goBack()"><span id="back">Back</span></button>
+                          <button type="submit" class="btn btn-success" id="submit-btn"><span id="submit">Submit</span></button>
+                        </div>
+                      </div>
+
+                    </form>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /page content -->
+
+    </div>
+  </div>
+  
+  
+    <!-- Your loading indicator -->
+    <div id="loadingIndicator">
+      <img src="{% static 'img/Spinner-loading.gif' %}" alt="Loading...">
+    </div>
+
+
+<script>
+    document
+      .getElementById("sendForm")
+      .addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent default form submission
+        if (
+          $("#sender_fullname").parsley().isValid() &&
+          $("#sender_address").parsley().isValid() &&
+          $("#sender_email").parsley().isValid() &&
+          $("#sender_phone").parsley().isValid() &&
+          $("#location").parsley().isValid() &&
+          $("#date_of_event").parsley().isValid() &&
+          $("#description").parsley().isValid() &&
+          $("#file").parsley().isValid()
+        ) {
+          // Show the loading indicator
+          $("#loadingIndicator").show();
+
+          var submitButton = document.getElementById("submit-btn");
+          submitButton.innerHTML = "Sending...";
+          submitButton.disabled = true;
+
+          var formData = new FormData(this);
+          var xhr = new XMLHttpRequest();
+
+          xhr.open("POST", "/Send-archive/");
+          xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+          xhr.onload = function () {
+            if (xhr.status === 200) {
+              var response = JSON.parse(xhr.responseText);
+              if (response.success) {
+                // Hide the loading indicator when the request is complete
+                $("#loadingIndicator").hide();
+                swal(
+                  "Form Sent!",
+                  "Your form has been sent successfully.",
+                  "success"
+                );
+                submitButton.innerHTML = "Submit";
+                submitButton.disabled = false; // Enable the button again
+                setTimeout(function() { location.reload();
+                        }, 2000);
+              } else {
+                swal(
+                  "Oops!",
+                  "Failed to send form. Please try again.",
+                  "error"
+                );
+                submitButton.innerHTML = "Submit";
+                submitButton.disabled = false; // Enable the button again
+              }
+            }
+          };
+          xhr.send(formData);
+        }
+      });
+</script>
+
+  <!-- jQuery -->
+  <script src="{% static 'admin_static/js/jquery.min.js' %}"></script>
+  <!-- Bootstrap -->
+  <script src="{% static 'admin_static/js/bootstrap.bundle.min.js' %}"></script>
+  <!-- FastClick -->
+  <script src="{% static 'admin_static/js/fastclick.js' %}"></script>
+  <!-- NProgress -->
+  <script src="{% static 'admin_static/js/nprogress.js' %}"></script>
+  <!-- Parsely validation -->
+  <script src="{% static 'admin_static/js/parsley.min.js' %}"></script>
+  <!-- datatable css files -->
+  <script src="{% static 'admin_static/datatable/js/jquery.dataTables.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.bootstrap.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.buttons.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/buttons.flash.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/buttons.html5.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/buttons.print.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.fixedHeader.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.keyTable.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.responsive.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/responsive.bootstrap.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.scroller.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/jszip.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/pdfmake.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/vfs_fonts.js' %}"></script>
+  <!-- select2 css and js files -->
+  <script src="{% static 'js/select.js' %}"></script>
+  <!-- Custom Theme Scripts -->
+  <script src="{% static 'admin_static/js/custom.min.js' %}"></script>
+  <!-- International Telephone JS File -->
+  <script src="{% static 'js/international-telephone-input.js' %}"></script>
+
+  <script>
+    $(document).ready(function () {
+      $('.selectpicker').select2();
+    });
+  </script>
+  
+  <style>
+    .iti {
+      position: relative;
+      display: block;
+    }
+
+    input[type=tel] {
+      padding-right: 6px;
+      padding-left: 52px;
+      margin-left: 0;
+
+      position: relative;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+      margin-right: 0;
+      border: 1px solid #CCC;
+      width: 100%;
+      height: 38px;
+      /* padding: 6px 12px; */
+      border-radius: 2px;
+      font-family: inherit;
+      font-size: 100%;
+      color: inherit;
+    }
+    
+  </style>
+  
+  <script>
+        // Return to the previous page
+        function goBack() {
+          window.history.back();
+        }
+    </script>
+
+
+</body>
+
+</html>

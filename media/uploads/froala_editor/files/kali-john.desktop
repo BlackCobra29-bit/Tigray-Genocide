@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=john
+Encoding=UTF-8
+Exec=/usr/share/kali-menu/exec-in-shell "john"
+Icon=kali-john
+StartupNotify=false
+Terminal=true
+Type=Application
+Categories=05-password-attacks;
+X-Kali-Package=john

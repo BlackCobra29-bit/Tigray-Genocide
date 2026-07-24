@@ -1,0 +1,93 @@
+{% load humanize custom %}
+
+<div class="victim-results-fragment" hx-boost="false">
+{% include 'public_partials/civilian_victim_table.html' %}
+
+{% if page_obj.paginator.count %}
+{% page_numbers page_obj.paginator page_obj.number as visible_pages %}
+<div class="row mt-3 align-items-center dataTables_wrapper dt-bootstrap4">
+  <div class="col-sm-12 col-md-5">
+    <div class="dataTables_info">
+      Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ total_count }} entries
+    </div>
+  </div>
+  <div class="col-sm-12 col-md-7">
+    <nav class="dataTables_paginate paging_simple_numbers table-pagination-nav" aria-label="Verified victims pagination">
+      <span class="table-pagination-status">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      <div class="pagination justify-content-center justify-content-md-end">
+        {% if page_obj.has_previous %}
+        <a
+          href="?page=1{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}{% if filters.perpetrator %}&perpetrator={{ filters.perpetrator|urlencode }}{% endif %}{% if filters.woreda %}&woreda={{ filters.woreda|urlencode }}{% endif %}{% if filters.gender %}&gender={{ filters.gender|urlencode }}{% endif %}{% if filters.sort %}&sort={{ filters.sort|urlencode }}{% endif %}"
+          class="paginate_button page-item page-nav-control"
+          hx-boost="false"
+          hx-get="{% url 'civilian_victims_by_name' %}?page=1{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}{% if filters.perpetrator %}&perpetrator={{ filters.perpetrator|urlencode }}{% endif %}{% if filters.woreda %}&woreda={{ filters.woreda|urlencode }}{% endif %}{% if filters.gender %}&gender={{ filters.gender|urlencode }}{% endif %}{% if filters.sort %}&sort={{ filters.sort|urlencode }}{% endif %}"
+          hx-select=".victim-results-fragment"
+          hx-target="#victim-results"
+          hx-swap="innerHTML"
+          hx-push-url="true"
+        >&laquo;</a>
+        <a
+          href="?page={{ page_obj.previous_page_number }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}{% if filters.perpetrator %}&perpetrator={{ filters.perpetrator|urlencode }}{% endif %}{% if filters.woreda %}&woreda={{ filters.woreda|urlencode }}{% endif %}{% if filters.gender %}&gender={{ filters.gender|urlencode }}{% endif %}{% if filters.sort %}&sort={{ filters.sort|urlencode }}{% endif %}"
+          class="paginate_button page-item page-nav-control"
+          hx-boost="false"
+          hx-get="{% url 'civilian_victims_by_name' %}?page={{ page_obj.previous_page_number }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}{% if filters.perpetrator %}&perpetrator={{ filters.perpetrator|urlencode }}{% endif %}{% if filters.woreda %}&woreda={{ filters.woreda|urlencode }}{% endif %}{% if filters.gender %}&gender={{ filters.gender|urlencode }}{% endif %}{% if filters.sort %}&sort={{ filters.sort|urlencode }}{% endif %}"
+          hx-select=".victim-results-fragment"
+          hx-target="#victim-results"
+          hx-swap="innerHTML"
+          hx-push-url="true"
+        >&lsaquo;</a>
+        {% else %}
+        <span class="paginate_button page-item page-nav-control disabled" aria-disabled="true">&laquo;</span>
+        <span class="paginate_button page-item page-nav-control disabled" aria-disabled="true">&lsaquo;</span>
+        {% endif %}
+
+        {% for page_number in visible_pages %}
+          {% if page_number == page_obj.paginator.ELLIPSIS %}
+          <span class="paginate_button page-item page-ellipsis" aria-hidden="true">{{ page_number }}</span>
+          {% elif page_number == page_obj.number %}
+          <span class="paginate_button page-item current" aria-current="page">{{ page_number }}</span>
+          {% else %}
+          <a
+            href="?page={{ page_number }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}{% if filters.perpetrator %}&perpetrator={{ filters.perpetrator|urlencode }}{% endif %}{% if filters.woreda %}&woreda={{ filters.woreda|urlencode }}{% endif %}{% if filters.gender %}&gender={{ filters.gender|urlencode }}{% endif %}{% if filters.sort %}&sort={{ filters.sort|urlencode }}{% endif %}"
+            class="paginate_button page-item"
+            hx-boost="false"
+            hx-get="{% url 'civilian_victims_by_name' %}?page={{ page_number }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}{% if filters.perpetrator %}&perpetrator={{ filters.perpetrator|urlencode }}{% endif %}{% if filters.woreda %}&woreda={{ filters.woreda|urlencode }}{% endif %}{% if filters.gender %}&gender={{ filters.gender|urlencode }}{% endif %}{% if filters.sort %}&sort={{ filters.sort|urlencode }}{% endif %}"
+            hx-select=".victim-results-fragment"
+            hx-target="#victim-results"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+          >{{ page_number }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a
+          href="?page={{ page_obj.next_page_number }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}{% if filters.perpetrator %}&perpetrator={{ filters.perpetrator|urlencode }}{% endif %}{% if filters.woreda %}&woreda={{ filters.woreda|urlencode }}{% endif %}{% if filters.gender %}&gender={{ filters.gender|urlencode }}{% endif %}{% if filters.sort %}&sort={{ filters.sort|urlencode }}{% endif %}"
+          class="paginate_button page-item page-nav-control"
+          hx-boost="false"
+          hx-get="{% url 'civilian_victims_by_name' %}?page={{ page_obj.next_page_number }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}{% if filters.perpetrator %}&perpetrator={{ filters.perpetrator|urlencode }}{% endif %}{% if filters.woreda %}&woreda={{ filters.woreda|urlencode }}{% endif %}{% if filters.gender %}&gender={{ filters.gender|urlencode }}{% endif %}{% if filters.sort %}&sort={{ filters.sort|urlencode }}{% endif %}"
+          hx-select=".victim-results-fragment"
+          hx-target="#victim-results"
+          hx-swap="innerHTML"
+          hx-push-url="true"
+        >&rsaquo;</a>
+        <a
+          href="?page={{ page_obj.paginator.num_pages }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}{% if filters.perpetrator %}&perpetrator={{ filters.perpetrator|urlencode }}{% endif %}{% if filters.woreda %}&woreda={{ filters.woreda|urlencode }}{% endif %}{% if filters.gender %}&gender={{ filters.gender|urlencode }}{% endif %}{% if filters.sort %}&sort={{ filters.sort|urlencode }}{% endif %}"
+          class="paginate_button page-item page-nav-control"
+          hx-boost="false"
+          hx-get="{% url 'civilian_victims_by_name' %}?page={{ page_obj.paginator.num_pages }}{% if filters.q %}&q={{ filters.q|urlencode }}{% endif %}{% if filters.perpetrator %}&perpetrator={{ filters.perpetrator|urlencode }}{% endif %}{% if filters.woreda %}&woreda={{ filters.woreda|urlencode }}{% endif %}{% if filters.gender %}&gender={{ filters.gender|urlencode }}{% endif %}{% if filters.sort %}&sort={{ filters.sort|urlencode }}{% endif %}"
+          hx-select=".victim-results-fragment"
+          hx-target="#victim-results"
+          hx-swap="innerHTML"
+          hx-push-url="true"
+        >&raquo;</a>
+        {% else %}
+        <span class="paginate_button page-item page-nav-control disabled" aria-disabled="true">&rsaquo;</span>
+        <span class="paginate_button page-item page-nav-control disabled" aria-disabled="true">&raquo;</span>
+        {% endif %}
+      </div>
+    </nav>
+  </div>
+</div>
+{% endif %}
+</div>

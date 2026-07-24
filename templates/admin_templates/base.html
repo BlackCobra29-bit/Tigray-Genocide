@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  {% load static %}
+  {{ form.media }}
+
+  <script src="/admin/jsi18n/"></script>
+  <link href="/static/froala_editor/css/froala_editor.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/froala_style.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/froala-django.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/themes/dark.min.css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/char_counter.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/code_view.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/colors.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/draggable.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/emoticons.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/file.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/fullscreen.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/image_manager.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/image.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/line_breaker.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/quick_insert.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/table.min.css" type="text/css" media="all" rel="stylesheet">
+  <link href="/static/froala_editor/css/plugins/video.min.css" type="text/css" media="all" rel="stylesheet">
+  <script src="/static/admin/js/vendor/jquery/jquery.js"></script>
+  <script src="/static/froala_editor/js/froala_editor.min.js"></script>
+  <script src="/static/admin/js/calendar.js"></script>
+  <script src="/static/admin/js/jquery.init.js"></script>
+  <script src="/static/froala_editor/js/froala-django.js"></script>
+  <script src="/static/admin/js/admin/DateTimeShortcuts.js"></script>
+  <script src="/static/admin/js/core.js"></script>
+  <script src="/static/froala_editor/js/plugins/align.min.js"></script>
+  <script src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+  <script src="/static/froala_editor/js/plugins/char_counter.min.js"></script>
+  <script src="/static/admin/js/actions.js"></script>
+  <script src="/static/froala_editor/js/plugins/code_beautifier.min.js"></script>
+  <script src="/static/admin/js/urlify.js"></script>
+  <script src="/static/froala_editor/js/plugins/code_view.min.js"></script>
+  <script src="/static/admin/js/prepopulate.js"></script>
+  <script src="/static/froala_editor/js/plugins/colors.min.js"></script>
+  <script src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
+  <script src="/static/froala_editor/js/plugins/draggable.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/emoticons.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/entities.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/file.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/font_family.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/font_size.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/fullscreen.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/image_manager.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/image.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/inline_style.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/line_breaker.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/link.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/lists.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/paragraph_format.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/paragraph_style.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/quick_insert.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/quote.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/save.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/table.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/url.min.js"></script>
+  <script src="/static/froala_editor/js/plugins/video.min.js"></script>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <!-- Meta, title, CSS, favicons, etc. -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Tigray Genocide</title>
+
+  <!-- Bootstrap -->
+  <link href="{% static 'admin_static/css/bootstrap.min.css' %}" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="{% static 'admin_static/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
+  <!-- NProgress -->
+  <link href="{% static 'admin_static/css/nprogress.css' %}" rel="stylesheet">
+  <!-- bootstrap icons -->
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <!-- datatable css files -->
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/dataTables.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/buttons.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/fixedHeader.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/responsive.bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'admin_static/datatable/css/scroller.bootstrap.min.css' %}">
+
+  <!-- malihu custom scrollbar plugin -->
+  <link rel="stylesheet" href="{% static 'admin_static/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css' %}">
+  <!-- select2 css and js files -->
+  <link href="{% static 'css/select.css' %}" rel="stylesheet">
+  <!-- Custom Theme Style -->
+  <link href="{% static 'admin_static/css/custom.min.css' %}" rel="stylesheet">
+</head>
+
+<style>
+  body{
+    overflow-x: hidden;
+  }
+</style>
+
+<body class="nav-md">
+  <div class="container body">
+    <div class="main_container">
+      <div class="col-md-3 left_col menu_fixed">
+        <div class="left_col scroll-view">
+          <div class="navbar nav_title" style="border: 0;">
+            <a href="{% url 'admin-dashboard' %}" class="site_title"> <span>Tigray
+                Genocide</span></a>
+          </div>
+
+          <div class="clearfix"></div>
+
+          <!-- menu profile quick info -->
+          <div class="profile clearfix">
+            <div class="profile_pic">
+              <img src="{{ request.user.administrator.admin_photo.url }}" alt="..." class="img-circle profile_img">
+            </div>
+            <div class="profile_info">
+              <span>Welcome,</span>
+              <h2>{{ request.user.first_name }} {{ request.user.last_name }}</h2>
+            </div>
+          </div>
+          <!-- /menu profile quick info -->
+
+          <br />
+
+          <!-- sidebar menu -->
+          <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+            <div class="menu_section">
+              <h3>General</h3>
+              <ul class="nav side-menu">
+                <li><a href="{% url 'admin-dashboard' %}"><i class="fa fa-home"></i> Dashboard </a></li>
+                
+                {% if Administrator.civilian_role == True or request.user.is_superuser == True %}
+                <li><a><i class="fa fa-users"></i> Civilian Victims <span class="fa fa-chevron-down"></span></a>
+                
+                  <ul class="nav child_menu">
+                    
+                    <li><a>Verified Data<span class="fa fa-chevron-down"></span></a>
+                        <ul class="nav child_menu">
+                            <li><a href="{% url 'admin-add-civilian' %}">Add Data</a></li>
+                            <li><a href="{% url 'civilian-data-management' %}">Data Management</a></li>
+                            {% if request.user.is_superuser == True %}
+                            <li><a href="{% url 'admin-civilian-victims' %}">Export Data</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                    
+                 {% if request.user.is_superuser == True %}
+                    <li><a>Unidentified Data<span class="fa fa-chevron-down"></span></a>
+                        <ul class="nav child_menu">
+                            <li><a href="{% url 'add-unverified-civilian' %}">Add Data</a></li>
+                            <li><a href="{% url 'unverified-civilian-data-management' %}">Data Management</a></li>
+                            <li><a href="{% url 'export-unverified-data' %}">Export Data</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+                    
+                  </ul>
+                </li>
+                {% endif %}
+
+                {% if Administrator.analysis_role == True or request.user.is_superuser == True %}
+
+                <li><a><i class="fa fa-signal"></i> Analysis <span class="fa fa-chevron-down"></span></a>
+                  <ul class="nav child_menu">
+                    <li><a>Articles<span class="fa fa-chevron-down"></span></a>
+                      <ul class="nav child_menu">
+                        <li class="sub_menu"><a href="{% url 'write-article' %}">Write Article</a>
+                        </li>
+                        <li><a href="{% url 'draft-article-management' %}">Draft Articles</a>
+                        </li>
+                        <li><a href="{% url 'analysis-article-management' %}">Data management</a>
+                        </li>
+                    </li>
+                  </ul>
+                </li>
+                {% if request.user.is_superuser == True %}
+                <li><a>Panel Discussion<span class="fa fa-chevron-down"></span></a>
+                  <ul class="nav child_menu">
+                    <li class="sub_menu"><a href="{% url 'add-webinar-discussion' %}">Add Panel Discussion</a>
+                    </li>
+                    <li><a href="{% url 'webinar-discussion-management' %}">Data Management</a>
+                    </li>
+                </li>
+              </ul>
+                {% endif %}
+              </li>
+              </li>
+              </ul>
+              </li>
+              {% endif %}
+
+              {% if request.user.is_superuser == True %}
+              <li><a><i class="fa fa-video-camera"></i> Archive <span class="fa fa-chevron-down"></span></a>
+                <ul class="nav child_menu">
+                  <li><a>Photo Archive<span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li class="sub_menu"><a href="{% url 'add-photo-archive' %}">Add Photo Archive</a>
+                      </li>
+                      <li><a href="{% url 'manage-photo-archive' %}">Photo Management</a>
+                      </li>
+                  </li>
+                </ul>
+              </li>
+              <li><a>Video Archive<span class="fa fa-chevron-down"></span></a>
+                <ul class="nav child_menu">
+                  <li class="sub_menu"><a href="{% url 'add-video-archive' %}">Add Video Archive</a>
+                  </li>
+                  <li><a href="{% url 'manage-video-archive' %}">Video Management</a>
+                  </li>
+              </li>
+              </ul>
+              </li>
+              </li>
+              </ul>
+              </li>
+              {% endif %}
+
+              {% if request.user.is_superuser == True %}
+              <li><a href="{% url 'pending-posts-management' %}"><i class="fa fa-check-circle"></i> <span
+                    class="badge bg-red" style="color: #e41e3f; border-radius: 50%; color: white;">{{pending_count}} </span> Pending
+                  Posts</a>
+              </li>
+              {% endif %}
+
+              {% if request.user.is_superuser == True %}
+              <li><a><i class="fa fa-lock"></i> Account Management <span class="fa fa-chevron-down"></span></a>
+                <ul class="nav child_menu">
+                  <li><a href="{% url 'create-admin-account' %}">Create Admin Account</a></li>
+                  <li><a href="{% url 'manage-admin-account' %}">Admin Management</a></li>
+                </ul>
+              </li>
+              {% endif %}
+
+              <li><a href="{% url 'account-settings' %}"><i class="fa fa-cog"></i> Settings</a></li>
+              
+
+              {% if request.user.is_superuser == True %}
+              <li><a href="{% url 'export-database' %}"><i class="fa fa-database"></i> Download Backup</a></li>
+              {% endif %}
+              
+              <li><a href="{% url 'admin-logout' %}"><i class="fa fa-question-circle"></i> Logout</a></li>
+              
+              </ul>
+            </div>
+
+          </div>
+          <!-- /sidebar menu -->
+        </div>
+      </div>
+
+      <!-- top navigation -->
+      <div class="top_nav">
+        <div class="nav_menu">
+          <div class="nav toggle">
+            <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+          </div>
+          <nav class="nav navbar-nav">
+            <ul class=" navbar-right">
+              <li class="nav-item dropdown open" style="padding-left: 15px;">
+                <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" id="navbarDropdown"
+                  data-toggle="dropdown" aria-expanded="false">
+                  <img src="{{ request.user.administrator.admin_photo.url }}" alt="">
+                  {{ request.user.first_name }} {{ request.user.last_name }}
+                </a>
+                <div class="dropdown-menu dropdown-usermenu pull-right" aria-labelledby="navbarDropdown">
+                  <a class="dropdown-item" href="{% url 'account-settings' %}"> Account settings</a>
+                  <a class="dropdown-item" href="{% url 'admin-logout' %}"><i class="fa fa-sign-out pull-right"></i> Log
+                    Out</a>
+                </div>
+              </li>
+
+            </ul>
+          </nav>
+        </div>
+      </div>
+      <!-- /top navigation -->
+
+      {% block admin_page_content %}
+
+      {% endblock %}
+
+      <!-- footer content -->
+      <footer>
+        <div class="pull-right">
+          &copy; <span id="copyright_year"></span> Tigray Genocide</a>
+        </div>
+        <div class="clearfix"></div>
+      </footer>
+      <!-- /footer content -->
+    </div>
+  </div>
+  
+<!-- hide some default froala elements -->
+<style>
+    div[style*="background:#EF5350"] {
+      display: none;
+    }
+    .fr-wrapper div:nth-child(1) {
+      display: none;
+    }
+    #fr-logo{
+        display: none;
+    }
+
+</style>
+
+  
+  <!-- jQuery -->
+  <script src="{% static 'admin_static/js/jquery.min.js' %}"></script>
+  <!-- Bootstrap -->
+  <script src="{% static 'admin_static/js/bootstrap.bundle.min.js' %}"></script>
+  <!-- FastClick -->
+  <script src="{% static 'admin_static/js/fastclick.js' %}"></script>
+  <!-- NProgress -->
+  <script src="{% static 'admin_static/js/nprogress.js' %}"></script>
+  <!-- datatable css files -->
+  <script src="{% static 'admin_static/datatable/js/jquery.dataTables.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.bootstrap.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.buttons.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/buttons.flash.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/buttons.html5.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/buttons.print.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.fixedHeader.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.keyTable.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.responsive.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/responsive.bootstrap.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/dataTables.scroller.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/jszip.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/pdfmake.min.js' %}"></script>
+  <script src="{% static 'admin_static/datatable/js/vfs_fonts.js' %}"></script>
+  <!-- select2 css and js files -->
+  <script src="{% static 'js/select.js' %}"></script>
+  <!-- malihu custom scrollbar plugin -->
+  <script src="{% static 'admin_static/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js' %}"></script>
+  <!-- Custom Theme Scripts -->
+  <script src="{% static 'admin_static/js/custom.min.js' %}"></script>
+  <!-- Parsely validation -->
+  <script src="{% static 'admin_static/js/parsley.min.js' %}"></script>
+
+  <!-- select admin role jquery -->
+  <script>
+    $(document).ready(function () {
+      // if super admin is selected
+      $('#super_admin').change(function () {
+        if ($(this).is(':checked')) {
+          // Checkbox is checked, hide the element
+          $('#super_admin_selected').show();
+          $('#civilian_role').hide();
+          $('#analysis_role').hide();
+        }
+        if (!$(this).is(':checked')) {
+          // Checkbox is checked, hide the element
+          $('#super_admin_selected').hide();
+          $('#civilian_role').show();
+          $('#analysis_role').show();
+        }
+      });
+      // if civilian role is selected
+      $('#civilian_role').change(function () {
+        if ($(this).is(':checked')) {
+          // Checkbox is checked, hide the element
+          $('#civilian_selected').show();
+        }
+        if (!$(this).is(':checked')) {
+          // Checkbox is checked, hide the element
+          $('#civilian_selected').hide();
+        }
+      });
+
+      // if analysis role is selected
+      $('#analysis_role').change(function () {
+        if ($(this).is(':checked')) {
+          // Checkbox is checked, hide the element
+          $('#analysis_selected').show();
+        }
+        if (!$(this).is(':checked')) {
+          // Checkbox is checked, hide the element
+          $('#analysis_selected').hide();
+        }
+      });
+    });
+  </script>
+  <!-- end of jquery script -->
+
+  <script>
+    $(document).ready(function () {
+      $('.selectpicker').select2();
+    });
+  </script>
+
+  <script>
+    const currentYear = new Date().getFullYear();
+    document.getElementById('copyright_year').innerHTML = currentYear;
+  </script>
+
+</body>
+
+</html>

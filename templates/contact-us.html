@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block meta-title %}
+    <meta name="og:title" content="Contact Us">
+{% endblock %}
+
+{% block page-content %}
+
+ <style>
+  #loadingIndicator {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  }
+</style>
+
+<main id="main">
+
+    <!-- ======= Contact Section ======= -->
+    <section id="contact" class="contact">
+      <div class="container" data-aos="fade-up">
+        <br><br>
+        <div class="section-header">
+          <h2><span
+            class="bi bi-phone-fill"></span> Contact Us</h2>
+        </div>
+        
+        <div class="row gx-lg-0 gy-4">
+
+          <div class="col-lg-2"></div>
+
+          <div class="col-lg-8">
+              
+              <span class="fa fa-check-circle" style="color: cornflowerblue"></span> You can contact us using the following form, or alternatively, you can send us emails directly to either <b><a href="mailto:tigraygenocide@tigraygenocide.com" target="_blank">tigraygenocide@tigraygenocide.com</a></b> or <b><a href="mailto:tigraygenocide11@gmail.com" target="_blank">tigraygenocide11@gmail.com</a></b>.
+    
+              <br><br>
+          
+            <form class="contact-form" id="emailForm" data-parsley-validate action="{% url 'contact-us' %}" method="POST">
+              {% csrf_token %}
+              <div class="row">
+                <div class="col-md-6 form-group">
+                  <input type="text" name="name" class="form-control" id="sender_name" placeholder="Your Name" required>
+                </div>
+                <div class="col-md-6 form-group mt-3 mt-md-0">
+                  <input type="email" class="form-control" name="sender_email" id="email" placeholder="Your Email" required>
+                </div>
+              </div>
+              <div class="form-group mt-3">
+                <input type="text" class="form-control" name="sender_subject" id="subject" placeholder="Subject" required>
+              </div>
+              <div class="form-group mt-3">
+                <textarea class="form-control" name="sender_message" id="sender_message" rows="7" placeholder="Message" required></textarea>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-success" id="submit-btn"><span id="submit">Submit</span></button>
+              </div>
+            </form>
+          </div><!-- End Contact Form -->
+
+        </div>
+
+      </div>
+    </section><!-- End Contact Section -->
+    
+    
+    <!-- Your loading indicator -->
+    <div id="loadingIndicator">
+      <img src="{% static 'img/Spinner-loading.gif' %}" alt="Loading...">
+    </div>
+
+</main>
+<!-- End #main -->
+
+<script src="{% static 'js/chart.js' %}"></script>
+
+<script>
+document.getElementById('emailForm').addEventListener('submit', function(event) {
+    event.preventDefault();  // Prevent default form submission
+    if($('#sender_name').parsley().isValid() && $('#email').parsley().isValid() && $('#subject').parsley().isValid() && $('#sender_message').parsley().isValid()){
+        
+        // Show the loading indicator
+      $('#loadingIndicator').show();
+      
+    var submitButton = document.getElementById('submit-btn');
+    submitButton.innerHTML = 'Sending...';
+     submitButton.disabled = true;
+
+    var formData = new FormData(this);
+    var xhr = new XMLHttpRequest();
+
+    xhr.open('POST', '/Contact-us/');
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var response = JSON.parse(xhr.responseText);
+            if (response.success) {
+                // Hide the loading indicator when the request is complete
+              $('#loadingIndicator').hide();
+                swal("Email Sent!", "Your email has been sent successfully.", "success");
+                submitButton.innerHTML = 'Submit';
+                submitButton.disabled = false; // Enable the button again
+                document.getElementById('sender_name').value = "";
+                document.getElementById('email').value = "";
+                document.getElementById('subject').value = "";
+                document.getElementById('sender_message').value = "";
+            } else {
+                swal("Oops!", "Failed to send email. Please try again.", "error");
+                submitButton.innerHTML = 'Submit';
+                submitButton.disabled = false; // Enable the button again
+                document.getElementById('sender_name').value = "";
+                document.getElementById('email').value = "";
+                document.getElementById('subject').value = "";
+                document.getElementById('sender_message').value = "";
+            }
+        }
+    };
+    xhr.send(formData);
+    
+    }
+    
+});
+</script>
+
+
+{% endblock %}

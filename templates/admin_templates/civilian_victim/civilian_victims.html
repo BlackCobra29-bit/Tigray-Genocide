@@ -1,0 +1,403 @@
+{% load static %}
+
+{% if request.user.is_superuser == True %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Tigray Genocide</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+    <!-- Favicons -->
+    <link href="{% static 'img/favicon.png' %}" rel="icon">
+    <!-- Font Awesome -->
+    <link href="{% static 'fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+    <!-- Vendor CSS Files -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
+    <!-- Template Main CSS File -->
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+    <!-- select2 css and js files -->
+    <link href="{% static 'css/select.css' %}" rel="stylesheet">
+    <!-- css & bootstrap files for datatables -->
+    <link rel="stylesheet" href="{% static 'admlte/datatable/css/dataTables.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admlte/datatable/css/responsive.bootstrap4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'admlte/datatable/css/buttons.bootstrap4.min.css' %}">
+</head>
+
+<body style="background-color: #2A3F54;">
+
+    <main id="main">
+
+      <style>
+        td,
+        th {
+          font-size: 14px;
+        }
+    
+        table {
+          border-color: gray;
+        }
+    
+        .table-bordered {
+          border: 1px solid #dee2e6;
+        }
+      </style>
+    
+      <!-- ======= Breadcrumbs ======= -->
+      <div class="breadcrumbs">
+        <nav>
+          <div class="container">
+            <ol>
+              <li><a href="{% url 'admin-dashboard' %}"><span class="fa fa-backward"></span> Back</a></li>
+            </ol>
+          </div>
+        </nav>
+      </div><!-- End Breadcrumbs -->
+    
+      <!-- ======= Datatable for civilian victims Section ======= -->
+      <section id="recent-posts" class="recent-posts sections-bg">
+        <div class="container" data-aos="fade-up">
+          <div class="row">
+            <div class="col-12">
+                
+                <div class="row" style="padding-left: 40px; padding-right: 40px;">
+
+            <div class="col-lg-3">
+              <form action="" method="POST" id="filter_attrocity">
+                  {% csrf_token %}
+                <div class="form-group">
+                  <label for=""><span class="fa fa-search" style="color: blue;"></span> Filter by Atrocity</label>
+                  <select class="form-control" id="filter-attrocity" name="perpetrator" style="height: 34px" required>
+                    <option selected="" disabled="">Search By Atrocity</option>
+                    <option value="Died from lack of food">Died from lack of food</option>
+                    <option value="Died from lack of medicine">Died from lack of medicine</option>
+                    <option value="Killed by Ethiopian forces">Killed by Ethiopian forces</option>
+                    <option value="Killed by Eritrean forces">Killed by Eritrean forces</option>
+                    <option value="Killed by Ethiopian and Eritrean forces">Killed by Ethiopian and Eritrean forces</option>
+                    <option value="Killed by Amhara militia and Fano">Killed by Amhara militia and Fano</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+        
+            <div class="col-lg-3">
+              <form action="" method="POST" id="filter_woreda">
+                  {% csrf_token %}
+                <div class="form-group">
+                    <label for=""><span class="fa fa-search" style="color: blue;"></span> Filter By Woreda</label>
+                  <select class="selectpicker form-control" data-live-search="true" name="civilian_woreda" id="filter-woreda" style="wisth: 75%" required>
+                    <option selected="" disabled="">Search By Woreda</option>
+                    {% for woreda in woreda_list|dictsort:"woreda_name" %}
+                    <option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </form>
+            </div>
+        
+            <div class="col-lg-3">
+              <form action="" method="POST" id="filter_gender">
+                  {% csrf_token %}
+                <div class="form-group">
+                    <label for=""><span class="fa fa-search" style="color: blue;"></span> Filter By Gender</label>
+                  <select class="form-control" data-live-search="true" name="civilian_gender" style="height: 34px" id="filter-gender" required>
+                    <option selected="" disabled="">Search By Gender</option>
+                    <option value="Male">Male</option>
+                     <option value="Female">Female</option>
+                    <option value="Unknown">Unknown</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+            
+            <div class="col-lg-3"></div>
+              
+            <div class="col-lg-2">
+                <div class="form-group">
+                    <br>
+                    <button class="btn btn-danger" id="resetFiltersBtn"><span class="fas fa-1x fa-sync-alt"></span> Reset Filters</button>
+                </div>
+            </div>
+            
+          </div>
+          
+          <br>
+    
+              <div class="card">
+                <!-- /.card-header -->
+                <div class="card-body">
+                  <table id="example1" class="table table-bordered table-striped verified-export">
+                    <thead>
+                      <tr>
+                        <th>Index</th>
+                        <th>Full Name</th>
+                        <th>Gender</th>
+                        <th>Age</th>
+                        <th>Atrocity</th>
+                        <th style="white-space: nowrap;">Place of Killing</th>
+                        <th style="white-space: nowrap;">Woreda</th>
+                        <th>Source</th>
+                        <th style="white-space: nowrap;">Date of Event</th>
+                        <th>Remark</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+    
+                      {% for victim in civilian_victims %}
+                      <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td style="white-space: nowrap;">{{ victim.full_name.title }}</td>
+                        <td>{{ victim.gender }}</td>
+                        <td>{% if victim.age %} {{ victim.age }} {% else %} <i>Unknown</i> {% endif %}</td>
+                        <td style="white-space: nowrap;">
+                          {{ victim.perpetrator }}
+                        </td>
+                        <td style="white-space: nowrap;">{% if victim.place_of_killing %} {{ victim.place_of_killing }} {% else %} <i>Unknown</i> {% endif %}</td>
+                        <td style="white-space: nowrap;">
+                          {{ victim.woreda }}
+                        </td>
+                        <td>{% if victim.source %}
+                          {{ victim.source }}
+                           {% else %}
+                            <i>Unknown</i>
+                             {% endif %}
+                        </td>
+                        <td>{% if victim.date_of_event %} {{ victim.date_of_event|date:"d-M-Y" }} {% else %} <i>Undated</i> {% endif %}</td>
+                        <td>{% if victim.remark %} {{ victim.remark }} {% else %} <i>Unknown</i> {% endif %}</td>
+                      </tr>
+                      {% endfor %}
+    
+                    </tbody>
+                  </table>
+                </div>
+                <!-- /.card-body -->
+              </div>
+              <!-- /.card -->
+            </div>
+            <!-- /.col -->
+          </div>
+          <!-- /.row -->
+        </div>
+      </section>
+    </main>
+    
+    <a href="#" class="scroll-top d-flex align-items-center justify-content-center"><i
+            class="bi bi-arrow-up-short"></i></a>
+    
+    <!-- Admlte Js file -->
+    <script src="{% static 'admlte/js/jquery.min.js' %}"></script>
+    <!-- Vendor JS Files -->
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'vendor/aos/aos.js' %}"></script>
+    <script src="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></script>
+    <script src="{% static 'vendor/purecounter/purecounter_vanilla.js' %}"></script>
+    <script src="{% static 'vendor/swiper/swiper-bundle.min.js' %}"></script>
+    <script src="{% static 'vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
+    <script src="{% static 'vendor/php-email-form/validate.js' %}"></script>
+    <!-- Template Main JS File -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/chart.js' %}"></script>
+    <!-- Javascript datatables -->
+    <script src="{% static 'admlte/datatable/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/dataTables.responsive.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/responsive.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/dataTables.buttons.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/buttons.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/buttons.html5.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/buttons.print.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/buttons.colVis.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/jszip.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/pdfmake.min.js' %}"></script>
+    <script src="{% static 'admlte/datatable/vfs_fonts.js' %}"></script>
+    <!-- select2 css and js files -->
+    <script src="{% static 'js/select.js' %}"></script>
+
+    <script>
+    $(document).ready(function() {
+    const currentYear = new Date().getFullYear();
+    
+    // Register custom fonts
+    pdfMake.fonts = {
+        Roboto: {
+            normal: 'Roboto-Regular.ttf',
+            bold: 'Roboto-Medium.ttf',
+            italics: 'Roboto-Italic.ttf',
+            bolditalics: 'Roboto-MediumItalic.ttf'
+        },
+        nyala: {
+            normal: 'nyala.ttf',
+            bold: 'nyala.ttf',
+            italics: 'nyala.ttf',
+            bolditalics: 'nyala.ttf'
+        }
+    };
+
+    $("#example1").DataTable({
+        "responsive": true,
+        "lengthChange": false,
+        "autoWidth": false,
+        buttons: [
+            {
+                extend: 'pdfHtml5',
+                pageSize: 'TABLOID',
+                orientation: 'landscape',
+                title: 'Verified Civilian Victims',
+                titleFontSize: 40,
+                messageTop: function() {
+                    // Get the total number of rows in the visible data
+                    var totalRows = $("#example1").DataTable().rows({ search: 'applied' }).count();
+                    var formattedTotalRows = totalRows.toLocaleString();
+                    
+                    // Return the messageTop with the total number of rows
+                    return 'A compilation of the verified list of civilian victims from different sources: Total number of victims = ' + formattedTotalRows;
+                },
+                customize: function (doc) {
+                    
+                    var rowIndex = 1;
+                    doc.content.forEach(function (element) {
+                        if (element.table) {
+                            element.table.body.forEach(function (row, rowIndexInTable) {
+                                row.forEach(function (cell, cellIndex) {
+                                    if (cellIndex === 0 && rowIndexInTable !== 0) {
+                                        cell.text = { text: (rowIndex++).toString(), fillColor: '#23ffee' }; // Update the index
+                                    }
+                                });
+                            });
+                        }
+                    });
+                    doc.watermark = { text: '\u00A9 tigraygenocide.com', color: '#ccc', opacity: 0.3, italics: true, bold: true, angle: 325, link: 'http://www.tigraygenocide.com' }; // Add watermark with link reference
+                    var footerText = {
+                        link: 'https://tigraygenocide.com',
+                        color: 'cornflowerblue',
+                        fontSize: 14
+                    };
+                    doc.footer = {
+                        columns: [
+                            { text: footerText.text },
+                            { text: 'Visit tigraygenocide.com', link: footerText.link, color: footerText.color, fontSize: footerText.fontSize }
+                        ]
+                    };
+                    doc.defaultStyle.font = "nyala";
+                }
+            },
+            {
+                extend: 'csv'
+            },
+            {
+                extend: 'excel'
+            },
+        ],
+        "paging": true,
+        "lengthChange": true,
+        "searching": true,
+        "ordering": true,
+        "info": true,
+        "autoWidth": false,
+        "responsive": true,
+    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+
+    $('#example2').DataTable({
+        "paging": true,
+        "lengthChange": true,
+        "searching": false,
+        "ordering": true,
+        "info": true,
+        "autoWidth": false,
+        "responsive": true,
+    });
+});
+</script>
+
+      
+      
+   
+      
+<!-- filter datatable all options -->
+     <script>
+    $(document).ready(function() {
+        var table = $('.verified-export').DataTable();
+
+        // Function to update index numbers
+        function updateIndexNumbers() {
+            table.column(0, {search:'applied', order:'applied'}).nodes().each(function (cell, i) {
+                cell.innerHTML = i + 1;
+            });
+        }
+
+        // Add event listener for when the table is redrawn
+        table.on('draw.dt', function () {
+            updateIndexNumbers();
+        });
+
+        // filter by atrocity
+        $('#filter-attrocity').on('change', function () {
+            var searchTerm = '\\b' + this.value + '\\b'; // Use word boundary to match exact word
+            table.column(4).search(searchTerm, true, false).draw();
+        });
+
+        // filter by woreda
+        $('#filter-woreda').on('change', function () {
+            var searchTerm = '\\b' + this.value + '\\b'; // Use word boundary to match exact word
+            table.column(6).search(searchTerm, true, false).draw();
+        });
+
+        // filter by gender
+        $('#filter-gender').on('change', function () {
+            var searchTerm = '\\b' + this.value + '\\b'; // Use word boundary to match exact word
+            table.column(2).search(searchTerm, true, false).draw();
+        });
+    });
+</script>
+
+    
+    <!-- reset datatable -->
+    <script>
+        $(document).ready(function() {
+            var table = $('#example1').DataTable();
+        
+            // Function to reset all filters
+            function resetFilters() {
+                $('#filter-attrocity').val(''); // Clear the age filter input
+                $('#filter-woreda').val(null).trigger('change');
+                $('#filter-gender').val(''); // Clear the gender filter input
+                table.search('').columns().search('').draw(); // Clear all column filters and redraw the table
+            }
+        
+            // Event listener for a button or link to trigger the filter reset
+            $('#resetFiltersBtn').on('click', function() {
+                resetFilters();
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('.selectpicker').select2();
+        });
+    </script>
+
+</body>
+
+</html>
+
+{% else %}
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row">
+        <h1 class="error-number">403</h1> 
+        <h2>Sorry, You don't have administrative privileges to access this page</h2>
+      </div>
+      </div>
+      </div>
+{% endif %}

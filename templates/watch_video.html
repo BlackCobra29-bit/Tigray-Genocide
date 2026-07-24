@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block page-content %}
+
+<style>
+    .container .main-video-container {
+        flex: 1 1 700px;
+        border-radius: 5px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, .1);
+        background-color: #fff;
+        padding: 0;
+    }
+
+    .current_video {
+        width: 100%;
+    }
+
+    #video_title {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .container .video-list-container {
+        flex: 1 1 350px;
+        height: 485px;
+        overflow-y: scroll;
+        border-radius: 5px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, .1);
+        background-color: #fff;
+        padding: 15px;
+    }
+
+    .container .video-list-container .list {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 10px;
+        cursor: pointer;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .container .video-list-container .list-video {
+        width: 100px;
+        border-radius: 5px;
+    }
+
+    .container .video-list-container .list .list-title {
+        font-size: 14px;
+        color: #444;
+    }
+</style>
+
+<main id="main">
+    <section id="blog" class="blog" style="padding-top: 80px;">
+        <div class="container" data-aos="fade-up">
+            <div class="row g-5">
+                <div class="col-lg-7">
+                    <article class="blog-details">
+                        <div class="content">
+                            <div class="main-video-container">
+                                <iframe
+                                    class="current_video"
+                                    height="420"
+                                    src="https://www.youtube.com/embed/{% with video_id=current_video.online_link|cut:'https://www.youtube.com/watch?v=' %}{{ video_id }}{% endwith %}"
+                                    frameborder="0"
+                                    allowfullscreen
+                                ></iframe>
+                            </div>
+                        </div>
+
+                        <div class="meta-top">
+                            <ul>
+                                <li class="d-flex align-items-center"><i class="bi bi-map"></i> <a>{% if current_video.location %}{{ current_video.location }}{% else %}<i>Unknown</i>{% endif %}</a></li>
+                                <li class="d-flex align-items-center"><i class="far fa-calendar"></i><time>{% if current_video.date_of_event %}{{ current_video.date_of_event|date:"d-M-Y" }}{% else %}<i>Undated</i>{% endif %}</time></li>
+                                {% if current_video.online_link %}
+                                <li class="d-flex align-items-center"><a href="{{ current_video.online_link }}" target="_blank"><i class="bi bi-link"></i><time>Online link</time></a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                        <h2 id="video_title">{{ current_video.description }}</h2>
+                    </article>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="video-list-container">
+                        {% for random in random_video %}
+                        <a href="/Watch-video/{{ random.id }}">
+                            <div class="list">
+                                <iframe
+                                    class="list-video"
+                                    height="80"
+                                    src="https://www.youtube.com/embed/{% with video_id=random.online_link|cut:'https://www.youtube.com/watch?v=' %}{{ video_id }}{% endwith %}"
+                                    frameborder="0"
+                                    loading="lazy"
+                                ></iframe>
+                                <h3 class="list-title">{{ random.description }}</h3>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+    </section>
+</main>
+
+{% endblock %}

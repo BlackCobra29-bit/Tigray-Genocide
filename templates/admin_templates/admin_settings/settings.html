@@ -1,0 +1,228 @@
+{% extends 'admin_templates/base.html' %}
+
+{% block admin_page_content %}
+
+<style>
+    .btn-sm {
+        line-height: 0.8;
+    }
+</style>
+
+<!-- page content -->
+<div class="right_col" role="main">
+    <div class="">
+        <div class="page-title">
+        </div>
+        <div class="clearfix"></div>
+
+        <div class="row">
+
+            <div class="col-md-12 col-sm-6  ">
+
+                {% if messages %}
+                {% for message in messages %}
+                {% if message.tags == 'success' %}
+                <div class="alert alert-success alert-dismissible " role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                            aria-hidden="true">×</span>
+                    </button>
+                    <span class="fa fa-check-circle"></span> {{ message }}
+                </div>
+                {% else %}
+                <div class="alert alert-danger alert-dismissible " role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                            aria-hidden="true">×</span>
+                    </button>
+                    <span class="fa fa-question-circle"></span> {{ message }}
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2><small>Account settings</small></h2>
+                        <ul class="nav navbar-right panel_toolbox">
+                            <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                            </li>
+                        </ul>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+
+                        <ul class="nav nav-tabs bar_tabs" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="home-tab" data-toggle="tab" href="#name_settings" role="tab"
+                                    aria-controls="name_settings" aria-selected="true">Name settings</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="profile-tab" data-toggle="tab" href="#password_settings" role="tab"
+                                    aria-controls="password_settings" aria-selected="false">Password settings</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile_settings" role="tab"
+                                    aria-controls="profile_settings" aria-selected="false">Profile picture</a>
+                            </li>
+                            {% if request.user.is_superuser == True %}
+                            <li class="nav-item">
+                                <a class="nav-link" id="profile-tab" data-toggle="tab" href="#webamil_password" role="tab"
+                                    aria-controls="webamil_password" aria-selected="false">Webmail Password</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="name_settings" role="tabpanel"
+                                aria-labelledby="home-tab">
+
+                                <div class="row">
+                                    <form action="{% url 'account-settings' %}" data-parsley-validate method="POST" enctype="multipart/form-data">
+                                        {% csrf_token %}
+
+                                        <div class="col-md-6 col-sm-12  form-group">
+                                            Username: <span class="required" style="color: #dc3545;">*</span>
+                                            <input type="text" name="new_username" class="form-control" value="{{ request.user.username }}" name="admin_first_name" required>
+                                        </div>
+
+                                        <div class="col-md-6 col-sm-12  form-group">
+                                            First Name: <span class="required" style="color: #dc3545;">*</span>
+                                            <input type="text" name="new_first_name" class="form-control" value="{{ request.user.first_name }}" name="admin_first_name" required>
+                                        </div>
+
+                                        <div class="col-md-6 col-sm-12  form-group">
+                                            Last Name: <span class="required" style="color: #dc3545;">*</span>
+                                            <input type="text" name="new_last_name" class="form-control" value="{{ request.user.last_name }}" name="admin_first_name" required>
+                                        </div>
+
+                                        <div class="form-group">
+                                          <div class="col-md-11 col-sm-9  offset-md-5"><br>
+                                            <button type="submit" class="btn btn-success">Update</button>
+                                          </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="password_settings" role="tabpanel" aria-labelledby="profile-tab">
+                                <div class="row">
+
+
+                                    <form action="{% url 'password-settings' %}" data-parsley-validate method="POST" enctype="multipart/form-data">
+                                        {% csrf_token %}
+
+                                        <div class="col-md-12 col-sm-12  form-group">
+                                            Old password: <span class="required" style="color: #dc3545;">*</span>
+                                            <input type="password" name="old_password" class="form-control" required>
+                                        </div>
+
+                                        <div class="col-md-6 col-sm-12  form-group">
+                                            New password: <span class="required" style="color: #dc3545;">*</span>
+                                            <input type="password" name="new_password" class="form-control" required>
+                                        </div>
+
+                                        <div class="col-md-6 col-sm-12  form-group">
+                                            Confirm password: <span class="required" style="color: #dc3545;">*</span>
+                                            <input type="password" name="confirm_new_password" class="form-control" required>
+                                        </div>
+
+                                        <div class="form-group">
+                                          <div class="col-md-11 col-sm-9  offset-md-5"><br>
+                                            <button type="submit" class="btn btn-success">Update</button>
+                                          </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="profile_settings" role="tabpanel" aria-labelledby="profile-tab">
+                                <div class="row">
+
+
+                                    <form action="{% url 'profile-picture-settings' %}" data-parsley-validate method="POST" enctype="multipart/form-data">
+                                        {% csrf_token %}
+
+                                        <div class="col-md-12 col-sm-12  form-group">
+                                            Photo: <span class="required" style="color: #dc3545;">*</span>
+                                            <input type="file" name="new_profile_picture"  accept="image/*" class="form-control" required>
+                                        </div>
+              
+                                        <div class="form-group">
+                                          <div class="col-md-11 col-sm-9  offset-md-5"><br>
+                                            <!-- Small modal -->
+                                            <button type="button" class="btn btn-success" data-toggle="modal" data-target=".bs-example-modal-sm">Update</button>
+                                          </div>
+                                        </div>
+                        
+                                      <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-hidden="true">
+                                        <div class="modal-dialog modal-sm">
+                                          <div class="modal-content">
+                        
+                                            <div class="modal-header">
+                                              <h4 class="modal-title" id="myModalLabel2"><i class="fas fa-exclamation-triangle text-warning"></i> Warning</h4>
+                                              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span>
+                                              </button>
+                                            </div>
+                                            <div class="modal-body">
+                                              <p>Are you sure to update your profile picture?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                              <button type="submit" class="btn btn-info">Confirm</button>
+                                            </div>
+                        
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <!-- /modals -->
+
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            {% if request.user.is_superuser == True %}
+                            <div class="tab-pane fade" id="webamil_password" role="tabpanel" aria-labelledby="profile-tab">
+                                <div class="row">
+
+
+                                    <form action="{% url 'webmail-password-settings' %}" data-parsley-validate method="POST" enctype="multipart/form-data">
+                                        {% csrf_token %}
+
+                                        {% if webinar_password > 0 %}
+                                             <div class="col-md-12 col-sm-12  form-group">
+                                                Old Webmail password: <span class="required" style="color: #dc3545;">*</span>
+                                                <input type="password" name="old_webmail_password" class="form-control" required>
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="col-md-12 col-sm-12  form-group">
+                                            New Webmail password: <span class="required" style="color: #dc3545;">*</span>
+                                            <input type="password" name="new_webmail_password" class="form-control" required>
+                                        </div>
+
+                                        <div class="col-md-12 col-sm-12  form-group">
+                                            Confirm Webmail password: <span class="required" style="color: #dc3545;">*</span>
+                                            <input type="password" name="confirm_webmail_password" class="form-control" required>
+                                        </div>
+
+                                        <div class="form-group">
+                                          <div class="col-md-11 col-sm-9  offset-md-5"><br>
+                                            <button type="submit" class="btn btn-success">Save</button>
+                                          </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /page content -->
+{% endblock %}
