@@ -549,11 +549,12 @@ def civilian_victims_by_name(request):
 def Civilian_victim_photo_page(request):
     filtered_queryset = filter_verified_victims(get_victim_photo_queryset(), request)
     page_obj = paginate_request_queryset(request, filtered_queryset, PUBLIC_GRID_BATCH_SIZE)
+    filtered_count = page_obj.paginator.count
     context = {
         'page_obj': page_obj,
         'page': page_obj,
         'civilian_queryset': page_obj.object_list,
-        'filtered_count': filtered_queryset.count(),
+        'filtered_count': filtered_count,
         'woreda_list': get_public_woredas(),
         'filters': {
             'q': request.GET.get('q', '').strip(),

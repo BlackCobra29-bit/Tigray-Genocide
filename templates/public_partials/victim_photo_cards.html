@@ -1,3 +1,5 @@
+{% load image_optimization %}
+
 <style>
   #borderimg2 {
     border: 17px solid transparent;
@@ -6,11 +8,12 @@
 </style>
 
 {% for victim in civilian_queryset %}
+{% optimized_image_url victim.picture 480 480 80 as victim_image_url %}
 <div class="col-xl-2 col-md-6 portfolio-item filter-app col-md-55" id="col-md-55">
   <div style="box-shadow: none;">
     <a style="font-size: 12px; font-family: interstate,sans-serif; text-decoration: none; font-weight: 700; color: #003b63; display: block; text-align: center; margin-top: 20px;" href="/View-victim-info/{{ victim.id }}" title="More Details">
       <div id="borderimg2">
-        <img src="{{ victim.picture.url }}" class="img-fluid" style="border-radius: 0px; height: 170px; width: auto; display: block; margin-left: auto; margin-right: auto; transition: none;" id="civilian_victim" alt="Civilian Victim" loading="lazy">
+        <img src="{{ victim_image_url }}" class="img-fluid" style="border-radius: 0px; height: 170px; width: auto; display: block; margin-left: auto; margin-right: auto; transition: none;" id="civilian_victim" alt="Civilian Victim" loading="lazy" decoding="async">
       </div>
       <div>
         <h4 style="font-size: 12px; font-family: interstate,sans-serif; font-weight: 700; color: #003b63; line-height: 1.35; margin: 20px 0 0; text-align: center;">{{ victim.full_name.title }}</h4>
