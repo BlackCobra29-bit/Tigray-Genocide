@@ -58,6 +58,7 @@ from django.utils.text import slugify
 # to purse video url id
 from urllib.parse import urlparse, parse_qs
 from .homepage import get_homepage_summary
+from .image_optimization import get_optimized_image_url
 
 def custom_404_view(request, exception):
     
@@ -108,7 +109,14 @@ def render_public_response(request, template_name, context, partial_template=Non
 def get_public_woredas():
     return cache.get_or_set(
         'public_woreda_list',
-        list(Tigray_woreda.objects.only('woreda_name', 'latitude', 'longitude', 'zone')),
+        lambda: list(
+            Tigray_woreda.objects.only(
+                'woreda_name',
+                'latitude',
+                'longitude',
+                'zone',
+            )
+        ),
         300,
     )
 
@@ -273,6 +281,16 @@ def build_victim_map(selected_woreda=None):
 @cache_page(60)
 def index(request):
     random_hero_image = get_random_instance(Hero_images.objects.only('hero_image'))
+    hero_image_url = (
+        get_optimized_image_url(
+            random_hero_image.hero_image,
+            max_width=1920,
+            max_height=1080,
+            quality=84,
+        )
+        if random_hero_image
+        else ''
+    )
 
     home_page_config = get_homepage_summary()
 
@@ -297,12 +315,17 @@ def index(request):
     )[:12]
 
     context = {
-        'hero_image': random_hero_image.hero_image.url if random_hero_image else '',
+        'hero_image': hero_image_url,
         'civilian_victims': civilian_victims,
         'analysis_articles': analysis_articles,
         'photo_archives': photo_archives,
         'video_archives': video_archives,
         'home_page_config': home_page_config,
+        'home_page_client_config': {
+            key: value
+            for key, value in home_page_config.items()
+            if not key.endswith('Html')
+        },
         'pie_chart_html': home_page_config.get('pieChartHtml', ''),
         'doughnut_chart_html': home_page_config.get('doughnutChartHtml', ''),
     }
@@ -499,12 +522,13 @@ def index(request):
 def civilian_victims_by_name(request):
     filtered_queryset = filter_verified_victims(get_verified_victim_queryset(), request)
     page_obj = paginate_request_queryset(request, filtered_queryset, PUBLIC_TABLE_PAGE_SIZE)
+    filtered_count = page_obj.paginator.count
     context = {
         'page_obj': page_obj,
         'page': page_obj,
         'civilian_victims': page_obj.object_list,
-        'total_count': filtered_queryset.count(),
-        'filtered_count': filtered_queryset.count(),
+        'total_count': filtered_count,
+        'filtered_count': filtered_count,
         'woreda_list': get_public_woredas(),
         'filters': {
             'q': request.GET.get('q', '').strip(),

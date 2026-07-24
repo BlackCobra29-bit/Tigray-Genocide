@@ -1,7 +1,13 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block meta-title %}
     <meta name="og:title" content="Photo Archive">
+{% endblock %}
+
+{% block page_assets %}
+  <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+  <span hidden data-public-script="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></span>
 {% endblock %}
 
 {% block page-content %}

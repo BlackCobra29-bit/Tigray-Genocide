@@ -4,9 +4,12 @@
     <meta name="og:title" content="Photo Archive">
 {% endblock %}
 
-{% block page-content %}
+{% block page_assets %}
+  <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+  <span hidden data-public-script="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></span>
+{% endblock %}
 
-{% load static %}
+{% block page-content %}
 
 <main id="main">
 

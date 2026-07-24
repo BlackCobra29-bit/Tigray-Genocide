@@ -13,7 +13,7 @@ from .models import (
 )
 
 
-HOMEPAGE_SUMMARY_CACHE_KEY = "homepage:summary:v4"
+HOMEPAGE_SUMMARY_CACHE_KEY = "homepage:summary:v6"
 HOMEPAGE_SUMMARY_CACHE_TIMEOUT = 60 * 60
 
 ZONE_LABELS = [
@@ -225,8 +225,14 @@ def build_homepage_summary():
         "linePercentages": line_percentages,
         "barDataPoints": bar_data_points,
         "barPercentages": bar_percentages,
-        "pieChartHtml": pie_chart.to_html(full_html=False),
-        "doughnutChartHtml": plot(doughnut_chart, output_type="div"),
+        # The template loads the lightweight Plotly basic bundle once. Both
+        # charts reuse it instead of embedding copies of the full runtime.
+        "pieChartHtml": pie_chart.to_html(full_html=False, include_plotlyjs=False),
+        "doughnutChartHtml": plot(
+            doughnut_chart,
+            output_type="div",
+            include_plotlyjs=False,
+        ),
     }
 
 

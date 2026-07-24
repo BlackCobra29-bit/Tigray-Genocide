@@ -6,6 +6,11 @@
     <meta name="og:title" content="Contact Us">
 {% endblock %}
 
+{% block page_assets %}
+  <span hidden data-public-script="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></span>
+  <span hidden data-public-script="{% static 'admin_static/js/parsley.min.js' %}"></span>
+{% endblock %}
+
 {% block page-content %}
 
  <style>
@@ -75,8 +80,6 @@
 
 </main>
 <!-- End #main -->
-
-<script src="{% static 'js/chart.js' %}"></script>
 
 <script>
 document.getElementById('emailForm').addEventListener('submit', function(event) {

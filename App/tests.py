@@ -29,13 +29,33 @@ class CivilianVictimsByNameTests(TestCase):
         ])
 
     def test_page_loads_only_ten_victims_with_bounded_queries(self):
+        cache.delete('public_woreda_list')
         with CaptureQueriesContext(connection) as queries:
             response = self.client.get(reverse('civilian_victims_by_name'))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context['page'].object_list), 10)
         self.assertEqual(response.context['total_count'], 25)
-        self.assertLessEqual(len(queries), 4)
+        self.assertEqual(len(queries), 3)
+
+        with CaptureQueriesContext(connection) as warm_queries:
+            warm_response = self.client.get(reverse('civilian_victims_by_name'))
+
+        self.assertEqual(warm_response.status_code, 200)
+        self.assertEqual(len(warm_queries), 2)
+
+    def test_page_does_not_load_unused_shared_libraries(self):
+        response = self.client.get(reverse('civilian_victims_by_name'))
+
+        self.assertContains(response, 'htmx.org@1.9.12')
+        self.assertContains(response, 'js/select.js')
+        self.assertNotContains(response, 'js/chart.js')
+        self.assertNotContains(response, 'glightbox.min')
+        self.assertNotContains(response, 'swiper-bundle.min')
+        self.assertNotContains(response, 'purecounter_vanilla.js')
+        self.assertNotContains(response, 'jquery.dataTables.min.js')
+        self.assertNotContains(response, 'parsley.min.js')
+        self.assertNotContains(response, 'sweetalert.min.js')
 
     def test_filters_run_on_server_and_are_kept_in_pagination(self):
         response = self.client.get(

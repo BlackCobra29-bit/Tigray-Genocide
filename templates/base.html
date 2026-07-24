@@ -28,17 +28,10 @@
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
     <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet">
-    <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
-    <link href="{% static 'vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
     <!-- Template Main CSS File -->
     <link href="{% static 'css/main.css' %}" rel="stylesheet">
     <!-- select2 css and js files -->
     <link href="{% static 'css/select.css' %}" rel="stylesheet">
-    <!-- Keep original public table styling -->
-    <link rel="stylesheet" href="{% static 'admlte/datatable/css/dataTables.bootstrap4.min.css' %}">
-    <link rel="stylesheet" href="{% static 'admlte/datatable/css/responsive.bootstrap4.min.css' %}">
-  <!-- Include SweetAlert library -->
-  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   
   <!-- ahrefs -->
@@ -93,6 +86,9 @@
 
     <div id="page-content">
         <div id="page-shell" hx-boost="true" hx-target="#page-shell" hx-select="#page-shell" hx-swap="outerHTML transition:true" hx-push-url="true" hx-indicator="#page-shell-indicator">
+            <div id="page-assets">
+                {% block page_assets %}{% endblock %}
+            </div>
             {% block page-content %}
 
             {% endblock %}
@@ -119,18 +115,8 @@
     <!-- Vendor JS Files -->
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'vendor/aos/aos.js' %}"></script>
-    <script src="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></script>
-    <script src="{% static 'vendor/purecounter/purecounter_vanilla.js' %}"></script>
-    <script src="{% static 'vendor/swiper/swiper-bundle.min.js' %}"></script>
-    <script src="{% static 'admlte/datatable/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'admlte/datatable/dataTables.bootstrap4.min.js' %}"></script>
-    <script src="{% static 'admlte/datatable/dataTables.responsive.min.js' %}"></script>
-    <script src="{% static 'admlte/datatable/responsive.bootstrap4.min.js' %}"></script>
-    <!-- Parsely validation -->
-    <script src="{% static 'admin_static/js/parsley.min.js' %}"></script>
     <!-- Template Main JS File -->
     <script src="{% static 'js/main.js' %}"></script>
-    <script src="{% static 'js/chart.js' %}"></script>
     <!-- select2 css and js files -->
     <script src="{% static 'js/select.js' %}"></script>
 
@@ -139,9 +125,46 @@
         document.getElementById('copyright_year').innerHTML = currentYear;
     </script>
 
-    <div id="page-assets"></div>
-
     <script>
+        window.publicAssetPromises = window.publicAssetPromises || {};
+
+        function loadPublicPageAssets(root) {
+            var assetRoot = root || document;
+            var markers = assetRoot.querySelectorAll('[data-public-script]');
+            var requests = Array.from(markers).map(function (marker) {
+                var source = marker.getAttribute('data-public-script');
+
+                if (!source) {
+                    return Promise.resolve();
+                }
+
+                if (!window.publicAssetPromises[source]) {
+                    window.publicAssetPromises[source] = new Promise(function (resolve, reject) {
+                        var script = document.createElement('script');
+                        script.src = source;
+                        script.dataset.publicAssetSource = source;
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                }
+
+                return window.publicAssetPromises[source];
+            });
+
+            return Promise.all(requests);
+        }
+
+        function refreshPublicUi(root) {
+            loadPublicPageAssets(root)
+                .catch(function (error) {
+                    console.error('Unable to load a page-specific asset.', error);
+                })
+                .then(function () {
+                    initializePublicUi(root);
+                });
+        }
+
         function initializePublicUi(root) {
             if (window.jQuery && $.fn.DataTable) {
                 $(root).find('table.js-server-datatable').each(function () {
@@ -397,7 +420,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            initializePublicUi(document);
+            refreshPublicUi(document);
             syncNavbarActiveState();
         });
 
@@ -419,7 +442,7 @@
 
         document.body.addEventListener('htmx:afterSwap', function (event) {
             setLoadingRegionState(event.target, false);
-            initializePublicUi(event.target);
+            refreshPublicUi(event.target);
             syncNavbarActiveState();
 
             if (event.target && event.target.id === 'page-shell') {
@@ -445,7 +468,7 @@
             document.querySelectorAll('.htmx-region.is-loading').forEach(function (region) {
                 region.classList.remove('is-loading');
             });
-            initializePublicUi(document);
+            refreshPublicUi(document);
             syncNavbarActiveState();
         });
 

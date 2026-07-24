@@ -4,8 +4,16 @@
 
 {% load humanize %}
 
+{% load image_optimization %}
+
 {% block meta-title %}
     <meta name="og:title" content="Tigray Genocide Homepage">
+{% endblock %}
+
+{% block page_assets %}
+  <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+  <span hidden data-public-script="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></span>
+  <span hidden data-public-script="{% static 'js/chart.js' %}"></span>
 {% endblock %}
 
 {% block page-content %}
@@ -140,6 +148,7 @@
             <div class="legend">
                 <p><b>Note:</b> The data in this chart includes both verified and unidentified  civilian victims.</p>
             </div>
+            <script src="{% static 'vendor/plotly/plotly-basic-3.3.1.min.js' %}"></script>
             <div class="plotly-chart">
               {{ pie_chart_html|safe }}
             </div>
@@ -181,13 +190,14 @@
           
         <div class="row gy-4 portfolio-container">
           {% for victim in civilian_victims %}
+          {% optimized_image_url victim.picture 360 480 as victim_image_url %}
           <div class="col-xl-2 col-md-6 portfolio-item filter-app col-md-55" id="col-md-55">
             <div style="box-shadow: none;"> 
               <a style="font-size: 12px; font-family: interstate,sans-serif; font-weight: bold;text-decoration: none;
               font-weight: 700; color: #003b63; display: block; text-align: center; margin-top: 20px;" href="/View-victim-info/{{ victim.id }}" title="More Details">
                 
                 <div id="borderimg2">
-                    <img src="{{ victim.picture.url }}" class="img-fluid" style="border-radius: 0px; height: 170px; width: auto; display: block; margin-left: auto; margin-right: auto; transition: none;" id="civilian_victim" alt="Civilian Victim">
+                    <img src="{{ victim_image_url }}" class="img-fluid" style="border-radius: 0px; height: 170px; width: auto; display: block; margin-left: auto; margin-right: auto; transition: none;" id="civilian_victim" alt="Civilian Victim" loading="lazy" decoding="async">
                 </div>
                 
               <div>
@@ -222,11 +232,13 @@
 
       <div class="row gy-4">
         {% for article in analysis_articles %}
+        {% optimized_image_url article.thumbnail 800 600 as article_thumbnail_url %}
+        {% optimized_image_url article.author.administrator.admin_photo 160 160 as article_author_photo_url %}
         <div class="col-xl-4 col-md-6">
           <article>
 
             <div class="post-img">
-              <img src="{{ article.thumbnail.url }}" style="height: 239px; width: 100%;" alt="" class="img-fluid">
+              <img src="{{ article_thumbnail_url }}" style="height: 239px; width: 100%;" alt="" class="img-fluid" loading="lazy" decoding="async">
             </div>
 
             <h2 class="title">
@@ -234,7 +246,7 @@
             </h2>
 
             <div class="d-flex align-items-center">
-              <img src="{{ article.author.administrator.admin_photo.url }}" alt="" class="img-fluid post-author-img flex-shrink-0">
+              <img src="{{ article_author_photo_url }}" alt="" class="img-fluid post-author-img flex-shrink-0" loading="lazy" decoding="async">
               <div class="post-meta">
                 <p class="post-author">{{ article.author.first_name }} {{ article.author.last_name }}</p>
                 <p class="post-date">
@@ -276,15 +288,16 @@
       <div class="row gy-4 portfolio-container">
         
         {% for item in photo_archives %}
+        {% optimized_image_url item.photo 800 600 as archive_photo_url %}
         <div class="col-xl-4 col-md-6 portfolio-item filter-app">
           <div class="portfolio-wrap">
               {% if item.graphic == True %}
                 <a href="{{ item.photo.url }}" data-gallery="portfolio-gallery-app" class="glightbox" data-title="{{ item.description }}">
-                    <img src="{% static 'img/graphic_img.png' %}" style="height: 200px; width: 100%;" class="img-fluid" alt="">
+                    <img src="{% static 'img/graphic_img.png' %}" style="height: 200px; width: 100%;" class="img-fluid" alt="" loading="lazy" decoding="async">
                 </a>
               {% else %}
               <a href="{{ item.photo.url }}" data-gallery="portfolio-gallery-app" class="glightbox" data-title="{{ item.description }}">
-                <img src="{{ item.photo.url }}" style="height: 239px; width: 100%;" class="img-fluid" alt="">
+                <img src="{{ archive_photo_url }}" style="height: 239px; width: 100%;" class="img-fluid" alt="" loading="lazy" decoding="async">
               </a>
               {% endif %}  
             <div class="portfolio-info">
@@ -344,7 +357,7 @@
             <div class="col-xl-4 col-md-6 portfolio-item filter-app">
               <div class="portfolio-wrap">
                 <a href="/Watch-video/{{ item.id }}">
-                 <iframe width="100%" height="200px" src="https://www.youtube.com/embed/{% with video_id=item.online_link|cut:"https://www.youtube.com/watch?v=" %}{{ video_id }}{% endwith %}" frameborder="0" allowfullscreen></iframe>
+                 <iframe width="100%" height="200px" src="https://www.youtube.com/embed/{% with video_id=item.online_link|cut:"https://www.youtube.com/watch?v=" %}{{ video_id }}{% endwith %}" title="Archived video" loading="lazy" frameborder="0" allowfullscreen></iframe>
                   <!-- end of hidden image -->
                 </a> 
                 <div class="portfolio-info">
@@ -426,6 +439,6 @@
 </main>
 <!-- End #main -->
 
-{{ home_page_config|json_script:"home-page-config" }}
+{{ home_page_client_config|json_script:"home-page-config" }}
 
 {% endblock %}
