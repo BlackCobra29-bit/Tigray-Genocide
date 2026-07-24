@@ -9,6 +9,7 @@ from django.db.models import Sum, Count
 from django.shortcuts import render, redirect
 from django.core.cache import cache
 from django.views.decorators.cache import cache_page
+from django.views.decorators.http import require_GET
 from .models import Civilian_victims
 from .models import Analysis_articles
 from .models import Article_comments
@@ -57,6 +58,9 @@ import urllib.parse
 from django.utils.text import slugify
 # to purse video url id
 from urllib.parse import urlparse, parse_qs
+from .admin_civilian_form import get_admin_civilian_woreda_names
+from .admin_metrics import get_admin_pending_count
+from .civilian_management import build_civilian_management_payload
 from .dashboard_summary import get_admin_dashboard_summary
 from .homepage import get_homepage_summary
 from .image_optimization import get_optimized_image_url
@@ -1144,22 +1148,13 @@ def admin_civilian_victims_page(request):
 
     return render(request, 'admin_templates/civilian_victim/civilian_victims.html', context)
 
-@login_required(login_url='/Administrator-login-page', redirect_field_name='authentication_required')
+@login_required(login_url=settings.LOGIN_URL, redirect_field_name='authentication_required')
 def add_civilian_victim(request):
-    pending_count = Civilian_victims.objects.filter(approval=False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    context = {
-        'pending_count': pending_count,
-        'Administrator': Administrator.objects.get(user=request.user),
-        'woreda_list': Tigray_woreda.objects.all(),
-    }
-    
-    # Initialize success_message variable
     success_message = ""
 
     if request.method == 'POST':
         civilian_model = Civilian_victims()
-        civilian_model.author = User.objects.get(username=request.user)
+        civilian_model.author_id = request.user.pk
         civilian_model.full_name = request.POST.get('fullname')
         civilian_model.gender = request.POST.get('gender')
         civilian_model.age = request.POST.get('age') or None
@@ -1171,7 +1166,10 @@ def add_civilian_victim(request):
             else:
                 civilian_model.picture = "civilian_victims_pic/default_female.jpg"
         civilian_model.perpetrator = request.POST.get('perpetrator')
-        woreda_obj = Tigray_woreda.objects.get(woreda_name=request.POST.get('woreda'))
+        woreda_obj = Tigray_woreda.objects.only(
+            'woreda_name',
+            'zone',
+        ).get(woreda_name=request.POST.get('woreda'))
         civilian_model.woreda = woreda_obj
         civilian_model.zone = woreda_obj.zone
         civilian_model.place_of_killing = request.POST.get('place')
@@ -1180,59 +1178,86 @@ def add_civilian_victim(request):
         civilian_model.source_link = request.POST.get('source_link')
         civilian_model.remark = request.POST.get('remark')
 
-        # Check if the fullname and woreda already exist
-        if Civilian_victims.objects.filter(full_name=request.POST.get('fullname')).exists() and Civilian_victims.objects.filter(woreda=woreda_obj).exists():
-            
-            previous_existed_civilian_victim = Civilian_victims.objects.filter(full_name=request.POST.get('fullname'), woreda=woreda_obj).first()
-            
-            if User.objects.get(username=request.user).is_superuser:
-                civilian_model.approval = True
+        previous_existed_civilian_victim = Civilian_victims.objects.filter(
+            full_name=civilian_model.full_name,
+            woreda=woreda_obj,
+        ).order_by().only('id').first()
 
-            civilian_model.save()
-            
-            error_message = f'A civilian victim with the provided full name and Woreda already exists. <a href="https://tigraygenocide.com/View-victim-info/{previous_existed_civilian_victim.id}" target="_blank"><u>Click here to view the existing victim</u></a>.'
-                    
-            # Return error message and new_duplicate_id in JSON format
-            return JsonResponse({'message': error_message, 'new_duplicate_id': civilian_model.id}, status=400)
+        civilian_model.approval = request.user.is_superuser
+        civilian_model.save()
 
+        if previous_existed_civilian_victim is not None:
+            existing_victim_url = request.build_absolute_uri(
+                reverse(
+                    'view-victim-info',
+                    kwargs={'id': previous_existed_civilian_victim.id},
+                )
+            )
+            error_message = (
+                'A civilian victim with the provided full name and Woreda '
+                f'already exists. <a href="{existing_victim_url}" '
+                'target="_blank"><u>Click here to view the existing '
+                'victim</u></a>.'
+            )
+            return JsonResponse(
+                {
+                    'message': error_message,
+                    'new_duplicate_id': civilian_model.id,
+                },
+                status=400,
+            )
+
+        if request.user.is_superuser:
+            success_message = 'New civilian victim data added successfully.'
         else:
-            if User.objects.get(username=request.user).is_superuser:
-                civilian_model.approval = True
+            success_message = (
+                'New civilian victim data added successfully and is pending '
+                'approval.'
+            )
 
-            civilian_model.save()
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse(
+                {
+                    'message': 'Success!',
+                    'success_message': success_message,
+                },
+                status=200,
+            )
 
-            if User.objects.get(username=request.user).is_superuser:
-                success_message = 'New civilian victim data added successfully.'
-            else:
-                success_message = 'New civilian victim data added successfully and is pending approval.'
+    administrator = Administrator.objects.get(user=request.user)
+    request.user._state.fields_cache["administrator"] = administrator
+    context = {
+        'pending_count': get_admin_pending_count(),
+        'Administrator': administrator,
+        'woreda_list': get_admin_civilian_woreda_names(),
+        'success_message': success_message,
+    }
 
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                # If the request is AJAX, return JSON response with success message
-                return JsonResponse({'message': 'Success!', 'success_message': success_message}, status=200)
-
-    # Pass the success_message to the template context
-    context['success_message'] = success_message
-
-    # Return the same context if not AJAX request
     return render(request, 'admin_templates/civilian_victim/add_civilian_victim.html', context)
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def civilian_data_management(request):
-
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    civilian_victims = Civilian_victims.objects.filter(approval=True)
-    specfic_admin_civilian_victims = Civilian_victims.objects.filter(
-        author=request.user)
-
+    administrator = Administrator.objects.get(user=request.user)
+    request.user._state.fields_cache["administrator"] = administrator
     context = {
-        'pending_count':pending_count,
-        'civilian_victims': civilian_victims,
-        'specfic_data': specfic_admin_civilian_victims,
-        'Administrator': Administrator.objects.get(user=request.user)
+        'pending_count': get_admin_pending_count(),
+        'Administrator': administrator,
     }
 
     return render(request, 'admin_templates/civilian_victim/civilian_data_management.html', context)
+
+
+@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
+@require_GET
+def civilian_data_management_data(request):
+    administrator = Administrator.objects.get(user=request.user)
+    request.user._state.fields_cache["administrator"] = administrator
+    if not (request.user.is_superuser or administrator.civilian_role):
+        return JsonResponse(
+            {"detail": "You do not have permission to access this data."},
+            status=403,
+        )
+    return JsonResponse(build_civilian_management_payload(request))
 
 
 class Update_Civilian_Victim(LoginRequiredMixin, SuccessMessageMixin, UpdateView):

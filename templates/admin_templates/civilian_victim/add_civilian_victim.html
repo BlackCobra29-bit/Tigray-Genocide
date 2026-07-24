@@ -2,6 +2,10 @@
 
 {% load static %}
 
+{% block admin_form_head_assets %}{% endblock %}
+{% block admin_table_head_assets %}{% endblock %}
+{% block admin_table_scripts %}{% endblock %}
+
 {% block admin_page_content %}
 {% if Administrator.civilian_role == True or request.user.is_superuser == True %}
 
@@ -100,8 +104,8 @@
                 <span id="woreda">Woreda</span>: <span class="required" style="color: #dc3545;">*</span>
                 <select class="selectpicker form-control" data-live-search="true" name="woreda" required="">
                   <option selected="" disabled=""></option>
-                  {% for woreda in woreda_list%}
-                    <option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>
+                  {% for woreda_name in woreda_list %}
+                    <option value="{{ woreda_name }}">{{ woreda_name }}</option>
                   {% endfor %}
                 </select>
               </div>
@@ -152,12 +156,6 @@
       <img src="{% static 'img/Spinner-loading.gif' %}" alt="Loading...">
     </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
-<!-- select2 css and js files -->
-<script src="{% static 'js/select.js' %}"></script>
-
 <style>
     #parsley-id-15 {
         position: absolute;
@@ -170,96 +168,6 @@
     }
 
 </style>
-
-<script>
-$(document).ready(function() {
-  $('#myForm').submit(function(event) {
-    event.preventDefault(); // Prevent default form submission
-
-    // Display loading indicator
-    $('#loadingIndicator').show();
-
-    var formData = new FormData($(this)[0]); // Get form data
-
-    $.ajax({
-      url: "{% url 'admin-add-civilian' %}", // Replace with the actual URL name
-      type: 'POST',
-      data: formData,
-      async: true,
-      cache: false,
-      contentType: false,
-      processData: false,
-      success: function(response) {
-        // Hide loading indicator upon successful AJAX completion
-        $('#loadingIndicator').hide();
-
-        // Handle success response here
-        console.log(response); // Log response to console
-        
-        // Display SweetAlert success message
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          html: response.success_message, // Display success message from JSON response
-        });
-
-        // Reset the form inputs
-        $('#myForm')[0].reset();
-        // Clear and re-add options to the selectpicker for Woreda
-        $('.selectpicker').empty();
-        // Add default option
-        $('.selectpicker').append('<option selected disabled></option>');
-        // Add options from Django database
-        {% for woreda in woreda_list %}
-          $('.selectpicker').append('<option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>');
-        {% endfor %}
-        // Refresh the selectpicker
-        $('.selectpicker').selectpicker('refresh');
-      },
-      error: function(xhr, status, error) {
-        // Hide loading indicator upon AJAX error
-        $('#loadingIndicator').hide();
-
-        // Handle error here
-        console.error(xhr.responseText); // Log error response to console
-        
-        // Parse error response as JSON
-        var errorMessage = JSON.parse(xhr.responseText);
-        
-        // Display SweetAlert error message
-        Swal.fire({
-          icon: 'error',
-          title: 'Duplicate Entry Detected',
-          html: errorMessage.message, // Display error message from JSON response
-          footer: '<a href="https://tigraygenocide.com/Delete-duplicate-civilian-victim/' + errorMessage.new_duplicate_id + '" class="text-danger"><span class="bi bi-trash"></span> Click here to cancel this duplicate entry </a>',
-          confirmButtonText: 'Save Data',
-        }).then((result) => {
-          // Check if the confirmation button is clicked
-          if (result.isConfirmed) {
-            // Reload the window
-            window.location.reload();
-          }
-        });
-
-        // Reset the form inputs
-        $('#myForm')[0].reset();
-        // Clear and re-add options to the selectpicker for Woreda
-        $('.selectpicker').empty();
-        // Add default option
-        $('.selectpicker').append('<option selected disabled></option>');
-        // Add options from Django database
-        {% for woreda in woreda_list %}
-          $('.selectpicker').append('<option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>');
-        {% endfor %}
-        // Refresh the selectpicker
-        $('.selectpicker').selectpicker('refresh');
-      }
-    });
-
-    return false;
-  });
-});
-</script>
 
 {% else %}
 <!-- page content -->
@@ -277,4 +185,79 @@ $(document).ready(function() {
       </div>
 {% endif %}
 <!-- /page content -->
+{% endblock %}
+
+{% block admin_page_scripts %}
+{% if Administrator.civilian_role == True or request.user.is_superuser == True %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script>
+$(document).ready(function() {
+  var duplicateDeleteUrlTemplate =
+    "{% url 'delete-duplicate-civilian-victim' 'duplicate-id-placeholder' %}";
+
+  function resetCivilianForm() {
+    $('#myForm')[0].reset();
+    $('.selectpicker').val(null).trigger('change');
+  }
+
+  $('#myForm').submit(function(event) {
+    event.preventDefault();
+    $('#loadingIndicator').show();
+
+    $.ajax({
+      url: "{% url 'admin-add-civilian' %}",
+      type: 'POST',
+      data: new FormData(this),
+      async: true,
+      cache: false,
+      contentType: false,
+      processData: false,
+      success: function(response) {
+        $('#loadingIndicator').hide();
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          html: response.success_message,
+        });
+        resetCivilianForm();
+      },
+      error: function(xhr) {
+        $('#loadingIndicator').hide();
+
+        var errorMessage = xhr.responseJSON || {};
+        if (!errorMessage.message || !errorMessage.new_duplicate_id) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Unable to save data',
+            text: 'Please try again.',
+          });
+          return;
+        }
+
+        var duplicateDeleteUrl = duplicateDeleteUrlTemplate.replace(
+          'duplicate-id-placeholder',
+          encodeURIComponent(errorMessage.new_duplicate_id)
+        );
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Duplicate Entry Detected',
+          html: errorMessage.message,
+          footer: '<a href="' + duplicateDeleteUrl + '" class="text-danger"><span class="bi bi-trash"></span> Click here to cancel this duplicate entry </a>',
+          confirmButtonText: 'Save Data',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.reload();
+          }
+        });
+
+        resetCivilianForm();
+      }
+    });
+
+    return false;
+  });
+});
+</script>
+{% endif %}
 {% endblock %}

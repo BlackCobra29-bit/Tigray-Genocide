@@ -1,25 +1,26 @@
 
+from functools import lru_cache
 
 from django import template
 from urlextract import URLExtract
 
 register = template.Library()
 
+_url_extractor = URLExtract()
+
+
+@lru_cache(maxsize=4096)
+def _extract_urls(value):
+    return tuple(_url_extractor.find_urls(value))
+
 @register.filter
 def extract_and_join_urls(value):
     """
     Custom Django template filter to extract URLs from a string and join them into a single string.
     """
-    # Initialize URL extractor
-    extractor = URLExtract()
-    
-    # Extract URLs from the input string
-    urls = extractor.find_urls(value)
-    
-    # Convert list of URLs to a single string
-    urls_string = ', '.join(urls)
-    
-    return urls_string
+    if not value:
+        return ''
+    return ', '.join(_extract_urls(str(value)))
 
 @register.filter(name='split_string')
 def split_string(value, delimiter):

@@ -65,6 +65,10 @@ class Civilian_victims(models.Model):
             models.Index(fields=["approval", "zone"]),
             models.Index(fields=["approval", "perpetrator"]),
             models.Index(fields=["approval", "gender"]),
+            models.Index(
+                fields=["full_name", "woreda"],
+                name="civilian_name_woreda_idx",
+            ),
         ]
 
     def __str__(self):

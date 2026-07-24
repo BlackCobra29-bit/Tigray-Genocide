@@ -3,6 +3,8 @@ from django.db import transaction
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
+from .admin_civilian_form import invalidate_admin_civilian_woreda_names
+from .admin_metrics import invalidate_admin_pending_count
 from .dashboard_summary import invalidate_admin_dashboard_summary
 from .homepage import get_homepage_summary, invalidate_homepage_summary
 from .models import (
@@ -31,12 +33,17 @@ def schedule_admin_dashboard_invalidation():
     transaction.on_commit(invalidate_admin_dashboard_summary)
 
 
+def schedule_admin_pending_count_invalidation():
+    transaction.on_commit(invalidate_admin_pending_count)
+
+
 def schedule_victim_map_invalidation():
     transaction.on_commit(invalidate_victim_map_cache)
 
 
 def refresh_woreda_map_data():
     cache.delete('public_woreda_list')
+    invalidate_admin_civilian_woreda_names()
     invalidate_victim_map_cache()
 
 
@@ -76,6 +83,14 @@ def refresh_homepage_on_change(sender, **kwargs):
 @receiver(post_delete, sender=Webinar)
 def invalidate_admin_dashboard_on_change(sender, **kwargs):
     schedule_admin_dashboard_invalidation()
+
+
+@receiver(post_save, sender=Civilian_victims)
+@receiver(post_delete, sender=Civilian_victims)
+@receiver(post_save, sender=Analysis_articles)
+@receiver(post_delete, sender=Analysis_articles)
+def invalidate_admin_pending_count_on_change(sender, **kwargs):
+    schedule_admin_pending_count_invalidation()
 
 
 @receiver(post_save, sender=Civilian_victims)

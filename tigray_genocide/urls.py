@@ -122,6 +122,8 @@ from App.views import add_civilian_victim
 
 from App.views import civilian_data_management
 
+from App.views import civilian_data_management_data
+
 from App.views import delete_civilian_victim_item
 
 from App.views import delete_duplicate_civilian_victim_item
@@ -303,6 +305,8 @@ urlpatterns = [
     path('Add-civilian-victim/', add_civilian_victim, name = 'admin-add-civilian'),
 
     path('Civilian-data-management/', civilian_data_management, name = 'civilian-data-management'),
+
+    path('Civilian-data-management/data/', civilian_data_management_data, name = 'civilian-data-management-data'),
 
     path('Delete-duplicate-civilian-victim/<slug:pk>', delete_duplicate_civilian_victim_item, name = 'delete-duplicate-civilian-victim'),
 
