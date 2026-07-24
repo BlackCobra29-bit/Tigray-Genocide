@@ -6,8 +6,6 @@
 
 {% block page-content %}
 
-{% load static %}
-
 <main id="main">
     
     <!-- ======= Breadcrumbs ======= -->
@@ -31,7 +29,7 @@
                         {% csrf_token %}
                         <div class="form-group">
                           <span id="woreda">Woreda</span>
-                          <select class="selectpicker form-control" data-live-search="true" name="woreda" id="selectWoreda" required>
+                          <select class="selectpicker form-control" data-live-search="true" data-victim-location-filter name="woreda" id="selectWoreda" required>
                             <option selected="" disabled="">Select Woreda</option>
                             {% for woreda in woreda_list%}
                             <option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>
@@ -42,7 +40,7 @@
           </div>
       </div>
       
-    <div class="container" data-aos="fade-up">
+    <div class="container">
                       
                       <br>
       
@@ -52,34 +50,6 @@
   </section>
   <!-- End civilian victim Section -->  
   
-  <!-- Admlte Js file -->
-    <script src="{% static 'admlte/js/jquery.min.js' %}"></script>
-  
-  <Script>
-        $(document).ready(function() {
-            
-          // filter by name
-          $('#selectWoreda').on('change', function() {
-            const civilian_woreda = $(this).val();
-            
-            // slugify woreda name
-            // Replace spaces with hyphens
-            var slug = civilian_woreda.replace(/\s+/g, '-');
-            
-            // Remove special characters
-            slug = slug.replace(/[^\w-]+/g, '');
-            
-            // Convert to lowercase
-            slug = slug.toLowerCase();
-            
-            if (civilian_woreda) {
-              window.location.href = '/Civilina-victims-location-information/' + slug;
-            }
-          });
-          
-        });
-    </script>
-
   </main><!-- End #main -->
 
 {% endblock %}

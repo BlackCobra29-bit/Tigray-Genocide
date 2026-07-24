@@ -121,11 +121,6 @@
     <script src="{% static 'js/select.js' %}"></script>
 
     <script>
-        const currentYear = new Date().getFullYear();
-        document.getElementById('copyright_year').innerHTML = currentYear;
-    </script>
-
-    <script>
         window.publicAssetPromises = window.publicAssetPromises || {};
 
         function loadPublicPageAssets(root) {
@@ -442,7 +437,13 @@
 
         document.body.addEventListener('htmx:afterSwap', function (event) {
             setLoadingRegionState(event.target, false);
-            refreshPublicUi(event.target);
+            var swappedRoot = event.target;
+            if (!swappedRoot || !swappedRoot.isConnected) {
+                swappedRoot = swappedRoot && swappedRoot.id
+                    ? document.getElementById(swappedRoot.id)
+                    : document;
+            }
+            refreshPublicUi(swappedRoot || document);
             syncNavbarActiveState();
 
             if (event.target && event.target.id === 'page-shell') {
@@ -470,6 +471,20 @@
             });
             refreshPublicUi(document);
             syncNavbarActiveState();
+        });
+
+        $(document).on('change.victimLocation', '[data-victim-location-filter]', function () {
+            var civilianWoreda = this.value;
+            if (!civilianWoreda) {
+                return;
+            }
+
+            var slug = civilianWoreda
+                .replace(/\s+/g, '-')
+                .replace(/[^\w-]+/g, '')
+                .toLowerCase();
+
+            window.location.href = '/Civilina-victims-location-information/' + slug;
         });
 
         document.body.addEventListener('click', function (event) {

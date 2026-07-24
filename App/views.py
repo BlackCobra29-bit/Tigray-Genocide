@@ -57,8 +57,13 @@ import urllib.parse
 from django.utils.text import slugify
 # to purse video url id
 from urllib.parse import urlparse, parse_qs
+from .dashboard_summary import get_admin_dashboard_summary
 from .homepage import get_homepage_summary
 from .image_optimization import get_optimized_image_url
+from .victim_map_cache import (
+    VICTIM_MAP_HTML_CACHE_TIMEOUT,
+    get_victim_map_cache_version,
+)
 
 def custom_404_view(request, exception):
     
@@ -240,13 +245,21 @@ def get_photo_archive_queryset():
 
 
 def build_victim_map(selected_woreda=None):
+    woreda_list = get_public_woredas()
+    map_cache_key = (
+        f'public_victim_map_html:v1:{get_victim_map_cache_version()}:'
+        f'{slugify(selected_woreda) if selected_woreda else "all"}'
+    )
+    cached_map = cache.get(map_cache_key)
+    if cached_map is not None:
+        return cached_map, woreda_list
+
     victim_counts = {
         item['woreda']: item['total']
         for item in Civilian_victims.objects.filter(approval=True, woreda__isnull=False)
         .values('woreda')
         .annotate(total=Count('id'))
     }
-    woreda_list = get_public_woredas()
     map_center = [13.881273, 39.127495]
 
     if selected_woreda:
@@ -254,8 +267,18 @@ def build_victim_map(selected_woreda=None):
         if selected_obj:
             map_center = [selected_obj.latitude, selected_obj.longitude]
 
-    folium_map = folium.Map(location=map_center, zoom_start=10 if selected_woreda else 7, width='100%', height='100%')
-    folium.TileLayer('openstreetmap', attr='OpenStreetMap', name='OpenStreetMap', overlay=True).add_to(folium_map)
+    folium_map = folium.Map(
+        location=map_center,
+        zoom_start=10 if selected_woreda else 7,
+        width='100%',
+        height='100%',
+        tiles=None,
+    )
+    folium.TileLayer(
+        'openstreetmap',
+        attr='OpenStreetMap',
+        name='OpenStreetMap',
+    ).add_to(folium_map)
     folium.LayerControl().add_to(folium_map)
 
     for woreda in woreda_list:
@@ -275,7 +298,9 @@ def build_victim_map(selected_woreda=None):
             marker_kwargs['icon'] = folium.Icon(color='red', icon='star')
         folium.Marker((woreda.latitude, woreda.longitude), **marker_kwargs).add_to(folium_map)
 
-    return folium_map._repr_html_(), woreda_list
+    rendered_map = folium_map._repr_html_()
+    cache.set(map_cache_key, rendered_map, VICTIM_MAP_HTML_CACHE_TIMEOUT)
+    return rendered_map, woreda_list
 
 
 @cache_page(60)
@@ -606,6 +631,7 @@ def Civilian_victim_by_map_info(request, woreda_pr):
         'page_obj': page_obj,
         'page': page_obj,
         'woreda_list': woreda_list,
+        'selected_woreda': woreda_pr,
     }
     
     return render(request, 'civilian_victims_map_info.html', context)
@@ -1090,222 +1116,13 @@ def Admin_logout(request):
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def admin_dashboard(request):
-
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    # Count available contents
-    count_civilian = Civilian_victims.objects.filter(approval=True).count()
-    count_articles = Analysis_articles.objects.filter(approval=True, draft=False).count()
-    count_panel = Webinar.objects.all().count()
-    count_photo = Photo_archive.objects.all().count()
-    count_video = Video_archive.objects.all().count()
-    count_pending = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    # line chart
-    line_chart_data_points = []
-    zone_list = ['Western Tigray', 'Eastern Tigray', 'Central Tigray', 'North Western Tigray',
-                 'Southern Tigray', 'South Eastern Tigray', 'Mekelle Special', 'Other']
-    
-    for item in zone_list:
-        total_civilian_count = Unverified_civilian.objects.filter(zone=item).aggregate(total_civilian_count=Sum('number_of_civilian'))['total_civilian_count']
-        if total_civilian_count is None:
-            total_civilian_count = 0
-        line_chart_data_points.append(Civilian_victims.objects.filter(
-            zone=item, approval=True).count() + total_civilian_count)
-
-    line_chart_items_percentage = []
-    for item in line_chart_data_points:
-        try:
-            total_civilians = Unverified_civilian.objects.aggregate(total_civilians=Sum('number_of_civilian'))['total_civilians']
-            if total_civilian_count is None:
-                total_civilian_count = 0
-            count = Civilian_victims.objects.filter(approval=True).count() + total_civilians 
-            if count != 0:
-                percentage = round((item * 100) / count, 2)
-                line_chart_items_percentage.append(percentage)
-            else:
-                # Handle the case where count is zero
-                # For example, set percentage to 0 or some default value
-                line_chart_items_percentage.append(0)
-        except ZeroDivisionError:
-            # Handle the ZeroDivisionError
-            # For example, set percentage to 0 or some default value
-            line_chart_items_percentage.append(0)
-
-
-    # bar chart
-    bar_chart_data_points = [
-        Civilian_victims.objects.filter(
-            approval=True, age__gt=int(0), age__lt=int(11)).count(),
-        Civilian_victims.objects.filter(
-            approval=True, age__gte=int(11), age__lt=int(18)).count(),
-        Civilian_victims.objects.filter(
-            approval=True, age__gte=int(18), age__lt=int(33)).count(),
-        Civilian_victims.objects.filter(
-            approval=True, age__gte=int(33), age__lt=int(49)).count(),
-        Civilian_victims.objects.filter(
-            approval=True, age__gte=int(49), age__lt=int(64)).count(),
-        Civilian_victims.objects.filter(
-            approval=True, age__gte=int(64), age__lt=int(80)).count(),
-        Civilian_victims.objects.filter(
-            approval=True, age__gte=int(80), age__lt=int(95)).count(),
-        Civilian_victims.objects.filter(approval=True, age = None).count()
-    ]
-
-    bar_chart_items_percentage = []
-    for item in bar_chart_data_points:
-        try:
-            count = Civilian_victims.objects.filter(approval=True).count()
-            if count != 0:
-                percentage = round((item * 100) / count, 2)
-                bar_chart_items_percentage.append(percentage)
-            else:
-                # Handle the case where count is zero
-                # For example, set percentage to 0 or some default value
-                bar_chart_items_percentage.append(0)
-        except ZeroDivisionError:
-            # Handle the ZeroDivisionError
-            # For example, set percentage to 0 or some default value
-            bar_chart_items_percentage.append(0)
-
-
-    # Pie Chart
-    
-
-    verified_list = []
-
-    verified_list = []
-
-    verified_legend = []
-
-    pi_chart_data_points = []
-
-    perpetrator_list = ['Died from lack of food', 'Killed by Eritrean forces', 'Died from lack of medicine',
-
-                    'Killed by Ethiopian forces', 'Killed by Ethiopian and Eritrean forces', 'Killed by Amhara militia and Fano']
-
-    
-
-    total_count = Civilian_victims.objects.filter(approval=True).count()
-
-    for item in perpetrator_list:
-        
-        total_civilian_count = Unverified_civilian.objects.filter(perpetrator=item).aggregate(total_civilian_count=Sum('number_of_civilian'))['total_civilian_count']
-        
-        
-        if total_civilian_count is None:
-            total_civilian_count = 0
-        
-        count_items = (Civilian_victims.objects.filter(approval=True, perpetrator=item).count() + total_civilian_count)
-
-        if count_items > 0:
-
-            total_civilian_count = Unverified_civilian.objects.filter(perpetrator=item).aggregate(total_civilian_count=Sum('number_of_civilian'))['total_civilian_count']
-        
-        
-            if total_civilian_count is None:
-                total_civilian_count = 0
-
-            pi_chart_data_points.append(Civilian_victims.objects.filter(
-
-                approval=True, perpetrator=item).count() + total_civilian_count)
-
-
-
-            verified_list.append(item)
-
-            verified_legend.append(f"{item} ({round((count_items/total_count)*100, 1)}%)")
-
-    pie_chart = go.Figure(data=[go.Pie(labels=verified_legend, values=pi_chart_data_points,
-
-                hoverinfo='label+value', textinfo='value+percent', textposition='inside')])
-
-    # Update the layout to increase width and height
-    pie_chart.update_layout(
-    autosize=True,  # Enable autosizing to make the chart responsive
-    margin=dict(l=0, r=0, t=30, b=0),  # Adjust margin as needed
-    legend=dict(orientation="h", yanchor="top", y=1.5),  # Position legend at the top
-)
-
-    # end of to be updated
-
-
-
-    pie_chart.update_traces(marker=dict(colors=['rgb(13, 93, 149)', 'rgb(36, 102, 71)', '#2ca02c', '#d62728', 'rgb(126, 34, 189)', 'rgb(121, 53, 40)']),
-
-     textinfo='value+percent', textfont=dict(color='white', size=14))
-
-
-
-    # Doughnut Chart
-
-    verified_list = []
-
-    verified_legend = []
-
-    doughnut_chart_data_points = []
-
-    gender_list = ['Male', 'Female', 'Unknown']
-
-
-
-    total_count = Civilian_victims.objects.filter(approval=True).count()
-
-    for item in gender_list:
-
-        count_items = Civilian_victims.objects.filter(approval=True, gender=item).count()
-
-        if count_items > 0:
-
-
-
-            doughnut_chart_data_points.append(count_items)
-
-
-
-            verified_list.append(item)
-
-            verified_legend.append(f"{item} ({round((count_items/total_count)*100, 1)}%)")
-
-
-
-    # Create the donut chart
-
-    donut_chart = go.Figure(data=[go.Pie(labels=verified_legend, values=doughnut_chart_data_points, hole=0.5, 
-
-            hoverinfo='label+value', textposition='inside', textinfo='value+percent')])
-
-
-
-    donut_chart.update_traces(marker=dict(colors=['rgb(102, 73, 36)', 'rgb(214, 39, 40)', 'rgb(36, 102, 71)']),
-
-        textinfo='value+percent', textfont=dict(color='white', size=14))
-
-
-
-    # Convert the chart to HTML
-
-    doughnut_plot_div = plot(donut_chart, output_type='div')
-
+    administrator = Administrator.objects.get(user=request.user)
+    request.user._state.fields_cache["administrator"] = administrator
     context = {
-        'pending_count': pending_count,
-        'count_civilian': count_civilian,
-        'count_articles': count_articles,
-        'count_panel': count_panel,
-        'count_photo': count_photo,
-        'count_video': count_video,
-        'count_pending': count_pending,
-        'line_data_points': line_chart_data_points,
-        'bar_data_points': bar_chart_data_points,
-        'line_chart_items_percentage': line_chart_items_percentage,
-        'bar_chart_items_percentage': bar_chart_items_percentage,
-        'pi_data_points': pie_chart.to_html(full_html=False),
-        'doughnut_data_points': doughnut_plot_div,
-        'Administrator': Administrator.objects.get(user=request.user)
+        **get_admin_dashboard_summary(),
+        "Administrator": administrator,
     }
-
     return render(request, 'admin_templates/index.html', context)
-
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def admin_civilian_victims_page(request):

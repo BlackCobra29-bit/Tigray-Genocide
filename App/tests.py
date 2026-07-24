@@ -221,6 +221,67 @@ class CivilianVictimsByLocationTests(TestCase):
         self.assertContains(response, 'Civilian Victims: 30')
         self.assertLessEqual(len(queries), 2)
 
+    def test_location_map_html_is_reused_without_database_queries(self):
+        first_response = self.client.get(reverse('civilian-victim-map-page'))
+
+        with CaptureQueriesContext(connection) as queries:
+            second_response = self.client.get(reverse('civilian-victim-map-page'))
+
+        self.assertEqual(second_response.status_code, 200)
+        self.assertEqual(
+            first_response.context['geolocation'],
+            second_response.context['geolocation'],
+        )
+        self.assertEqual(len(queries), 0)
+
+    def test_location_map_cache_is_invalidated_when_a_victim_changes(self):
+        first_response = self.client.get(reverse('civilian-victim-map-page'))
+        self.assertContains(first_response, 'Civilian Victims: 30')
+
+        with self.captureOnCommitCallbacks(execute=True):
+            Civilian_victims.objects.create(
+                full_name='New Location Victim',
+                gender='Female',
+                woreda=self.selected_woreda,
+                zone='Test Zone',
+                perpetrator='Killed by Eritrean forces',
+                approval=True,
+            )
+
+        refreshed_response = self.client.get(reverse('civilian-victim-map-page'))
+        self.assertContains(refreshed_response, 'Civilian Victims: 31')
+
+    def test_location_page_loads_jquery_and_openstreetmap_once(self):
+        response = self.client.get(reverse('civilian-victim-map-page'))
+        content = response.content.decode()
+
+        self.assertEqual(content.count('/static/admlte/js/jquery.min.js'), 1)
+        self.assertEqual(content.count('L.tileLayer('), 1)
+        self.assertContains(response, 'data-victim-location-filter')
+        self.assertNotContains(response, 'class="container" data-aos="fade-up"')
+
+    def test_location_detail_uses_full_width_table_layout(self):
+        response = self.client.get(
+            reverse(
+                'civilian-victim-map-info-page',
+                args=['location-test-woreda'],
+            )
+        )
+        content = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'location-table-toolbar')
+        self.assertContains(response, 'container-fluid location-victims-container')
+        self.assertContains(response, 'class="col-12"')
+        self.assertContains(response, 'data-victim-location-filter')
+        self.assertContains(
+            response,
+            'value="Location Test Woreda" selected',
+            html=False,
+        )
+        self.assertNotContains(response, 'col-lg-2')
+        self.assertEqual(content.count('/static/admlte/js/jquery.min.js'), 1)
+
     def test_location_detail_limits_table_to_twenty_five_rows(self):
         with CaptureQueriesContext(connection) as queries:
             response = self.client.get(

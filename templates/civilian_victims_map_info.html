@@ -8,8 +8,6 @@
 
 {% block page-content %}
 
-{% load static %}
-
 <main id="main">
 
   <style>
@@ -46,8 +44,118 @@
       margin-right: 0.35rem;
     }
 
+    .location-victims-container {
+      max-width: 100%;
+      padding-left: clamp(1rem, 3vw, 3rem);
+      padding-right: clamp(1rem, 3vw, 3rem);
+    }
+
+    .location-table-toolbar {
+      align-items: flex-end;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .location-woreda-filter {
+      flex: 0 1 420px;
+      margin: 0;
+      width: min(100%, 420px);
+    }
+
+    .location-woreda-filter label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .location-woreda-filter .select2-container {
+      width: 100% !important;
+    }
+
+    .location-victim-card {
+      border: 0;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    .location-victim-card .card-body {
+      padding: 1.25rem;
+    }
+
+    .location-table-scroll {
+      overflow-x: auto;
+      scrollbar-color: #adb5bd transparent;
+      scrollbar-width: thin;
+    }
+
+    #example1 {
+      margin-bottom: 0;
+      width: 100%;
+    }
+
+    #example1 thead th {
+      background: #f8fafc;
+      border-bottom-width: 2px;
+      color: #1f2937;
+      font-weight: 700;
+      padding: 0.9rem 0.75rem;
+      vertical-align: middle;
+    }
+
+    #example1 tbody td {
+      line-height: 1.45;
+      padding: 0.85rem 0.75rem;
+      vertical-align: top;
+    }
+
+    #example1 tbody tr:not(.remark-row):hover td {
+      background-color: #f8fbff;
+    }
+
+    @media (min-width: 768px) {
+      #example1 {
+        min-width: 1320px;
+      }
+
+      #example1 th,
+      #example1 td {
+        white-space: nowrap;
+      }
+
+      #example1 th:nth-child(5),
+      #example1 td:nth-child(5),
+      #example1 th:nth-child(6),
+      #example1 td:nth-child(6),
+      #example1 th:nth-child(8),
+      #example1 td:nth-child(8) {
+        min-width: 180px;
+        white-space: normal;
+      }
+    }
+
     @media (max-width: 767.98px) {
-      .victim-table-card {
+      .location-victims-container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+
+      .location-table-toolbar {
+        align-items: stretch;
+      }
+
+      .location-woreda-filter {
+        flex-basis: 100%;
+      }
+
+      .location-victim-card .card-body {
+        padding: 0.75rem;
+      }
+
+      .location-table-scroll {
         overflow-x: visible;
       }
 
@@ -74,40 +182,36 @@
 
   <!-- ======= Civilian Victims Photo Section ======= -->
   <section id="portfolio" class="portfolio sections-bg">
-    <div class="container" data-aos="fade-up">
+    <div class="container-fluid location-victims-container">
 
-      <div class="row" style="padding-left: 40px; padding-right: 40px;">
-        <div class="col-lg-2  form-group">
+      <div class="location-table-toolbar">
+        <a href="{% url 'civilian-victim-map-page' %}" class="btn btn-default btn-xs">
+          <span class="fa fa-backward"></span> Back to map
+        </a>
 
-              <form method="POST">
-                {% csrf_token %}
-                
-  
-                <div class="form-group">
-                  <a href="{% url 'civilian-victim-map-page' %}" class="btn btn-default btn-xs"><span class="fa fa-backward"></span> Back</a>
-                </div>
-                
-                <br>
-                
-                <div class="form-group">
-                  <span id="woreda">Woreda</span>
-                  <select class="selectpicker form-control" data-live-search="true" name="woreda" id="selectWoreda" required>
-                    <option selected="" disabled="">Select Woreda</option>
-                    {% for woreda in woreda_list%}
-                    <option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>
-                    {% endfor %}
-                  </select>
-                </div>
-
-              </form>
-              
-              <br>
-
+        <div class="form-group location-woreda-filter">
+          <label for="selectWoreda"><span class="fa fa-search" style="color: blue;"></span> Filter by Woreda</label>
+          <select
+            class="selectpicker form-control"
+            data-live-search="true"
+            data-victim-location-filter
+            name="woreda"
+            id="selectWoreda"
+            required
+          >
+            <option value="" disabled="">Select Woreda</option>
+            {% for woreda in woreda_list %}
+            <option value="{{ woreda.woreda_name }}" {% if selected_woreda == woreda.woreda_name %}selected{% endif %}>{{ woreda.woreda_name }}</option>
+            {% endfor %}
+          </select>
         </div>
+      </div>
 
-        <div class="col-lg-10 col-sm-6  form-group">
-          <div class="card">
+      <div class="row">
+        <div class="col-12">
+          <div class="card location-victim-card">
             <div class="card-body victim-table-card">
+              <div class="location-table-scroll">
               <table id="example1" class="table table-bordered table-striped verified">
                 <thead>
                   <tr>
@@ -190,6 +294,7 @@
                   {% endfor %}
                 </tbody>
               </table>
+              </div>
 
               {% page_numbers page_obj.paginator page_obj.number as visible_pages %}
               <div class="row mt-3 align-items-center dataTables_wrapper dt-bootstrap4">
@@ -243,41 +348,7 @@
     </div>
   </section>
   <!-- End civilian victim Section -->
-  
-  <!-- Admlte Js file -->
-    <script src="{% static 'admlte/js/jquery.min.js' %}"></script>
-  
-  <Script>
-        $(document).ready(function() {
-            
-          // filter by name
-          $('#selectWoreda').on('change', function() {
-            const civilian_woreda = $(this).val();
-            
-            // slugify woreda name
-            // Replace spaces with hyphens
-            var slug = civilian_woreda.replace(/\s+/g, '-');
-            
-            // Remove special characters
-            slug = slug.replace(/[^\w-]+/g, '');
-            
-            // Convert to lowercase
-            slug = slug.toLowerCase();
-            
-            if (civilian_woreda) {
-              window.location.href = '/Civilina-victims-location-information/' + slug;
-            }
-          });
-          
-        });
-    </script>
 
 </main><!-- End #main -->
-
-<script>
-  $(document).ready(function () {
-    $('.selectpicker').select2();
-  });
-</script>
 
 {% endblock %}

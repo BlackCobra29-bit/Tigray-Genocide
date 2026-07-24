@@ -4,6 +4,7 @@
 <head>
 
   {% load static %}
+  {% block admin_form_head_assets %}
   {{ form.media }}
 
   <script src="/admin/jsi18n/"></script>
@@ -62,6 +63,7 @@
   <script src="/static/froala_editor/js/plugins/table.min.js"></script>
   <script src="/static/froala_editor/js/plugins/url.min.js"></script>
   <script src="/static/froala_editor/js/plugins/video.min.js"></script>
+  {% endblock admin_form_head_assets %}
 
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <!-- Meta, title, CSS, favicons, etc. -->
@@ -79,17 +81,21 @@
   <link href="{% static 'admin_static/css/nprogress.css' %}" rel="stylesheet">
   <!-- bootstrap icons -->
   <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  {% block admin_table_head_assets %}
   <!-- datatable css files -->
   <link rel="stylesheet" href="{% static 'admin_static/datatable/css/dataTables.bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'admin_static/datatable/css/buttons.bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'admin_static/datatable/css/fixedHeader.bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'admin_static/datatable/css/responsive.bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'admin_static/datatable/css/scroller.bootstrap.min.css' %}">
+  {% endblock admin_table_head_assets %}
 
   <!-- malihu custom scrollbar plugin -->
   <link rel="stylesheet" href="{% static 'admin_static/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.min.css' %}">
+  {% block admin_form_control_head_assets %}
   <!-- select2 css and js files -->
   <link href="{% static 'css/select.css' %}" rel="stylesheet">
+  {% endblock admin_form_control_head_assets %}
   <!-- Custom Theme Style -->
   <link href="{% static 'admin_static/css/custom.min.css' %}" rel="stylesheet">
 </head>
@@ -317,6 +323,7 @@
   <script src="{% static 'admin_static/js/fastclick.js' %}"></script>
   <!-- NProgress -->
   <script src="{% static 'admin_static/js/nprogress.js' %}"></script>
+  {% block admin_table_scripts %}
   <!-- datatable css files -->
   <script src="{% static 'admin_static/datatable/js/jquery.dataTables.min.js' %}"></script>
   <script src="{% static 'admin_static/datatable/js/dataTables.bootstrap.min.js' %}"></script>
@@ -332,14 +339,19 @@
   <script src="{% static 'admin_static/datatable/js/jszip.min.js' %}"></script>
   <script src="{% static 'admin_static/datatable/js/pdfmake.min.js' %}"></script>
   <script src="{% static 'admin_static/datatable/js/vfs_fonts.js' %}"></script>
+  {% endblock admin_table_scripts %}
+  {% block admin_form_control_scripts %}
   <!-- select2 css and js files -->
   <script src="{% static 'js/select.js' %}"></script>
+  {% endblock admin_form_control_scripts %}
   <!-- malihu custom scrollbar plugin -->
   <script src="{% static 'admin_static/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.concat.min.js' %}"></script>
   <!-- Custom Theme Scripts -->
   <script src="{% static 'admin_static/js/custom.min.js' %}"></script>
+  {% block admin_validation_scripts %}
   <!-- Parsely validation -->
   <script src="{% static 'admin_static/js/parsley.min.js' %}"></script>
+  {% endblock admin_validation_scripts %}
 
   <!-- select admin role jquery -->
   <script>
