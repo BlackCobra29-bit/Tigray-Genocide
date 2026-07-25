@@ -136,6 +136,8 @@ from App.views import Add_unverified_civilian
 
 from App.views import Unverified_civilian_data_management
 
+from App.views import unverified_civilian_data_management_data
+
 from App.views import Update_unverified_Civilian_Victim
 
 from App.views import delete_unverified_civilian_victim
@@ -322,6 +324,8 @@ urlpatterns = [
     path('Add-unverified-civilian-data', Add_unverified_civilian, name = 'add-unverified-civilian'),
 
     path('Unverified-civilian-data-management/', Unverified_civilian_data_management, name = 'unverified-civilian-data-management'),
+
+    path('Unverified-civilian-data-management/data/', unverified_civilian_data_management_data, name = 'unverified-civilian-data-management-data'),
 
     path('Update-unverified-civilian-victim/<slug:pk>', Update_unverified_Civilian_Victim.as_view(), name = 'update-unverified-civilian-victim'),
 

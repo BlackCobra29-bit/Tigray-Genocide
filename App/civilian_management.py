@@ -4,7 +4,7 @@ from django.utils.formats import date_format
 from django.utils.html import conditional_escape, format_html, format_html_join, urlize
 from django.utils.safestring import mark_safe
 
-from .models import Civilian_victims
+from .models import Civilian_victims, Unverified_civilian
 from .templatetags.custom import extract_and_join_urls
 
 
@@ -40,6 +40,17 @@ ADMIN_ORDER_FIELDS = {
     10: "remark",
     11: "picture",
     12: "date_created",
+}
+
+UNVERIFIED_ORDER_FIELDS = {
+    1: "location",
+    2: "number_of_civilian",
+    3: "perpetrator",
+    4: "woreda__woreda_name",
+    5: "source",
+    6: "source_link",
+    7: "remark",
+    8: "date_created",
 }
 
 
@@ -304,4 +315,117 @@ def build_civilian_management_payload(request):
         "recordsTotal": records_total,
         "recordsFiltered": records_filtered,
         "data": [row_builder(victim) for victim in victims],
+    }
+
+
+def _base_unverified_queryset():
+    return Unverified_civilian.objects.select_related("woreda").only(
+        "id",
+        "location",
+        "number_of_civilian",
+        "perpetrator",
+        "woreda",
+        "woreda__woreda_name",
+        "source",
+        "source_link",
+        "remark",
+        "date_created",
+    )
+
+
+def _search_unverified_queryset(queryset, search):
+    if not search:
+        return queryset
+
+    filters = (
+        Q(location__icontains=search)
+        | Q(perpetrator__icontains=search)
+        | Q(woreda__woreda_name__icontains=search)
+        | Q(source__icontains=search)
+        | Q(source_link__icontains=search)
+        | Q(remark__icontains=search)
+    )
+    if search.isdigit():
+        filters |= Q(number_of_civilian=int(search))
+
+    normalized = search.casefold()
+    if normalized and normalized in "unknown":
+        filters |= Q(source__isnull=True) | Q(remark__isnull=True)
+
+    return queryset.filter(filters)
+
+
+def _unverified_row(victim):
+    action = format_html(
+        '<a href="{}" data-toggle="tooltip" data-placement="top" '
+        'title="Update Item"><i class="bi bi-pencil-fill"></i></a>'
+        "&nbsp; "
+        '<a href="{}" data-toggle="tooltip" data-placement="top" '
+        'title="Delete Item"><i class="bi bi-trash"></i></a>',
+        reverse("update-unverified-civilian-victim", args=[victim.id]),
+        reverse("delete-unverified-civilian-victim", args=[victim.id]),
+    )
+    remark = (
+        urlize(victim.remark, autoescape=True)
+        if victim.remark
+        else UNKNOWN_CELL
+    )
+
+    return [
+        action,
+        conditional_escape(victim.location),
+        str(victim.number_of_civilian),
+        conditional_escape(victim.perpetrator),
+        (
+            conditional_escape(str(victim.woreda))
+            if victim.woreda
+            else conditional_escape(None)
+        ),
+        _format_source(victim),
+        conditional_escape(victim.source_link),
+        remark,
+        date_format(victim.date_created, "F d, Y"),
+    ]
+
+
+def get_filtered_ordered_unverified_queryset(params):
+    search = params.get("search[value]", "").strip()
+    queryset = _search_unverified_queryset(
+        _base_unverified_queryset(),
+        search,
+    )
+
+    order_column = _bounded_int(params.get("order[0][column]"), 0)
+    order_field = UNVERIFIED_ORDER_FIELDS.get(order_column)
+    if order_field:
+        if params.get("order[0][dir]") == "desc":
+            order_field = f"-{order_field}"
+        return queryset.order_by(order_field, "-date_created")
+
+    return queryset.order_by("-date_created")
+
+
+def build_unverified_management_payload(request):
+    draw = _bounded_int(request.GET.get("draw"), 0)
+    start = _bounded_int(request.GET.get("start"), 0)
+    length = _bounded_int(
+        request.GET.get("length"),
+        10,
+        minimum=1,
+        maximum=MAX_TABLE_PAGE_SIZE,
+    )
+    search = request.GET.get("search[value]", "").strip()
+
+    records_total = _base_unverified_queryset().count()
+    filtered_queryset = get_filtered_ordered_unverified_queryset(request.GET)
+    records_filtered = (
+        records_total if not search else filtered_queryset.count()
+    )
+    victims = filtered_queryset[start : start + length]
+
+    return {
+        "draw": draw,
+        "recordsTotal": records_total,
+        "recordsFiltered": records_filtered,
+        "data": [_unverified_row(victim) for victim in victims],
     }

@@ -65,7 +65,10 @@ from .civilian_exports import (
     build_civilian_export_payload,
     build_civilian_export_response,
 )
-from .civilian_management import build_civilian_management_payload
+from .civilian_management import (
+    build_civilian_management_payload,
+    build_unverified_management_payload,
+)
 from .dashboard_summary import get_admin_dashboard_summary
 from .homepage import get_homepage_summary
 from .image_optimization import get_optimized_image_url
@@ -1366,18 +1369,27 @@ def Add_unverified_civilian(request):
     
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Unverified_civilian_data_management(request):
-
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    unverified_civilian_victims = Unverified_civilian.objects.all()
+    administrator = Administrator.objects.get(user=request.user)
+    request.user._state.fields_cache["administrator"] = administrator
 
     context = {
-        'pending_count':pending_count,
-        'unverified_civilian_victims': unverified_civilian_victims,
-        'Administrator': Administrator.objects.get(user=request.user)
+        'pending_count': get_admin_pending_count(),
+        'Administrator': administrator,
     }
 
     return render(request, 'admin_templates/civilian_victim/unverified_civilian_data_management.html', context)
+
+
+@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
+@require_GET
+def unverified_civilian_data_management_data(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"detail": "Only superusers can access this data."},
+            status=403,
+        )
+    return JsonResponse(build_unverified_management_payload(request))
+
 
 class Update_unverified_Civilian_Victim(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     redirect_field_name = '/authentication_required/'

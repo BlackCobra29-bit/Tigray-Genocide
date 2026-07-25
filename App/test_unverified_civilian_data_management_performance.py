@@ -1,0 +1,173 @@
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.db import connection
+from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
+from django.urls import reverse
+
+from .models import Administrator, Tigray_woreda, Unverified_civilian
+
+
+class UnverifiedCivilianDataManagementPerformanceTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        user_model = get_user_model()
+        cls.superuser = user_model.objects.create_user(
+            username="unverified-management-superuser",
+            password="dashboard-password",
+            is_staff=True,
+            is_superuser=True,
+        )
+        cls.denied_user = user_model.objects.create_user(
+            username="unverified-management-denied",
+            password="dashboard-password",
+            is_staff=True,
+        )
+        Administrator.objects.create(
+            user=cls.superuser,
+            civilian_role=True,
+        )
+        Administrator.objects.create(user=cls.denied_user)
+
+        cls.woreda = Tigray_woreda.objects.create(
+            woreda_name="Unverified Management Woreda",
+            latitude="13.5",
+            longitude="39.5",
+            zone="Central Tigray",
+        )
+        Unverified_civilian.objects.bulk_create(
+            [
+                Unverified_civilian(
+                    location=f"Unverified Managed Location {index:02}",
+                    number_of_civilian=index + 1,
+                    perpetrator="Killed by Ethiopian forces",
+                    woreda=cls.woreda,
+                    zone=cls.woreda.zone,
+                    source=f"Management Source {index:02}",
+                    source_link=f"https://example.com/source/{index}",
+                    remark=f"See https://example.com/remark/{index}",
+                )
+                for index in range(35)
+            ]
+        )
+
+    def setUp(self):
+        cache.clear()
+
+    def test_page_renders_only_the_server_side_table_shell(self):
+        self.client.force_login(self.superuser)
+
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(
+                reverse("unverified-civilian-data-management")
+            )
+
+        html = response.content.decode()
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            'id="unverified-civilian-management-table"',
+        )
+        self.assertContains(response, "serverSide: true")
+        self.assertContains(response, "searchDelay: 250")
+        self.assertContains(
+            response,
+            reverse("unverified-civilian-data-management-data"),
+        )
+        self.assertNotContains(response, "Unverified Managed Location 00")
+        self.assertIn("<tbody></tbody>", html)
+        self.assertLess(len(response.content), 50_000)
+        self.assertLessEqual(len(queries), 6)
+
+    def test_page_loads_only_the_lean_datatables_assets(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get(
+            reverse("unverified-civilian-data-management")
+        )
+        html = response.content.decode()
+
+        self.assertNotIn("/static/froala_editor/", html)
+        self.assertNotIn("/static/admin/js/vendor/jquery/jquery.js", html)
+        self.assertNotIn("/static/admin_static/js/parsley.min.js", html)
+        self.assertNotIn("/static/js/select.js", html)
+        self.assertNotIn(
+            "/static/admin_static/datatable/js/pdfmake.min.js",
+            html,
+        )
+        self.assertNotIn(
+            "/static/admin_static/datatable/js/vfs_fonts.js",
+            html,
+        )
+        self.assertNotIn(
+            "/static/admin_static/datatable/js/jszip.min.js",
+            html,
+        )
+        self.assertEqual(
+            html.count("/static/admin_static/datatable/"),
+            6,
+        )
+
+    def test_endpoint_is_paginated_without_woreda_n_plus_one_queries(self):
+        self.client.force_login(self.superuser)
+
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(
+                reverse("unverified-civilian-data-management-data"),
+                {
+                    "draw": 4,
+                    "start": 0,
+                    "length": 10,
+                },
+            )
+
+        payload = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload["draw"], 4)
+        self.assertEqual(payload["recordsTotal"], 35)
+        self.assertEqual(payload["recordsFiltered"], 35)
+        self.assertEqual(len(payload["data"]), 10)
+        self.assertTrue(
+            all(
+                "Unverified Management Woreda" in row[4]
+                for row in payload["data"]
+            )
+        )
+        self.assertLessEqual(len(queries), 5)
+
+    def test_endpoint_preserves_search_ordering_and_cell_formatting(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get(
+            reverse("unverified-civilian-data-management-data"),
+            {
+                "draw": 1,
+                "start": 0,
+                "length": 10,
+                "search[value]": "Location 17",
+                "order[0][column]": 1,
+                "order[0][dir]": "asc",
+            },
+        )
+
+        payload = response.json()
+        row = payload["data"][0]
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload["recordsFiltered"], 1)
+        self.assertEqual(row[1], "Unverified Managed Location 17")
+        self.assertIn(
+            '<a href="https://example.com/source/17"',
+            row[5],
+        )
+        self.assertEqual(row[6], "https://example.com/source/17")
+        self.assertIn(
+            '<a href="https://example.com/remark/17"',
+            row[7],
+        )
+
+    def test_endpoint_rejects_non_superusers(self):
+        self.client.force_login(self.denied_user)
+        response = self.client.get(
+            reverse("unverified-civilian-data-management-data"),
+            {"draw": 1, "start": 0, "length": 10},
+        )
+
+        self.assertEqual(response.status_code, 403)
