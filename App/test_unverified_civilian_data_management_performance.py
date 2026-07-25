@@ -246,6 +246,74 @@ class UnverifiedCivilianDataManagementPerformanceTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_delete_uses_the_management_page_modal_and_post_endpoint(self):
+        victim = Unverified_civilian.objects.create(
+            location="Modal Delete Location",
+            number_of_civilian=2,
+            perpetrator="Killed by Ethiopian forces",
+            woreda=self.woreda,
+            zone=self.woreda.zone,
+            source="Delete test source",
+        )
+        delete_url = reverse(
+            "delete-unverified-civilian-victim",
+            args=[victim.pk],
+        )
+        self.client.force_login(self.superuser)
+
+        page_response = self.client.get(
+            reverse("unverified-civilian-data-management")
+        )
+        data_response = self.client.get(
+            reverse("unverified-civilian-data-management-data"),
+            {
+                "draw": 1,
+                "start": 0,
+                "length": 10,
+                "search[value]": victim.location,
+            },
+        )
+        get_delete_response = self.client.get(delete_url)
+        post_delete_response = self.client.post(
+            delete_url,
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertContains(page_response, 'id="unverified-delete-modal"')
+        self.assertContains(page_response, 'id="unverified-delete-form"')
+        action_cell = data_response.json()["data"][0][0]
+        self.assertIn('class="unverified-delete-trigger"', action_cell)
+        self.assertIn(f'data-delete-url="{delete_url}"', action_cell)
+        self.assertEqual(get_delete_response.status_code, 405)
+        self.assertEqual(post_delete_response.status_code, 200)
+        self.assertFalse(
+            Unverified_civilian.objects.filter(pk=victim.pk).exists()
+        )
+
+    def test_delete_endpoint_rejects_non_superusers(self):
+        victim = Unverified_civilian.objects.create(
+            location="Protected Delete Location",
+            number_of_civilian=1,
+            perpetrator="Killed by Ethiopian forces",
+            woreda=self.woreda,
+            zone=self.woreda.zone,
+            source="Protected source",
+        )
+        self.client.force_login(self.denied_user)
+
+        response = self.client.post(
+            reverse(
+                "delete-unverified-civilian-victim",
+                args=[victim.pk],
+            ),
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(
+            Unverified_civilian.objects.filter(pk=victim.pk).exists()
+        )
+
     def test_old_export_page_route_and_navigation_are_removed(self):
         self.client.force_login(self.superuser)
 

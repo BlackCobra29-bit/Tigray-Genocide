@@ -55,10 +55,6 @@ def schedule_woreda_map_refresh():
     transaction.on_commit(refresh_woreda_map_data)
 
 
-@receiver(post_save, sender=Civilian_victims)
-@receiver(post_delete, sender=Civilian_victims)
-@receiver(post_save, sender=Unverified_civilian)
-@receiver(post_delete, sender=Unverified_civilian)
 @receiver(post_save, sender=Photo_archive)
 @receiver(post_delete, sender=Photo_archive)
 @receiver(post_save, sender=Video_archive)
@@ -69,6 +65,16 @@ def schedule_woreda_map_refresh():
 @receiver(post_delete, sender=Hero_images)
 def refresh_homepage_on_change(sender, **kwargs):
     schedule_homepage_refresh()
+
+
+@receiver(post_save, sender=Civilian_victims)
+@receiver(post_delete, sender=Civilian_victims)
+@receiver(post_save, sender=Unverified_civilian)
+@receiver(post_delete, sender=Unverified_civilian)
+def invalidate_homepage_after_civilian_change(sender, **kwargs):
+    # Civilian changes should not wait for homepage charts to be rebuilt.
+    # The next homepage request repopulates the invalidated summary cache.
+    schedule_homepage_invalidation()
 
 
 @receiver(post_save, sender=Analysis_articles)

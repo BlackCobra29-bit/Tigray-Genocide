@@ -212,10 +212,15 @@ def _superuser_row(victim):
         '<a href="{}" data-toggle="tooltip" data-placement="top" '
         'title="Update Item"><i class="bi bi-pencil-fill"></i></a>'
         "&nbsp; "
-        '<a href="{}" data-toggle="tooltip" data-placement="top" '
-        'title="Delete Item"><i class="bi bi-trash"></i></a>',
+        '<a href="#" class="civilian-delete-trigger" '
+        'data-delete-url="{}" data-delete-name="{}" '
+        'data-toggle="tooltip" data-placement="top" '
+        'title="Delete Item" aria-label="Delete {}">'
+        '<i class="bi bi-trash"></i></a>',
         reverse("update-civilian-victim", args=[victim.id]),
         reverse("delete-civilian-victim", args=[victim.id]),
+        victim.full_name,
+        victim.full_name,
     )
     return [
         action,
@@ -360,10 +365,15 @@ def _unverified_row(victim):
         '<a href="{}" data-toggle="tooltip" data-placement="top" '
         'title="Update Item"><i class="bi bi-pencil-fill"></i></a>'
         "&nbsp; "
-        '<a href="{}" data-toggle="tooltip" data-placement="top" '
-        'title="Delete Item"><i class="bi bi-trash"></i></a>',
+        '<a href="#" class="unverified-delete-trigger" '
+        'data-delete-url="{}" data-delete-name="{}" '
+        'data-toggle="tooltip" data-placement="top" '
+        'title="Delete Item" aria-label="Delete {}">'
+        '<i class="bi bi-trash"></i></a>',
         reverse("update-unverified-civilian-victim", args=[victim.id]),
         reverse("delete-unverified-civilian-victim", args=[victim.id]),
+        victim.location,
+        victim.location,
     )
     remark = (
         urlize(victim.remark, autoescape=True)

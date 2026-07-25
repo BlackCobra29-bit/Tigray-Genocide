@@ -15,6 +15,8 @@ from captcha.fields import CaptchaField
 # Summernote
 from django_summernote.widgets import SummernoteWidget
 
+from .admin_civilian_form import get_admin_civilian_woreda_names
+
 class LoginCaptchaForm(forms.Form):
     captcha = CaptchaField()
 
@@ -41,6 +43,28 @@ class Civilian_Victim_Form(ModelForm):
             'remark': forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
         } 
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        woreda_field = self.fields['woreda']
+        woreda_field.queryset = Tigray_woreda.objects.only(
+            'woreda_name',
+            'zone',
+        )
+        woreda_field.choices = [
+            ('', woreda_field.empty_label),
+            *[
+                (woreda_name, woreda_name)
+                for woreda_name in get_admin_civilian_woreda_names()
+            ],
+        ]
+
+    def _get_validation_exclusions(self):
+        exclusions = super()._get_validation_exclusions()
+        # ModelChoiceField already validates the selected Woreda. Avoid the
+        # model ForeignKey validator repeating the same existence query.
+        exclusions.add('woreda')
+        return exclusions
+
     def save(self, commit=True):
         instance = super().save(commit=False)
         gender = self.cleaned_data.get('gender')
@@ -49,7 +73,7 @@ class Civilian_Victim_Form(ModelForm):
               instance.picture = 'civilian_victims_pic/default.png'
             else:
               instance.picture = "civilian_victims_pic/default_female.jpg"
-        instance.zone = Tigray_woreda.objects.get(woreda_name = self.cleaned_data.get('woreda')).zone
+        instance.zone = self.cleaned_data['woreda'].zone
         if commit:
             instance.save()
         return instance
@@ -200,9 +224,30 @@ class Unverified_civilian_form(forms.ModelForm):
       'remark': forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
     }
 
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    woreda_field = self.fields['woreda']
+    woreda_field.queryset = Tigray_woreda.objects.only(
+      'woreda_name',
+      'zone',
+    )
+    woreda_field.choices = [
+      ('', woreda_field.empty_label),
+      *[
+        (woreda_name, woreda_name)
+        for woreda_name in get_admin_civilian_woreda_names()
+      ],
+    ]
+
+  def _get_validation_exclusions(self):
+    exclusions = super()._get_validation_exclusions()
+    # ModelChoiceField has already validated the selected Woreda.
+    exclusions.add('woreda')
+    return exclusions
+
   def save(self, commit=True):
     instance = super().save(commit=False)
-    instance.zone = Tigray_woreda.objects.get(woreda_name = self.cleaned_data.get('woreda')).zone
+    instance.zone = self.cleaned_data['woreda'].zone
     if commit:
         instance.save()
     return instance

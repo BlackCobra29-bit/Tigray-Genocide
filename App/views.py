@@ -9,7 +9,7 @@ from django.db.models import Sum, Count
 from django.shortcuts import render, redirect
 from django.core.cache import cache
 from django.views.decorators.cache import cache_page
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from .models import Civilian_victims
 from .models import Analysis_articles
 from .models import Article_comments
@@ -42,7 +42,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core import serializers
 from django.db.models import Q
 from django.http import JsonResponse
@@ -60,6 +60,7 @@ from django.utils.text import slugify
 from urllib.parse import urlparse, parse_qs
 from .admin_civilian_form import get_admin_civilian_woreda_names
 from .admin_metrics import get_admin_pending_count
+from .article_management import build_article_management_payload
 from .civilian_exports import (
     SUPPORTED_EXPORT_FORMATS,
     build_civilian_export_payload,
@@ -1093,30 +1094,27 @@ Adminstrator Page View Methods
 
 
 def Admin_login(request):
-
-    form = LoginCaptchaForm()
-
     if request.user.is_authenticated:
+        return redirect('admin-dashboard')
 
-        return redirect('/Admin-dashboard')
+    if request.method == 'POST':
+        form = LoginCaptchaForm(request.POST)
 
-    else:
-
-        if request.method == 'POST':
-
+        # Reject automated traffic before invoking Django's deliberately
+        # expensive password hasher.
+        if form.is_valid():
             username = request.POST.get('login_username')
             password = request.POST.get('login_password')
-            # authenticate user
             user_auth = authenticate(username=username, password=password)
+
             if user_auth is not None:
-                form = LoginCaptchaForm(request.POST)
-                if form.is_valid():
-                    human = True
-                    login(request, user_auth)
-                    return redirect('/Admin-dashboard')
-            else:
-                messages.error(request, 'Incorrect login credenials')
-                return redirect('/Adminstrator-login-page')
+                login(request, user_auth)
+                return redirect('admin-dashboard')
+
+            messages.error(request, 'Incorrect login credenials')
+            return redirect('admin-login')
+    else:
+        form = LoginCaptchaForm()
 
     return render(request, 'admin_templates/account_templates/login.html', {'captcha_form': form})
 
@@ -1279,22 +1277,43 @@ def civilian_data_management_export_data(request):
     )
 
 
-class Update_Civilian_Victim(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-    redirect_field_name = '/authentication_required/'
+class Update_Civilian_Victim(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
+    redirect_field_name = 'authentication_required'
     template_name = 'admin_templates/civilian_victim/update_civilian_victim.html'
     model = Civilian_victims
     form_class = Civilian_Victim_Form
     success_message = 'Civilian victim informatiom updated successfully'
 
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Civilian_victims, id=id_)
+    def test_func(self):
+        self.administrator = Administrator.objects.filter(
+            user=self.request.user,
+        ).first()
+        if self.administrator is not None:
+            self.request.user._state.fields_cache[
+                'administrator'
+            ] = self.administrator
+        return self.request.user.is_superuser or bool(
+            self.administrator and self.administrator.civilian_role
+        )
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('woreda')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Approval is intentionally not editable from this update endpoint.
+        form.fields.pop('approval', None)
+        return form
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
+        context['Administrator'] = self.administrator
+        context['pending_count'] = get_admin_pending_count()
         return context
 
     def get_success_url(self):
@@ -1309,26 +1328,25 @@ def delete_duplicate_civilian_victim_item(request, pk):
 
     return redirect('admin-add-civilian')
 
-class delete_civilian_victim_item(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
-    redirect_field_name = '/authentication_required/'
-    template_name = 'admin_templates/civilian_victim//delete_civilian_victim.html'
-    model = Civilian_victims
-    success_message = 'Civilian victim informatiom deleted successfully'
+@login_required(
+    login_url=settings.LOGIN_URL,
+    redirect_field_name='authentication_required',
+)
+@require_POST
+def delete_civilian_victim_item(request, pk):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {'detail': 'Only superusers can delete civilian victim data.'},
+            status=403,
+        )
 
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Civilian_victims, id=id_)
+    civilian_victim = get_object_or_404(Civilian_victims, id=pk)
+    victim_name = civilian_victim.full_name
+    civilian_victim.delete()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-        return context
-
-    def get_success_url(self):
-
-        return reverse('civilian-data-management')
+    return JsonResponse({
+        'message': f'{victim_name} was deleted successfully.',
+    })
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Add_unverified_civilian(request):
@@ -1403,38 +1421,66 @@ def unverified_civilian_data_management_export_data(request):
     return JsonResponse(build_unverified_export_payload(request.GET))
 
 
-class Update_unverified_Civilian_Victim(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-    redirect_field_name = '/authentication_required/'
+class Update_unverified_Civilian_Victim(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
+    redirect_field_name = 'authentication_required'
     template_name = 'admin_templates/civilian_victim/unverified_update_civilian_victim.html'
     model = Unverified_civilian
     form_class = Unverified_civilian_form
     success_message = 'Civilian victim informatiom updated successfully'
 
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Unverified_civilian, id=id_)
+    def test_func(self):
+        self.administrator = Administrator.objects.filter(
+            user=self.request.user,
+        ).first()
+        if self.administrator is not None:
+            self.request.user._state.fields_cache[
+                'administrator'
+            ] = self.administrator
+        return (
+            self.request.user.is_superuser
+            and self.administrator is not None
+        )
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('woreda')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
+        context['Administrator'] = self.administrator
+        context['pending_count'] = get_admin_pending_count()
         return context
 
     def get_success_url(self):
 
         return reverse('unverified-civilian-data-management')
 
-@login_required
+@login_required(
+    login_url=settings.LOGIN_URL,
+    redirect_field_name='authentication_required',
+)
+@require_POST
 def delete_unverified_civilian_victim(request, pk):
-    unverified_civilian_victim = get_object_or_404(Unverified_civilian, id=pk)
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {'detail': 'Only superusers can delete unverified civilian data.'},
+            status=403,
+        )
 
+    unverified_civilian_victim = get_object_or_404(Unverified_civilian, id=pk)
+    victim_location = unverified_civilian_victim.location
     unverified_civilian_victim.delete()
 
-    # Add success message
-    messages.success(request, 'Unverified civilian victim data has been successfully removed.')
-
-    return redirect('unverified-civilian-data-management')
+    return JsonResponse({
+        'message': (
+            f'Unverified civilian data for {victim_location} '
+            'was deleted successfully.'
+        ),
+    })
 
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
@@ -1522,37 +1568,39 @@ def _save_analysis_article(request, draft):
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Analysis_articles_management(request):
-
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    analysis_articles = Analysis_articles.objects.filter(approval=True, draft=False)
-    specfic_analysis_articles = Analysis_articles.objects.filter(
-        author=request.user, draft = False)
+    administrator = Administrator.objects.get(user=request.user)
+    request.user._state.fields_cache['administrator'] = administrator
 
     context = {
-        'pending_count': pending_count,
-        'analysis_articles': analysis_articles,
-        'Administrator': Administrator.objects.get(user=request.user),
-        'specfic_data': specfic_analysis_articles
+        'pending_count': get_admin_pending_count(),
+        'Administrator': administrator,
     }
 
     return render(request, 'admin_templates/analysis_article/article_data_management.html', context)
 
 
+@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
+@require_GET
+def analysis_article_management_data(request):
+    if (
+        not request.user.is_superuser
+        and not Administrator.objects.filter(
+            user=request.user,
+            analysis_role=True,
+        ).exists()
+    ):
+        return JsonResponse(
+            {"detail": "You do not have permission to manage articles."},
+            status=403,
+        )
+
+    return JsonResponse(build_article_management_payload(request))
+
+
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Draft_articles_management(request):
-
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    analysis_articles = Analysis_articles.objects.filter(author = request.user, draft=True)
-
-    context = {
-        'pending_count': pending_count,
-        'analysis_articles': analysis_articles,
-    }
-
-    return render(request, 'admin_templates/analysis_article/draft_article_management.html', context)
+    return redirect('analysis-article-management')
 
 
 class Update_Article_Analysis(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
@@ -1601,13 +1649,8 @@ class Update_Draft_Analysis(LoginRequiredMixin, SuccessMessageMixin, UpdateView)
         return reverse('analysis-article-management')
         
     def form_valid(self, form):
-        if 'publish' in self.request.POST:  # Check if the "Publish" button was clicked
-            instance = form.save(commit=False)
-            instance.draft = False  # Set draft to False
-            instance.save()
-            return super().form_valid(form)
-        else:
-            return super().form_valid(form)
+        form.instance.draft = 'publish' not in self.request.POST
+        return super().form_valid(form)
 
 
 class Delete_Article_Analysis(LoginRequiredMixin, SuccessMessageMixin, DeleteView):

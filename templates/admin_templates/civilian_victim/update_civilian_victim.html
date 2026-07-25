@@ -1,5 +1,9 @@
 {% extends 'admin_templates/base.html' %}
 
+{% block admin_form_head_assets %}{% endblock %}
+{% block admin_table_head_assets %}{% endblock %}
+{% block admin_table_scripts %}{% endblock %}
+
 {% block admin_page_content %}
 {% if Administrator.civilian_role == True or request.user.is_superuser == True %}
 <!-- page content -->

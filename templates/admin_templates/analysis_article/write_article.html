@@ -35,6 +35,96 @@
     width: 46px;
   }
 
+  .article-options {
+    margin: 24px 0 8px;
+  }
+
+  .article-options-title {
+    color: #34495e;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .article-options-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .article-option-card {
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    gap: 12px;
+    margin: 0;
+    min-height: 76px;
+    padding: 15px 16px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .article-option-card:hover {
+    border-color: #26b99a;
+    box-shadow: 0 3px 12px rgba(38, 185, 154, 0.1);
+  }
+
+  .article-option-card:focus-within {
+    border-color: #26b99a;
+    box-shadow: 0 0 0 3px rgba(38, 185, 154, 0.14);
+  }
+
+  .article-option-card .form-check-input {
+    accent-color: #26b99a;
+    flex: 0 0 auto;
+    height: 18px;
+    margin: 3px 0 0;
+    position: static;
+    width: 18px;
+  }
+
+  .article-option-copy {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .article-option-label {
+    color: #34495e;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .article-option-description {
+    color: #7f8c8d;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    margin-top: 3px;
+  }
+
+  .article-option-badge {
+    background: #edf8f5;
+    border-radius: 999px;
+    color: #16866f;
+    flex: 0 0 auto;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 4px 8px;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 767px) {
+    .article-options-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   @keyframes article-spinner {
     to {
       transform: rotate(360deg);
@@ -97,14 +187,31 @@
                   {{ analysis_form.content }}
                 </div>
 
-                <div class="col-md-12 col-sm-12  form-group"><br>
-                  Is it related to tegaru Ex-ENDF members? (<i>optional</i>)
-                  {{ analysis_form.endf_related }}
-                </div>
+                <div class="col-md-12 col-sm-12 form-group article-options">
+                  <div class="article-options-title">Article classification</div>
+                  <div class="article-options-grid">
+                    <label class="article-option-card" for="{{ analysis_form.endf_related.id_for_label }}">
+                      {{ analysis_form.endf_related }}
+                      <span class="article-option-copy">
+                        <span class="article-option-label">Ex-ENDF related</span>
+                        <span class="article-option-description">
+                          This article relates to Tegaru former ENDF members.
+                        </span>
+                      </span>
+                      <span class="article-option-badge">Optional</span>
+                    </label>
 
-                <div class="col-md-12 col-sm-12  form-group"><br>
-                  Personal Accounts (<i>optional</i>)
-                  {{ analysis_form.personal_account }}
+                    <label class="article-option-card" for="{{ analysis_form.personal_account.id_for_label }}">
+                      {{ analysis_form.personal_account }}
+                      <span class="article-option-copy">
+                        <span class="article-option-label">Personal account</span>
+                        <span class="article-option-description">
+                          This article contains a personal account or testimony.
+                        </span>
+                      </span>
+                      <span class="article-option-badge">Optional</span>
+                    </label>
+                  </div>
                 </div>
 
                 <div class="form-group">

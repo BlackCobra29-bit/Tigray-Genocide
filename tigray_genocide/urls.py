@@ -154,6 +154,8 @@ from App.views import Draft_articles_management
 
 from App.views import Analysis_articles_management
 
+from App.views import analysis_article_management_data
+
 from App.views import Update_Article_Analysis
 
 from App.views import Update_Draft_Analysis
@@ -317,7 +319,7 @@ urlpatterns = [
 
     path('Delete-duplicate-civilian-victim/<slug:pk>', delete_duplicate_civilian_victim_item, name = 'delete-duplicate-civilian-victim'),
 
-    path('Delete-civilian-victim/<slug:pk>', delete_civilian_victim_item.as_view(), name = 'delete-civilian-victim'),
+    path('Delete-civilian-victim/<slug:pk>', delete_civilian_victim_item, name = 'delete-civilian-victim'),
 
     path('Update-civilian-victim/<slug:pk>', Update_Civilian_Victim.as_view(), name = 'update-civilian-victim'),
 
@@ -341,6 +343,8 @@ urlpatterns = [
     path('Draft-article/', Draft_article, name = 'draft-article'),
 
     path('Article-data-management/', Analysis_articles_management, name = 'analysis-article-management'),
+
+    path('Article-data-management/data/', analysis_article_management_data, name = 'analysis-article-management-data'),
 
     path('Draft-data-management/', Draft_articles_management, name = 'draft-article-management'),
 

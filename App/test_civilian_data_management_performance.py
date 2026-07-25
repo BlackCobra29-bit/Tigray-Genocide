@@ -365,6 +365,71 @@ class CivilianDataManagementPerformanceTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_delete_uses_the_management_page_modal_and_post_endpoint(self):
+        victim = Civilian_victims.objects.create(
+            author=self.superuser,
+            full_name="Modal Delete Victim",
+            gender="Male",
+            woreda=self.woreda,
+            zone=self.woreda.zone,
+            perpetrator="Killed by Ethiopian forces",
+            approval=True,
+        )
+        delete_url = reverse(
+            "delete-civilian-victim",
+            args=[victim.pk],
+        )
+        self.client.force_login(self.superuser)
+
+        page_response = self.client.get(reverse("civilian-data-management"))
+        data_response = self.client.get(
+            reverse("civilian-data-management-data"),
+            {
+                "draw": 1,
+                "start": 0,
+                "length": 10,
+                "search[value]": victim.full_name,
+            },
+        )
+        get_delete_response = self.client.get(delete_url)
+        post_delete_response = self.client.post(
+            delete_url,
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertContains(page_response, 'id="civilian-delete-modal"')
+        self.assertContains(page_response, 'id="civilian-delete-form"')
+        action_cell = data_response.json()["data"][0][0]
+        self.assertIn('class="civilian-delete-trigger"', action_cell)
+        self.assertIn(f'data-delete-url="{delete_url}"', action_cell)
+        self.assertEqual(get_delete_response.status_code, 405)
+        self.assertEqual(post_delete_response.status_code, 200)
+        self.assertFalse(
+            Civilian_victims.objects.filter(pk=victim.pk).exists()
+        )
+
+    def test_delete_endpoint_rejects_non_superusers(self):
+        victim = Civilian_victims.objects.create(
+            author=self.administrator,
+            full_name="Protected Delete Victim",
+            gender="Female",
+            woreda=self.woreda,
+            zone=self.woreda.zone,
+            perpetrator="Killed by Ethiopian forces",
+            approval=True,
+        )
+        self.client.force_login(self.administrator)
+
+        response = self.client.post(
+            reverse("delete-civilian-victim", args=[victim.pk]),
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(
+            Civilian_victims.objects.filter(pk=victim.pk).exists()
+        )
+
     def test_url_extractor_reuses_cached_results(self):
         _extract_urls.cache_clear()
         value = "See https://example.com/repeated-source"

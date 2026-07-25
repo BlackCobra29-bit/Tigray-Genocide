@@ -114,6 +114,13 @@
                 <div class="tab-content" id="myTabContent">
                   <div class="tab-pane fade show active" id="approved_post" role="tabpanel" aria-labelledby="profile-tab">
                     <div class="card-box table-responsive">
+                      <div
+                        id="unverified-delete-feedback"
+                        class="alert"
+                        role="alert"
+                        aria-live="polite"
+                        style="display: none;"
+                      ></div>
                       <div class="unverified-export-toolbar" aria-label="Unidentified civilian victim export options">
                         <span class="unverified-export-toolbar-label">Export current results:</span>
                         <button
@@ -174,6 +181,49 @@
     </div>
   </div>
 </div>
+<div
+  class="modal fade"
+  id="unverified-delete-modal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="unverified-delete-modal-title"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="unverified-delete-modal-title">
+          <i class="fa fa-exclamation-triangle text-warning"></i>
+          Delete unverified data?
+        </h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>This action permanently deletes the record for:</p>
+        <strong id="unverified-delete-name"></strong>
+        <div
+          id="unverified-delete-error"
+          class="alert alert-danger mt-3"
+          role="alert"
+          style="display: none;"
+        ></div>
+      </div>
+      <div class="modal-footer">
+        <form id="unverified-delete-form" method="post">
+          {% csrf_token %}
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-danger" id="unverified-delete-confirm">
+            <i class="fa fa-trash"></i> Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% else %}
 <!-- page content -->
@@ -221,6 +271,58 @@ $(document).ready(function() {
         drawCallback: function() {
             $('[data-toggle="tooltip"]').tooltip({ container: 'body' });
         }
+    });
+
+    var unverifiedDeleteModal = $('#unverified-delete-modal');
+    var unverifiedDeleteForm = $('#unverified-delete-form');
+    var unverifiedDeleteConfirm = $('#unverified-delete-confirm');
+    var unverifiedDeleteError = $('#unverified-delete-error');
+    var unverifiedDeleteFeedback = $('#unverified-delete-feedback');
+    var unverifiedDeleteUrl = '';
+
+    $(document).on('click', '.unverified-delete-trigger', function(event) {
+        event.preventDefault();
+        unverifiedDeleteUrl = this.dataset.deleteUrl;
+        $('#unverified-delete-name').text(this.dataset.deleteName);
+        unverifiedDeleteError.hide().text('');
+        $('[data-toggle="tooltip"]').tooltip('hide');
+        unverifiedDeleteModal.modal('show');
+    });
+
+    unverifiedDeleteForm.on('submit', function(event) {
+        event.preventDefault();
+        if (!unverifiedDeleteUrl) {
+            return;
+        }
+
+        unverifiedDeleteConfirm.prop('disabled', true);
+        unverifiedDeleteError.hide().text('');
+
+        $.ajax({
+            url: unverifiedDeleteUrl,
+            type: 'POST',
+            data: unverifiedDeleteForm.serialize()
+        }).done(function(payload) {
+            unverifiedDeleteModal.modal('hide');
+            unverifiedDeleteFeedback
+                .removeClass('alert-danger')
+                .addClass('alert-success')
+                .text(payload.message)
+                .show();
+            table.ajax.reload(null, false);
+        }).fail(function(xhr) {
+            var message = xhr.responseJSON && xhr.responseJSON.detail
+                ? xhr.responseJSON.detail
+                : 'The unverified record could not be deleted. Please try again.';
+            unverifiedDeleteError.text(message).show();
+        }).always(function() {
+            unverifiedDeleteConfirm.prop('disabled', false);
+        });
+    });
+
+    unverifiedDeleteModal.on('hidden.bs.modal', function() {
+        unverifiedDeleteUrl = '';
+        unverifiedDeleteError.hide().text('');
     });
 
     var exportDataUrl =

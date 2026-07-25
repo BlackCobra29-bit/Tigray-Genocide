@@ -7,15 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tigray Genocide</title>
-    <!-- Bootstrap -->
-    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %} " rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="{% static 'fontawesome-free/css/all.min.css' %}" rel="stylesheet">
-    <!-- NProgress -->
-    <script src="{% static 'admin_static/css/nprogress.css' %}"></script>
-
-    <!-- Custom Theme Style -->
-    <link href="{% static 'admin_static/css/custom.min.css' %}" rel="stylesheet">
+    <link href="{% static 'admin_static/css/admin-login.css' %}" rel="stylesheet">
 </head>
 
 <body class="login">
@@ -31,22 +23,18 @@
                     {% if messages %}
                     {% for message in messages %}
                     {% if message.tags == 'success' %}
-                    <div class="alert alert-success alert-dismissible " role="alert">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        </button>
-                        <span class="fa fa-check-circle"></span> {{ message }}
+                    <div class="alert alert-success" role="alert">
+                        <span class="login-alert-icon" aria-hidden="true">&#10003;</span> {{ message }}
                     </div>
                     {% else %}
-                    <div class="alert alert-danger alert-dismissible " role="alert">
-                        <button type="button" class="close" data-dismiss="alert">
-                        </button>
-                        <span class="fa fa-question-circle"></span> {{ message }}
+                    <div class="alert alert-danger" role="alert">
+                        <span class="login-alert-icon" aria-hidden="true">!</span> {{ message }}
                     </div>
                     {% endif %}
                     {% endfor %}
                     {% endif %}
 
-                    <form action="" method="POST" data-parsley-validate>
+                    <form action="" method="POST">
                         {% csrf_token %}
                         <div>
                             <input type="text" id="login_username" name="login_username" class="form-control"
@@ -73,7 +61,7 @@
                         <br />
 
                         <div>
-                            &copy; <span id="copyright_year"></span> Tigray Genocide</a>
+                            &copy; <span id="copyright_year"></span> Tigray Genocide
                         </div>
                     </div>
                 </section>
@@ -86,9 +74,6 @@
         const currentYear = new Date().getFullYear();
         document.getElementById('copyright_year').innerHTML = currentYear;
     </script>
-
-  <!-- Parsely validation -->
-  <script src="{% static 'admin_static/js/parsley.min.js' %}"></script>
 </body>
 
 </html>

@@ -2,6 +2,10 @@
 
 {% load static %}
 
+{% block admin_form_head_assets %}{% endblock %}
+{% block admin_table_head_assets %}{% endblock %}
+{% block admin_table_scripts %}{% endblock %}
+
 {% block admin_page_content %}
 {% if request.user.is_superuser == True %}
 
