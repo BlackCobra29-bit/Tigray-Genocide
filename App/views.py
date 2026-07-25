@@ -1328,20 +1328,17 @@ class delete_civilian_victim_item(LoginRequiredMixin, SuccessMessageMixin, Delet
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Add_unverified_civilian(request):
-    pending_count = Civilian_victims.objects.filter(approval=False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    context = {
-        'pending_count': pending_count,
-        'Administrator': Administrator.objects.get(user=request.user),
-        'woreda_list': Tigray_woreda.objects.all(),
-    }
+    success_message = ''
 
     if request.method == 'POST':
         unverified_model = Unverified_civilian()
         unverified_model.location = request.POST.get('location')
         unverified_model.number_of_civilian = request.POST.get('number_of_civilian')
         unverified_model.perpetrator = request.POST.get('perpetrator')
-        woreda_obj = Tigray_woreda.objects.get(woreda_name=request.POST.get('woreda'))
+        woreda_obj = Tigray_woreda.objects.only(
+            'woreda_name',
+            'zone',
+        ).get(woreda_name=request.POST.get('woreda'))
         unverified_model.woreda = woreda_obj
         unverified_model.zone = woreda_obj.zone
         unverified_model.source = request.POST.get('source')
@@ -1356,6 +1353,14 @@ def Add_unverified_civilian(request):
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             # If the request is AJAX, return JSON response with success message
             return JsonResponse({'message': 'Success!', 'success_message': success_message}, status=200)
+
+    administrator = Administrator.objects.get(user=request.user)
+    request.user._state.fields_cache["administrator"] = administrator
+    context = {
+        'pending_count': get_admin_pending_count(),
+        'Administrator': administrator,
+        'woreda_list': get_admin_civilian_woreda_names(),
+    }
 
     return render(request, 'admin_templates/civilian_victim/unverified_add_data.html', context)
     

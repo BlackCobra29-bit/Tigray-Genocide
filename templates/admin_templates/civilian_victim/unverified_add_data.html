@@ -2,6 +2,10 @@
 
 {% load static %}
 
+{% block admin_form_head_assets %}{% endblock %}
+{% block admin_table_head_assets %}{% endblock %}
+{% block admin_table_scripts %}{% endblock %}
+
 {% block admin_page_content %}
 {% if request.user.is_superuser == True %}
 
@@ -13,6 +17,22 @@
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 9999;
+  }
+
+  .unverified-submit-spinner {
+    animation: unverified-submit-spin 0.7s linear infinite;
+    border: 4px solid rgba(26, 187, 156, 0.22);
+    border-radius: 50%;
+    border-top-color: #1abb9c;
+    display: block;
+    height: 42px;
+    width: 42px;
+  }
+
+  @keyframes unverified-submit-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 </style>
 
@@ -81,8 +101,8 @@
                 <span id="woreda">Woreda</span>: <span class="required" style="color: #dc3545;">*</span>
                 <select class="selectpicker form-control" data-live-search="true" name="woreda" required>
                   <option selected="" disabled=""></option>
-                  {% for woreda in woreda_list%}
-                    <option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>
+                  {% for woreda_name in woreda_list %}
+                    <option value="{{ woreda_name }}">{{ woreda_name }}</option>
                   {% endfor %}
                 </select>
               </div>
@@ -120,65 +140,12 @@
 
 <!-- Your loading indicator -->
     <div id="loadingIndicator">
-      <img src="{% static 'img/Spinner-loading.gif' %}" alt="Loading...">
+      <span
+        class="unverified-submit-spinner"
+        role="status"
+        aria-label="Saving data"
+      ></span>
     </div>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
-<script>
-$(document).ready(function() {
-  $('#myForm').submit(function(event) {
-    event.preventDefault(); // Prevent default form submission
-
-    // Display loading indicator
-    $('#loadingIndicator').show();
-
-    var formData = new FormData($(this)[0]); // Get form data
-    var successMessage = $(this).data('success-message'); // Get success message from data attribute
-
-    $.ajax({
-      url: "{% url 'add-unverified-civilian' %}",
-      type: 'POST',
-      data: formData,
-      async: true,
-      cache: false,
-      contentType: false,
-      processData: false,
-      success: function(response) {
-        // Hide loading indicator upon successful AJAX completion
-        $('#loadingIndicator').hide();
-
-        // Handle success response here
-        console.log(response); // Log response to console
-
-        // Display SweetAlert success message
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          html: response.success_message,
-        });
-
-        // Reset the form inputs
-        $('#myForm')[0].reset();
-      },
-      error: function(xhr, status, error) {
-        // Hide loading indicator upon AJAX error
-        $('#loadingIndicator').hide();
-
-        // Display SweetAlert error message
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Error submitting the data',
-        });
-      }
-    });
-
-    return false;
-  });
-});
-</script>
 
 {% else %}
 <!-- page content -->
@@ -189,7 +156,7 @@ $(document).ready(function() {
     <div class="clearfix"></div>
 
     <div class="row">
-        <h1 class="error-number">403</h1> 
+        <h1 class="error-number">403</h1>
         <h2>Sorry, You don't have administrative privileges to access this page</h2>
       </div>
       </div>
@@ -197,3 +164,90 @@ $(document).ready(function() {
 {% endif %}
 <!-- /page content -->
 {% endblock %}
+
+{% block admin_page_scripts %}
+{% if request.user.is_superuser == True %}
+<script>
+$(document).ready(function() {
+  var sweetAlertPromise = null;
+
+  function loadSweetAlert() {
+    if (window.Swal) {
+      return Promise.resolve(window.Swal);
+    }
+    if (sweetAlertPromise) {
+      return sweetAlertPromise;
+    }
+
+    sweetAlertPromise = new Promise(function(resolve, reject) {
+      var script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@10';
+      script.async = true;
+      script.onload = function() {
+        resolve(window.Swal);
+      };
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+
+    return sweetAlertPromise;
+  }
+
+  function showSubmissionResult(options, fallbackMessage) {
+    loadSweetAlert()
+      .then(function(Swal) {
+        Swal.fire(options);
+      })
+      .catch(function() {
+        window.alert(fallbackMessage);
+      });
+  }
+
+  $('#myForm').submit(function(event) {
+    event.preventDefault();
+    $('#loadingIndicator').show();
+
+    var form = this;
+    loadSweetAlert();
+
+    $.ajax({
+      url: "{% url 'add-unverified-civilian' %}",
+      type: 'POST',
+      data: new FormData(form),
+      async: true,
+      cache: false,
+      contentType: false,
+      processData: false,
+      success: function(response) {
+        $('#loadingIndicator').hide();
+        showSubmissionResult(
+          {
+            icon: 'success',
+            title: 'Success',
+            html: response.success_message
+          },
+          response.success_message
+        );
+
+        form.reset();
+        $('.selectpicker').val(null).trigger('change');
+      },
+      error: function() {
+        $('#loadingIndicator').hide();
+        showSubmissionResult(
+          {
+            icon: 'error',
+            title: 'Error',
+            text: 'Error submitting the data'
+          },
+          'Error submitting the data'
+        );
+      }
+    });
+
+    return false;
+  });
+});
+</script>
+{% endif %}
+{% endblock admin_page_scripts %}
