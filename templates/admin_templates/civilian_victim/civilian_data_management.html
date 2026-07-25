@@ -48,6 +48,36 @@
     font-size: 12px;
     min-width: 110px;
   }
+
+  #civilian-data-management-table_processing {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    height: 44px;
+    left: 50%;
+    margin: -22px 0 0 -22px;
+    padding: 0;
+    top: 50%;
+    width: 44px;
+    z-index: 20;
+  }
+
+  .civilian-table-spinner {
+    animation: civilian-table-spin 0.7s linear infinite;
+    border: 4px solid rgba(26, 187, 156, 0.22);
+    border-radius: 50%;
+    border-top-color: #1abb9c;
+    display: block;
+    height: 36px;
+    margin: 4px;
+    width: 36px;
+  }
+
+  @keyframes civilian-table-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 </style>
 
 <!-- page content -->
@@ -196,6 +226,9 @@
       responsive: true,
       searchDelay: 250,
       order: [],
+      language: {
+        processing: '<span class="civilian-table-spinner" role="status" aria-label="Loading data"></span>'
+      },
       ajax: {
         url: "{% url 'civilian-data-management-data' %}",
         type: 'GET'
