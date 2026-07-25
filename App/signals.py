@@ -29,6 +29,10 @@ def schedule_homepage_refresh():
     transaction.on_commit(refresh_homepage_summary)
 
 
+def schedule_homepage_invalidation():
+    transaction.on_commit(invalidate_homepage_summary)
+
+
 def schedule_admin_dashboard_invalidation():
     transaction.on_commit(invalidate_admin_dashboard_summary)
 
@@ -55,8 +59,6 @@ def schedule_woreda_map_refresh():
 @receiver(post_delete, sender=Civilian_victims)
 @receiver(post_save, sender=Unverified_civilian)
 @receiver(post_delete, sender=Unverified_civilian)
-@receiver(post_save, sender=Analysis_articles)
-@receiver(post_delete, sender=Analysis_articles)
 @receiver(post_save, sender=Photo_archive)
 @receiver(post_delete, sender=Photo_archive)
 @receiver(post_save, sender=Video_archive)
@@ -67,6 +69,14 @@ def schedule_woreda_map_refresh():
 @receiver(post_delete, sender=Hero_images)
 def refresh_homepage_on_change(sender, **kwargs):
     schedule_homepage_refresh()
+
+
+@receiver(post_save, sender=Analysis_articles)
+@receiver(post_delete, sender=Analysis_articles)
+def invalidate_homepage_after_article_change(sender, **kwargs):
+    # Article writing should not wait for the homepage summary to be rebuilt.
+    # The next homepage request will repopulate the invalidated cache.
+    schedule_homepage_invalidation()
 
 
 @receiver(post_save, sender=Civilian_victims)

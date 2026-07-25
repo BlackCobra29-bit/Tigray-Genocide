@@ -1439,96 +1439,85 @@ def delete_unverified_civilian_victim(request, pk):
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Write_article(request):
-
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    form = AnalysisArticleForm()
-
-    context = {
-        'pending_count': pending_count,
-        'analysis_form': form,
-        'Administrator': Administrator.objects.get(user=request.user)
-    }
-
-    if request.method == 'POST':
-        form = AnalysisArticleForm(request.POST, request.FILES)
-        if form.is_valid():
-
-            # check if the article is Ex-ENDF related
-            if request.POST.get('endf_related'):
-                endf_related = True
-            else:
-                endf_related = False
-            
-            # check if the article is Personal Accounts
-            if request.POST.get('personal_account'):
-                personal_account = True
-            else:
-                personal_account = False
-
-            insert_article = Analysis_articles(author=User.objects.get(username=request.user), title=form.cleaned_data.get('title'),
-                                               thumbnail=form.cleaned_data.get('thumbnail'), content=form.cleaned_data.get('content'),
-                                               endf_related=endf_related, personal_account = personal_account, approval=User.objects.get(username=request.user).is_superuser)
-            insert_article.save()
-
-            if User.objects.get(username=request.user).is_superuser is True:
-
-                messages.success(
-                    request, 'New analysis article shared successfully...')
-
-            else:
-                messages.success(
-                    request, 'New analysis article shared successfully and is pending for an approval ...')
-
-        return render(request, 'admin_templates/analysis_article/write_article.html', context)
-
-    else:
-        return render(request, 'admin_templates/analysis_article/write_article.html', context)
+    return _save_analysis_article(request, draft=False)
 
 
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Draft_article(request):
+    return _save_analysis_article(request, draft=True)
 
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
 
-    form = AnalysisArticleForm()
+def _is_ajax_request(request):
+    return request.headers.get('x-requested-with') == 'XMLHttpRequest'
 
-    context = {
-        'pending_count': pending_count,
+
+def _analysis_article_context(request, form):
+    administrator = Administrator.objects.get(user=request.user)
+    # The base template also accesses request.user.administrator. Reuse the
+    # instance already fetched for the role checks instead of querying twice.
+    request.user._state.fields_cache['administrator'] = administrator
+    return {
+        'pending_count': get_admin_pending_count(),
         'analysis_form': form,
-        'Administrator': Administrator.objects.get(user=request.user)
+        'Administrator': administrator,
     }
 
+
+def _analysis_article_error_message(form):
+    errors = []
+    for field_name, field_errors in form.errors.items():
+        label = form.fields[field_name].label if field_name in form.fields else field_name
+        errors.extend(f'{label}: {error}' for error in field_errors)
+    return '. '.join(errors) if errors else 'Please correct the highlighted fields.'
+
+
+def _save_analysis_article(request, draft):
+    form = AnalysisArticleForm(
+        request.POST or None,
+        request.FILES or None,
+    )
+
     if request.method == 'POST':
-        form = AnalysisArticleForm(request.POST, request.FILES)
         if form.is_valid():
+            article = form.save(commit=False)
+            article.author = request.user
+            article.approval = request.user.is_superuser
+            article.draft = draft
+            article.save()
 
-            # check if the article is Ex-ENDF related
-            if request.POST.get('endf_related'):
-                endf_related = True
+            if draft:
+                success_message = 'New analysis article saved to draft...'
+            elif request.user.is_superuser:
+                success_message = 'New analysis article shared successfully...'
             else:
-                endf_related = False
-            
-            # check if the article is Personal Accounts
-            if request.POST.get('personal_account'):
-                personal_account = True
-            else:
-                personal_account = False
+                success_message = (
+                    'New analysis article shared successfully and is pending '
+                    'for an approval ...'
+                )
 
-            insert_article = Analysis_articles(author=User.objects.get(username=request.user), title=form.cleaned_data.get('title'),
-                                               thumbnail=form.cleaned_data.get('thumbnail'), content=form.cleaned_data.get('content'),
-                                               endf_related=endf_related, personal_account = personal_account, approval=User.objects.get(username=request.user).is_superuser,
-                                               draft = True)
-            insert_article.save()
+            if _is_ajax_request(request):
+                return JsonResponse({
+                    'success': True,
+                    'message': success_message,
+                    'article_id': str(article.pk),
+                })
 
-            messages.success(
-                request, 'New analysis article saved to draft...')
+            messages.success(request, success_message)
+            return redirect('write-article')
 
-        return render(request, 'admin_templates/analysis_article/write_article.html', context)
+        if _is_ajax_request(request):
+            return JsonResponse({
+                'success': False,
+                'message': _analysis_article_error_message(form),
+                'errors': form.errors.get_json_data(),
+            }, status=400)
 
-    else:
-        return render(request, 'admin_templates/analysis_article/write_article.html', context)
+    return render(
+        request,
+        'admin_templates/analysis_article/write_article.html',
+        _analysis_article_context(request, form),
+    )
 
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
