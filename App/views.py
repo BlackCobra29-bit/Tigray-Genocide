@@ -2,7 +2,7 @@
 import subprocess
 import os
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from datetime import datetime
 from django.db.models import Sum, Count
 # end of block
@@ -60,6 +60,11 @@ from django.utils.text import slugify
 from urllib.parse import urlparse, parse_qs
 from .admin_civilian_form import get_admin_civilian_woreda_names
 from .admin_metrics import get_admin_pending_count
+from .civilian_exports import (
+    SUPPORTED_EXPORT_FORMATS,
+    build_civilian_export_payload,
+    build_civilian_export_response,
+)
 from .civilian_management import build_civilian_management_payload
 from .dashboard_summary import get_admin_dashboard_summary
 from .homepage import get_homepage_summary
@@ -1128,26 +1133,6 @@ def admin_dashboard(request):
     }
     return render(request, 'admin_templates/index.html', context)
 
-@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
-def admin_civilian_victims_page(request):
-
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    civilian_victims_data = Civilian_victims.objects.filter(
-        approval=True).count()
-
-    civilian_victims = Civilian_victims.objects.filter(approval=True)
-
-    context = {
-        'pending_count': pending_count,
-        'civilian_victims': civilian_victims,
-        'civilian_victims_data': civilian_victims_data,
-        'Administrator': Administrator.objects.get(user=request.user),
-        'woreda_list': Tigray_woreda.objects.all(),
-    }
-
-    return render(request, 'admin_templates/civilian_victim/civilian_victims.html', context)
-
 @login_required(login_url=settings.LOGIN_URL, redirect_field_name='authentication_required')
 def add_civilian_victim(request):
     success_message = ""
@@ -1258,6 +1243,36 @@ def civilian_data_management_data(request):
             status=403,
         )
     return JsonResponse(build_civilian_management_payload(request))
+
+
+@login_required(login_url=settings.LOGIN_URL, redirect_field_name='authentication_required')
+@require_GET
+def civilian_data_management_export(request, export_format):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"detail": "Only superusers can export civilian victim data."},
+            status=403,
+        )
+    if export_format not in SUPPORTED_EXPORT_FORMATS:
+        raise Http404("Unsupported civilian export format.")
+    return build_civilian_export_response(
+        export_format,
+        request.user,
+        request.GET,
+    )
+
+
+@login_required(login_url=settings.LOGIN_URL, redirect_field_name='authentication_required')
+@require_GET
+def civilian_data_management_export_data(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"detail": "Only superusers can export civilian victim data."},
+            status=403,
+        )
+    return JsonResponse(
+        build_civilian_export_payload(request.user, request.GET)
+    )
 
 
 class Update_Civilian_Victim(LoginRequiredMixin, SuccessMessageMixin, UpdateView):

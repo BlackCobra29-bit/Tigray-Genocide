@@ -116,13 +116,15 @@ from App.views import admin_dashboard
 
 # admin civilian victim views
 
-from App.views import admin_civilian_victims_page
-
 from App.views import add_civilian_victim
 
 from App.views import civilian_data_management
 
 from App.views import civilian_data_management_data
+
+from App.views import civilian_data_management_export
+
+from App.views import civilian_data_management_export_data
 
 from App.views import delete_civilian_victim_item
 
@@ -300,13 +302,16 @@ urlpatterns = [
 
     # admin civilian victims url-pattern
 
-    path('Civilian-victims/', admin_civilian_victims_page, name = 'admin-civilian-victims'),
-
     path('Add-civilian-victim/', add_civilian_victim, name = 'admin-add-civilian'),
 
     path('Civilian-data-management/', civilian_data_management, name = 'civilian-data-management'),
 
     path('Civilian-data-management/data/', civilian_data_management_data, name = 'civilian-data-management-data'),
+
+    path('Civilian-data-management/export/<str:export_format>/', civilian_data_management_export, name = 'civilian-data-management-export'),
+
+    # Loaded on demand so the legacy export design does not slow the table page.
+    path('Civilian-data-management/export-data/', civilian_data_management_export_data, name = 'civilian-data-management-export-data'),
 
     path('Delete-duplicate-civilian-victim/<slug:pk>', delete_duplicate_civilian_victim_item, name = 'delete-duplicate-civilian-victim'),
 

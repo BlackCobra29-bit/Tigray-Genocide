@@ -148,9 +148,6 @@
                         <ul class="nav child_menu">
                             <li><a href="{% url 'admin-add-civilian' %}">Add Data</a></li>
                             <li><a href="{% url 'civilian-data-management' %}">Data Management</a></li>
-                            {% if request.user.is_superuser == True %}
-                            <li><a href="{% url 'admin-civilian-victims' %}">Export Data</a></li>
-                            {% endif %}
                         </ul>
                     </li>
                     

@@ -11,3 +11,5 @@ urlextract
 colorama
 django-ckeditor
 django-tinymce
+openpyxl
+reportlab

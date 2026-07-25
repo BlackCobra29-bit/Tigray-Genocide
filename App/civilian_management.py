@@ -252,6 +252,29 @@ def _administrator_row(victim):
     ]
 
 
+def get_filtered_ordered_civilian_queryset(user, params):
+    search = params.get("search[value]", "").strip()
+    queryset = _search_queryset(
+        _base_queryset(user),
+        search,
+        include_status=not user.is_superuser,
+    )
+
+    order_fields = (
+        SUPERUSER_ORDER_FIELDS
+        if user.is_superuser
+        else ADMIN_ORDER_FIELDS
+    )
+    order_column = _bounded_int(params.get("order[0][column]"), 0)
+    order_field = order_fields.get(order_column)
+    if order_field:
+        if params.get("order[0][dir]") == "desc":
+            order_field = f"-{order_field}"
+        return queryset.order_by(order_field, "-date_created")
+
+    return queryset.order_by("-date_created")
+
+
 def build_civilian_management_payload(request):
     draw = _bounded_int(request.GET.get("draw"), 0)
     start = _bounded_int(request.GET.get("start"), 0)
@@ -265,28 +288,13 @@ def build_civilian_management_payload(request):
 
     queryset = _base_queryset(request.user)
     records_total = queryset.count()
-    filtered_queryset = _search_queryset(
-        queryset,
-        search,
-        include_status=not request.user.is_superuser,
+    filtered_queryset = get_filtered_ordered_civilian_queryset(
+        request.user,
+        request.GET,
     )
     records_filtered = (
         records_total if not search else filtered_queryset.count()
     )
-
-    order_fields = (
-        SUPERUSER_ORDER_FIELDS
-        if request.user.is_superuser
-        else ADMIN_ORDER_FIELDS
-    )
-    order_column = _bounded_int(request.GET.get("order[0][column]"), 0)
-    order_field = order_fields.get(order_column)
-    if order_field:
-        if request.GET.get("order[0][dir]") == "desc":
-            order_field = f"-{order_field}"
-        filtered_queryset = filtered_queryset.order_by(order_field, "-date_created")
-    else:
-        filtered_queryset = filtered_queryset.order_by("-date_created")
 
     victims = filtered_queryset[start : start + length]
     row_builder = _superuser_row if request.user.is_superuser else _administrator_row

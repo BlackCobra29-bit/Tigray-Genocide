@@ -1,9 +1,12 @@
+from io import BytesIO
+
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db import connection
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
-from django.urls import reverse
+from django.urls import Resolver404, resolve, reverse
+from openpyxl import load_workbook
 
 from .models import Administrator, Civilian_victims, Tigray_woreda
 from .templatetags.custom import _extract_urls, extract_and_join_urls
@@ -115,13 +118,173 @@ class CivilianDataManagementPerformanceTests(TestCase):
         self.assertNotIn("/static/admin/js/vendor/jquery/jquery.js", html)
         self.assertNotIn("/static/admin_static/js/parsley.min.js", html)
         self.assertNotIn("/static/js/select.js", html)
-        self.assertNotIn("dataTables.buttons.min.js", html)
-        self.assertNotIn("pdfmake.min.js", html)
-        self.assertNotIn("vfs_fonts.js", html)
+        self.assertNotIn(
+            '<script src="/static/admlte/datatable/'
+            'dataTables.buttons.min.js"',
+            html,
+        )
+        self.assertNotIn(
+            '<script src="/static/admlte/datatable/pdfmake.min.js"',
+            html,
+        )
+        self.assertNotIn(
+            '<script src="/static/admlte/datatable/vfs_fonts.js"',
+            html,
+        )
         self.assertEqual(
             html.count("/static/admin_static/datatable/"),
             6,
         )
+
+    def test_superuser_sees_export_buttons_without_heavy_export_libraries(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get(reverse("civilian-data-management"))
+        html = response.content.decode()
+
+        self.assertContains(response, "Export current results:")
+        self.assertContains(
+            response,
+            reverse("civilian-data-management-export", args=["pdf"]),
+        )
+        self.assertContains(
+            response,
+            reverse("civilian-data-management-export", args=["csv"]),
+        )
+        self.assertContains(
+            response,
+            reverse("civilian-data-management-export", args=["xlsx"]),
+        )
+        self.assertNotIn(
+            '<script src="/static/admlte/datatable/'
+            'dataTables.buttons.min.js"',
+            html,
+        )
+        self.assertNotIn(
+            '<script src="/static/admlte/datatable/buttons.html5.min.js"',
+            html,
+        )
+        self.assertNotIn(
+            '<script src="/static/admlte/datatable/pdfmake.min.js"',
+            html,
+        )
+        self.assertNotIn(
+            '<script src="/static/admlte/datatable/vfs_fonts.js"',
+            html,
+        )
+        self.assertNotIn(
+            '<script src="/static/admlte/datatable/jszip.min.js"',
+            html,
+        )
+        self.assertContains(response, "legacyExportScriptUrls")
+        self.assertContains(response, "pageSize: 'TABLOID'")
+        self.assertContains(response, "orientation: 'landscape'")
+        self.assertContains(response, "fillColor: '#23ffee'")
+        self.assertContains(response, "doc.watermark")
+        self.assertContains(response, "doc.defaultStyle.font = 'nyala'")
+
+    def test_legacy_export_data_uses_the_current_filter_and_one_data_query(self):
+        self.client.force_login(self.superuser)
+
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(
+                reverse("civilian-data-management-export-data"),
+                {"search[value]": "Managed Victim 17"},
+            )
+
+        payload = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload["recordsFiltered"], 1)
+        self.assertEqual(len(payload["data"]), 1)
+        self.assertEqual(
+            payload["data"][0][0:3],
+            [1, "Managed Victim 17", "Female"],
+        )
+        self.assertLessEqual(len(queries), 3)
+
+    def test_non_superuser_does_not_see_or_access_exports(self):
+        self.client.force_login(self.administrator)
+        page_response = self.client.get(reverse("civilian-data-management"))
+        export_response = self.client.get(
+            reverse("civilian-data-management-export", args=["csv"])
+        )
+        legacy_data_response = self.client.get(
+            reverse("civilian-data-management-export-data")
+        )
+
+        self.assertNotContains(page_response, "Export current results:")
+        self.assertEqual(export_response.status_code, 403)
+        self.assertEqual(legacy_data_response.status_code, 403)
+
+    def test_csv_export_contains_all_currently_filtered_rows(self):
+        self.client.force_login(self.superuser)
+
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(
+                reverse("civilian-data-management-export", args=["csv"]),
+                {
+                    "search[value]": "Managed Victim 17",
+                    "order[0][column]": 1,
+                    "order[0][dir]": "asc",
+                },
+            )
+            content = b"".join(response.streaming_content).decode("utf-8-sig")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/csv", response["Content-Type"])
+        self.assertIn(
+            "verified-civilian-victims-",
+            response["Content-Disposition"],
+        )
+        self.assertIn("Managed Victim 17", content)
+        self.assertNotIn("Managed Victim 16", content)
+        self.assertLessEqual(len(queries), 3)
+
+    def test_excel_export_is_valid_and_preserves_the_current_filter(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get(
+            reverse("civilian-data-management-export", args=["xlsx"]),
+            {"search[value]": "Managed Victim 17"},
+        )
+        content = b"".join(response.streaming_content)
+        workbook = load_workbook(BytesIO(content), read_only=True)
+        worksheet = workbook["Verified Civilian Victims"]
+        rows = list(worksheet.iter_rows(values_only=True))
+        workbook.close()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(rows[0][0:3], ("Index", "Full Name", "Gender"))
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[1][1], "Managed Victim 17")
+
+    def test_pdf_export_is_a_valid_filtered_download(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get(
+            reverse("civilian-data-management-export", args=["pdf"]),
+            {"search[value]": "Managed Victim 17"},
+        )
+        content = b"".join(response.streaming_content)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(content.startswith(b"%PDF-"))
+        self.assertGreater(len(content), 1_000)
+
+    def test_invalid_export_format_returns_not_found(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get(
+            reverse("civilian-data-management-export", args=["invalid"])
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_old_export_page_and_route_are_removed(self):
+        self.client.force_login(self.superuser)
+
+        with self.assertRaises(Resolver404):
+            resolve("/Civilian-victims/")
+
+        page_response = self.client.get(reverse("civilian-data-management"))
+        self.assertNotContains(page_response, "/Civilian-victims/")
 
     def test_superuser_endpoint_is_paginated_and_has_no_woreda_n_plus_one(self):
         self.client.force_login(self.superuser)
