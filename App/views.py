@@ -67,6 +67,7 @@ from .civilian_exports import (
 )
 from .civilian_management import (
     build_civilian_management_payload,
+    build_unverified_export_payload,
     build_unverified_management_payload,
 )
 from .dashboard_summary import get_admin_dashboard_summary
@@ -1391,6 +1392,17 @@ def unverified_civilian_data_management_data(request):
     return JsonResponse(build_unverified_management_payload(request))
 
 
+@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
+@require_GET
+def unverified_civilian_data_management_export_data(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"detail": "Only superusers can export this data."},
+            status=403,
+        )
+    return JsonResponse(build_unverified_export_payload(request.GET))
+
+
 class Update_unverified_Civilian_Victim(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
     redirect_field_name = '/authentication_required/'
     template_name = 'admin_templates/civilian_victim/unverified_update_civilian_victim.html'
@@ -1424,30 +1436,6 @@ def delete_unverified_civilian_victim(request, pk):
 
     return redirect('unverified-civilian-data-management')
 
-
-@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
-def export_unverified_data(request):
-
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-    
-    
-    # get sum of unverified ciivilians
-    if Unverified_civilian.objects.exists():
-        total_civilians = Unverified_civilian.objects.aggregate(total_civilians=Sum('number_of_civilian'))['total_civilians']
-    else:
-        total_civilians = 0
-
-    civilian_victims = Unverified_civilian.objects.all()
-
-    context = {
-        'pending_count': pending_count,
-        'civilian_victims': civilian_victims,
-        'civilian_victims_data': total_civilians,
-        'Administrator': Administrator.objects.get(user=request.user),
-        'woreda_list': Tigray_woreda.objects.all(),
-    }
-
-    return render(request, 'admin_templates/civilian_victim/unverified_export_data.html', context)
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Write_article(request):

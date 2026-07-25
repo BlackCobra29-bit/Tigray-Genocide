@@ -429,3 +429,29 @@ def build_unverified_management_payload(request):
         "recordsFiltered": records_filtered,
         "data": [_unverified_row(victim) for victim in victims],
     }
+
+
+def build_unverified_export_payload(params):
+    queryset = get_filtered_ordered_unverified_queryset(params)
+    rows = []
+    for index, victim in enumerate(
+        queryset.iterator(chunk_size=500),
+        start=1,
+    ):
+        rows.append(
+            [
+                index,
+                str(victim.location),
+                victim.number_of_civilian,
+                str(victim.perpetrator),
+                str(victim.woreda),
+                str(victim.source),
+                str(victim.source_link),
+                str(victim.remark) if victim.remark else "Unknown",
+            ]
+        )
+
+    return {
+        "recordsFiltered": len(rows),
+        "data": rows,
+    }

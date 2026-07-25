@@ -28,6 +28,27 @@
         line-height: 0.8;
     }
 
+    .unverified-export-toolbar {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-bottom: 12px;
+    }
+
+    .unverified-export-toolbar-label {
+        color: #73879c;
+        font-size: 13px;
+        margin-right: 2px;
+    }
+
+    .unverified-export-status {
+        color: #73879c;
+        font-size: 12px;
+        min-width: 110px;
+    }
+
     #unverified-civilian-management-table_processing {
         background: transparent;
         border: 0;
@@ -93,6 +114,38 @@
                 <div class="tab-content" id="myTabContent">
                   <div class="tab-pane fade show active" id="approved_post" role="tabpanel" aria-labelledby="profile-tab">
                     <div class="card-box table-responsive">
+                      <div class="unverified-export-toolbar" aria-label="Unidentified civilian victim export options">
+                        <span class="unverified-export-toolbar-label">Export current results:</span>
+                        <button
+                          type="button"
+                          class="btn btn-danger btn-sm"
+                          data-unverified-export
+                          data-export-format="pdf"
+                        >
+                          <i class="fa fa-file-pdf-o"></i> PDF
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-info btn-sm"
+                          data-unverified-export
+                          data-export-format="csv"
+                        >
+                          <i class="fa fa-file-text-o"></i> CSV
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-success btn-sm"
+                          data-unverified-export
+                          data-export-format="excel"
+                        >
+                          <i class="fa fa-file-excel-o"></i> Excel
+                        </button>
+                        <span
+                          id="unverified-export-status"
+                          class="unverified-export-status"
+                          aria-live="polite"
+                        ></span>
+                      </div>
                       <table id="unverified-civilian-management-table" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
                         <thead>
                           <tr>
@@ -144,7 +197,7 @@
 {% if request.user.is_superuser == True %}
 <script>
 $(document).ready(function() {
-    $('#unverified-civilian-management-table').DataTable({
+    var table = $('#unverified-civilian-management-table').DataTable({
         processing: true,
         serverSide: true,
         deferRender: true,
@@ -168,6 +221,230 @@ $(document).ready(function() {
         drawCallback: function() {
             $('[data-toggle="tooltip"]').tooltip({ container: 'body' });
         }
+    });
+
+    var exportDataUrl =
+        "{% url 'unverified-civilian-data-management-export-data' %}";
+    var legacyExportScriptUrls = [
+        "{% static 'admlte/datatable/dataTables.buttons.min.js' %}",
+        "{% static 'admlte/datatable/jszip.min.js' %}",
+        "{% static 'admlte/datatable/pdfmake.min.js' %}",
+        "{% static 'admlte/datatable/vfs_fonts.js' %}",
+        "{% static 'admlte/datatable/buttons.html5.min.js' %}"
+    ];
+    var legacyExportLibrariesPromise = null;
+
+    function loadExportScript(source) {
+        return new Promise(function(resolve, reject) {
+            var existingScript = document.querySelector(
+                'script[src="' + source + '"]'
+            );
+            if (
+                existingScript &&
+                existingScript.dataset.loaded === 'true'
+            ) {
+                resolve();
+                return;
+            }
+
+            var script =
+                existingScript || document.createElement('script');
+            script.src = source;
+            script.async = false;
+            script.addEventListener('load', function() {
+                script.dataset.loaded = 'true';
+                resolve();
+            }, { once: true });
+            script.addEventListener('error', function() {
+                reject(new Error('Unable to load export library.'));
+            }, { once: true });
+
+            if (!existingScript) {
+                document.body.appendChild(script);
+            }
+        });
+    }
+
+    function loadLegacyExportLibraries() {
+        if (legacyExportLibrariesPromise) {
+            return legacyExportLibrariesPromise;
+        }
+
+        legacyExportLibrariesPromise = legacyExportScriptUrls.reduce(
+            function(promise, source) {
+                return promise.then(function() {
+                    return loadExportScript(source);
+                });
+            },
+            Promise.resolve()
+        );
+        return legacyExportLibrariesPromise;
+    }
+
+    function currentExportQuery() {
+        var requestParameters = table.ajax.params();
+        var searchValue = requestParameters.search
+            ? requestParameters.search.value
+            : requestParameters['search[value]'];
+        var orderParameters =
+            requestParameters.order && requestParameters.order.length
+                ? requestParameters.order[0]
+                : {};
+        return $.param({
+            'search[value]':
+                searchValue || '',
+            'order[0][column]':
+                orderParameters.column ||
+                requestParameters['order[0][column]'] ||
+                '',
+            'order[0][dir]':
+                orderParameters.dir ||
+                requestParameters['order[0][dir]'] ||
+                ''
+        });
+    }
+
+    function legacyPdfButton() {
+        return {
+            extend: 'pdfHtml5',
+            pageSize: 'TABLOID',
+            orientation: 'landscape',
+            title: 'Unidentified Civilian Victims',
+            titleFontSize: 40,
+            customize: function(doc) {
+                var rowIndex = 1;
+                doc.content.forEach(function(element) {
+                    if (element.table) {
+                        element.table.body.forEach(
+                            function(row, rowIndexInTable) {
+                                row.forEach(function(cell, cellIndex) {
+                                    if (
+                                        cellIndex === 0 &&
+                                        rowIndexInTable !== 0
+                                    ) {
+                                        cell.text = {
+                                            text:
+                                                (rowIndex++).toString(),
+                                            fillColor: '#23ffee'
+                                        };
+                                    }
+                                });
+                            }
+                        );
+                    }
+                });
+                doc.watermark = {
+                    text: '\u00A9 tigraygenocide.com',
+                    color: '#ccc',
+                    opacity: 0.3,
+                    italics: true,
+                    bold: true,
+                    angle: 325,
+                    link: 'http://www.tigraygenocide.com'
+                };
+                var footerText = {
+                    link: 'https://tigraygenocide.com',
+                    color: 'cornflowerblue',
+                    fontSize: 14
+                };
+                doc.footer = {
+                    columns: [
+                        { text: footerText.text },
+                        {
+                            text: 'Visit tigraygenocide.com',
+                            link: footerText.link,
+                            color: footerText.color,
+                            fontSize: footerText.fontSize
+                        }
+                    ]
+                };
+                doc.defaultStyle.font = 'nyala';
+            }
+        };
+    }
+
+    function runLegacyExport(exportFormat, payload) {
+        pdfMake.fonts = {
+            Roboto: {
+                normal: 'Roboto-Regular.ttf',
+                bold: 'Roboto-Medium.ttf',
+                italics: 'Roboto-Italic.ttf',
+                bolditalics: 'Roboto-MediumItalic.ttf'
+            },
+            nyala: {
+                normal: 'nyala.ttf',
+                bold: 'nyala.ttf',
+                italics: 'nyala.ttf',
+                bolditalics: 'nyala.ttf'
+            }
+        };
+
+        var headings = [
+            'Index',
+            'Location',
+            'Number of Victims',
+            'Atrocity',
+            'Woreda',
+            'Source',
+            'Source Link',
+            'Remark'
+        ];
+        var textRenderer = $.fn.dataTable.render.text();
+        var hiddenTable = $('<table></table>')
+            .css('display', 'none')
+            .appendTo(document.body);
+        var exportButton = exportFormat === 'pdf'
+            ? legacyPdfButton()
+            : { extend: exportFormat };
+        var exportTable = hiddenTable.DataTable({
+            data: payload.data,
+            columns: headings.map(function(heading) {
+                return {
+                    title: heading,
+                    render: textRenderer
+                };
+            }),
+            dom: 'B',
+            paging: false,
+            searching: false,
+            ordering: false,
+            info: false,
+            buttons: [exportButton]
+        });
+
+        exportTable.button(0).trigger();
+        window.setTimeout(function() {
+            exportTable.destroy();
+            hiddenTable.remove();
+        }, 1000);
+    }
+
+    $('[data-unverified-export]').on('click', function() {
+        var exportFormat = this.dataset.exportFormat;
+        var exportButtons = $('[data-unverified-export]');
+        var exportStatus = $('#unverified-export-status');
+
+        exportButtons.prop('disabled', true);
+        exportStatus.text('Preparing export...');
+
+        Promise.all([
+            loadLegacyExportLibraries(),
+            fetch(exportDataUrl + '?' + currentExportQuery(), {
+                credentials: 'same-origin'
+            }).then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Unable to load export data.');
+                }
+                return response.json();
+            })
+        ]).then(function(results) {
+            runLegacyExport(exportFormat, results[1]);
+            exportStatus.text('Download ready.');
+        }).catch(function() {
+            exportStatus.text('Export failed. Please try again.');
+        }).finally(function() {
+            exportButtons.prop('disabled', false);
+        });
     });
 });
 </script>

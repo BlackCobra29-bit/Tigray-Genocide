@@ -138,11 +138,11 @@ from App.views import Unverified_civilian_data_management
 
 from App.views import unverified_civilian_data_management_data
 
+from App.views import unverified_civilian_data_management_export_data
+
 from App.views import Update_unverified_Civilian_Victim
 
 from App.views import delete_unverified_civilian_victim
-
-from App.views import export_unverified_data
 
 # analysis articles views
 
@@ -327,11 +327,12 @@ urlpatterns = [
 
     path('Unverified-civilian-data-management/data/', unverified_civilian_data_management_data, name = 'unverified-civilian-data-management-data'),
 
+    # Loaded on demand so legacy export design does not slow the table page.
+    path('Unverified-civilian-data-management/export-data/', unverified_civilian_data_management_export_data, name = 'unverified-civilian-data-management-export-data'),
+
     path('Update-unverified-civilian-victim/<slug:pk>', Update_unverified_Civilian_Victim.as_view(), name = 'update-unverified-civilian-victim'),
 
     path('Delete-unverified-civilian-victim/<slug:pk>', delete_unverified_civilian_victim, name = 'delete-unverified-civilian-victim'),
-
-    path('export-unverified-data', export_unverified_data, name = 'export-unverified-data'),
 
     # analysis articles url-pattern
 

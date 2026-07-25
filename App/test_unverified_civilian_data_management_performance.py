@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.db import connection
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
-from django.urls import reverse
+from django.urls import Resolver404, resolve, reverse
 
 from .models import Administrator, Tigray_woreda, Unverified_civilian
 
@@ -107,6 +107,43 @@ class UnverifiedCivilianDataManagementPerformanceTests(TestCase):
             6,
         )
 
+    def test_management_page_has_lazy_legacy_export_buttons(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get(
+            reverse("unverified-civilian-data-management")
+        )
+        html = response.content.decode()
+
+        self.assertContains(response, "Export current results:")
+        self.assertEqual(html.count('data-export-format="'), 3)
+        self.assertContains(response, 'data-export-format="pdf"')
+        self.assertContains(response, 'data-export-format="csv"')
+        self.assertContains(response, 'data-export-format="excel"')
+        self.assertContains(response, "legacyExportScriptUrls")
+        self.assertContains(response, "pageSize: 'TABLOID'")
+        self.assertContains(response, "orientation: 'landscape'")
+        self.assertContains(
+            response,
+            "title: 'Unidentified Civilian Victims'",
+        )
+        self.assertContains(response, "fillColor: '#23ffee'")
+        self.assertContains(response, "doc.watermark")
+        self.assertContains(response, "doc.footer")
+        self.assertContains(response, "doc.defaultStyle.font = 'nyala'")
+        self.assertNotIn(
+            '<script src="/static/admlte/datatable/'
+            'dataTables.buttons.min.js"',
+            html,
+        )
+        self.assertNotIn(
+            '<script src="/static/admlte/datatable/pdfmake.min.js"',
+            html,
+        )
+        self.assertNotIn(
+            '<script src="/static/admlte/datatable/vfs_fonts.js"',
+            html,
+        )
+
     def test_endpoint_is_paginated_without_woreda_n_plus_one_queries(self):
         self.client.force_login(self.superuser)
 
@@ -163,6 +200,35 @@ class UnverifiedCivilianDataManagementPerformanceTests(TestCase):
             row[7],
         )
 
+    def test_export_data_contains_all_currently_filtered_rows(self):
+        self.client.force_login(self.superuser)
+
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.get(
+                reverse(
+                    "unverified-civilian-data-management-export-data"
+                ),
+                {
+                    "search[value]": "Location 17",
+                    "order[0][column]": 1,
+                    "order[0][dir]": "asc",
+                },
+            )
+
+        payload = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload["recordsFiltered"], 1)
+        self.assertEqual(len(payload["data"]), 1)
+        self.assertEqual(
+            payload["data"][0][0:3],
+            [1, "Unverified Managed Location 17", 18],
+        )
+        self.assertEqual(
+            payload["data"][0][4],
+            "Unverified Management Woreda",
+        )
+        self.assertLessEqual(len(queries), 3)
+
     def test_endpoint_rejects_non_superusers(self):
         self.client.force_login(self.denied_user)
         response = self.client.get(
@@ -171,3 +237,22 @@ class UnverifiedCivilianDataManagementPerformanceTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+    def test_export_endpoint_rejects_non_superusers(self):
+        self.client.force_login(self.denied_user)
+        response = self.client.get(
+            reverse("unverified-civilian-data-management-export-data")
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_old_export_page_route_and_navigation_are_removed(self):
+        self.client.force_login(self.superuser)
+
+        with self.assertRaises(Resolver404):
+            resolve("/export-unverified-data")
+
+        response = self.client.get(
+            reverse("unverified-civilian-data-management")
+        )
+        self.assertNotContains(response, "/export-unverified-data")
