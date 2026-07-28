@@ -160,7 +160,7 @@ from App.views import Update_Article_Analysis
 
 from App.views import Update_Draft_Analysis
 
-from App.views import Delete_Article_Analysis
+from App.views import delete_analysis_article
 
 from App.views import Add_webinar_discussion
 
@@ -352,7 +352,7 @@ urlpatterns = [
 
     path('Update-draft-article/<slug:pk>', Update_Draft_Analysis.as_view(), name = 'update-draft-article'),
 
-    path('Delete-analysis-article/<slug:pk>', Delete_Article_Analysis.as_view(), name = 'delete-analysis-article'),
+    path('Delete-analysis-article/<slug:pk>', delete_analysis_article, name = 'delete-analysis-article'),
 
     path('Add-webinar-discussion/', Add_webinar_discussion, name = 'add-webinar-discussion'),
 

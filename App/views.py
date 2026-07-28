@@ -1653,26 +1653,40 @@ class Update_Draft_Analysis(LoginRequiredMixin, SuccessMessageMixin, UpdateView)
         return super().form_valid(form)
 
 
-class Delete_Article_Analysis(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
-    redirect_field_name = '/authentication_required/'
-    template_name = 'admin_templates/analysis_article/delete_analysis_article.html'
-    model = Analysis_articles
-    success_message = 'Analysis Article deleted successfully'
+@login_required(
+    login_url=settings.LOGIN_URL,
+    redirect_field_name='authentication_required',
+)
+@require_POST
+def delete_analysis_article(request, pk):
+    if (
+        not request.user.is_superuser
+        and not Administrator.objects.filter(
+            user=request.user,
+            analysis_role=True,
+        ).exists()
+    ):
+        return JsonResponse(
+            {'detail': 'You do not have permission to delete articles.'},
+            status=403,
+        )
 
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Analysis_articles, id=id_)
+    article = get_object_or_404(Analysis_articles, id=pk)
+    if (
+        not request.user.is_superuser
+        and (article.author_id != request.user.id or not article.draft)
+    ):
+        return JsonResponse(
+            {'detail': 'Analysts can delete only their own draft articles.'},
+            status=403,
+        )
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-        return context
+    article_title = article.title
+    article.delete()
 
-    def get_success_url(self):
-
-        return reverse('analysis-article-management')
+    return JsonResponse({
+        'message': f'{article_title} was deleted successfully.',
+    })
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Add_webinar_discussion(request):

@@ -100,6 +100,8 @@ class ArticleManagementTests(TestCase):
             reverse("analysis-article-management-data"),
         )
         self.assertContains(response, "<tbody></tbody>")
+        self.assertContains(response, 'id="article-delete-modal"')
+        self.assertContains(response, 'id="article-delete-form"')
         self.assertNotContains(response, "Published article")
         self.assertNotContains(response, "Analyst draft")
         self.assertNotContains(response, "Pending article")
@@ -157,6 +159,17 @@ class ArticleManagementTests(TestCase):
         )
         self.assertTrue(any("Published" in row[1] for row in rows))
         self.assertTrue(any("Draft" in row[1] for row in rows))
+        published_action = next(
+            row[0] for row in rows if row[3] == "Published article"
+        )
+        self.assertIn('class="article-delete-trigger"', published_action)
+        self.assertIn(
+            reverse(
+                "delete-analysis-article",
+                args=[self.published_article.pk],
+            ),
+            published_action,
+        )
         self.assertTrue(
             any(
                 row[2] == "Unknown"
@@ -217,6 +230,87 @@ class ArticleManagementTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_article_delete_endpoint_rejects_get_requests(self):
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse(
+                "delete-analysis-article",
+                args=[self.published_article.pk],
+            ),
+        )
+
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(
+            Analysis_articles.objects.filter(
+                pk=self.published_article.pk,
+            ).exists()
+        )
+
+    def test_superuser_deletes_article_without_confirmation_page(self):
+        self.client.force_login(self.superuser)
+
+        response = self.client.post(
+            reverse(
+                "delete-analysis-article",
+                args=[self.published_article.pk],
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("deleted successfully", response.json()["message"])
+        self.assertFalse(
+            Analysis_articles.objects.filter(
+                pk=self.published_article.pk,
+            ).exists()
+        )
+
+    def test_analyst_can_delete_only_their_own_draft(self):
+        self.client.force_login(self.analyst)
+        published_delete_url = reverse(
+            "delete-analysis-article",
+            args=[self.published_article.pk],
+        )
+
+        denied_response = self.client.post(published_delete_url)
+
+        self.assertEqual(denied_response.status_code, 403)
+        self.assertTrue(
+            Analysis_articles.objects.filter(
+                pk=self.published_article.pk,
+            ).exists()
+        )
+
+        draft_response = self.client.post(
+            reverse(
+                "delete-analysis-article",
+                args=[self.analyst_draft.pk],
+            ),
+        )
+
+        self.assertEqual(draft_response.status_code, 200)
+        self.assertFalse(
+            Analysis_articles.objects.filter(
+                pk=self.analyst_draft.pk,
+            ).exists()
+        )
+
+    def test_user_without_analysis_role_cannot_delete_articles(self):
+        self.client.force_login(self.denied_user)
+
+        response = self.client.post(
+            reverse(
+                "delete-analysis-article",
+                args=[self.analyst_draft.pk],
+            ),
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(
+            Analysis_articles.objects.filter(
+                pk=self.analyst_draft.pk,
+            ).exists()
+        )
 
     def test_legacy_draft_page_redirects_to_article_management(self):
         self.client.force_login(self.analyst)

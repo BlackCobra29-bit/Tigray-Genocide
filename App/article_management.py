@@ -108,10 +108,13 @@ def _article_action(article, user):
 
     if user.is_superuser or article.draft:
         action = format_html(
-            '{} <a href="{}" data-toggle="tooltip" data-placement="top" '
+            '{} <a href="#" class="article-delete-trigger" '
+            'data-delete-url="{}" data-delete-title="{}" '
+            'data-toggle="tooltip" data-placement="top" '
             'title="Delete article"><i class="bi bi-trash"></i></a>',
             action,
             reverse("delete-analysis-article", args=[article.id]),
+            article.title,
         )
 
     return action
