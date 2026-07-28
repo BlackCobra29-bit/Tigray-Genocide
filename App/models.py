@@ -163,6 +163,12 @@ class Webinar(models.Model):
     class Meta:
         ordering = ["-date_created"]
         verbose_name_plural = 'Webinar Discussions'
+        indexes = [
+            models.Index(
+                fields=["date_created"],
+                name="webinar_created_idx",
+            ),
+        ]
 
     def __str__(self):
         return f'{self.webinar_title} comment'

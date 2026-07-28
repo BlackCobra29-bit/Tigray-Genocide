@@ -164,9 +164,11 @@ from App.views import Add_webinar_discussion
 
 from App.views import Webinar_discussion_management
 
+from App.views import webinar_discussion_management_data
+
 from App.views import Update_webinar_discussion
 
-from App.views import Delete_Webinar_discussion
+from App.views import delete_webinar_discussion
 
 # admin archive views
 
@@ -354,9 +356,11 @@ urlpatterns = [
 
     path('Webinar-data-management/', Webinar_discussion_management, name = 'webinar-discussion-management'),
 
+    path('Webinar-data-management/data/', webinar_discussion_management_data, name = 'webinar-discussion-management-data'),
+
     path('Update-webinar-discussion/<slug:pk>', Update_webinar_discussion.as_view(), name = 'update-webinar-discussion'),
 
-    path('Delete-webinar-discussion/<slug:pk>', Delete_Webinar_discussion.as_view(), name = 'delete-webinar-discussion'),
+    path('Delete-webinar-discussion/<slug:pk>', delete_webinar_discussion, name = 'delete-webinar-discussion'),
 
     # admin archive url-pattern
 

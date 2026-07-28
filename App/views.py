@@ -78,6 +78,7 @@ from .victim_map_cache import (
     VICTIM_MAP_HTML_CACHE_TIMEOUT,
     get_victim_map_cache_version,
 )
+from .webinar_management import build_webinar_management_payload
 
 def custom_404_view(request, exception):
     
@@ -1710,90 +1711,120 @@ def delete_analysis_article(request, pk):
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Add_webinar_discussion(request):
+    template_name = 'admin_templates/analysis_article/add_webinar_discussion.html'
 
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    form = Webinar_discussion_Form()
-
-    context = {
-        'pending_count': pending_count,
-        'webinar_form': form
-    }
+    if not request.user.is_superuser:
+        return render(request, template_name, status=403)
 
     if request.method == 'POST':
         form = Webinar_discussion_Form(request.POST, request.FILES)
+
         if form.is_valid():
-            insert_webinar = Webinar(author=User.objects.get(username=request.user), webinar_title=form.cleaned_data.get('webinar_title'),
-                                            webinar_content=form.cleaned_data.get('webinar_content'),
-                                            webinar_video_url=form.cleaned_data.get('webinar_video_url'))
-            insert_webinar.save()
+            webinar = form.save(commit=False)
+            webinar.author = request.user
+            webinar.save()
 
             messages.success(
                 request, 'New webinar discussion shared successfully...')
 
-        return render(request, 'admin_templates/analysis_article/add_webinar_discussion.html', context)
-
+            return redirect('add-webinar-discussion')
     else:
-        return render(request, 'admin_templates/analysis_article/add_webinar_discussion.html', context)
+        form = Webinar_discussion_Form()
+
+    context = {
+        'pending_count': get_admin_pending_count(),
+        'webinar_form': form,
+    }
+
+    return render(request, template_name, context)
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Webinar_discussion_management(request):
+    template_name = 'admin_templates/analysis_article/webinar_data_management.html'
 
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
+    if not request.user.is_superuser:
+        return render(request, template_name, status=403)
 
-    webinar_discussion = Webinar.objects.all()
+    administrator = Administrator.objects.filter(
+        user=request.user,
+    ).first()
+    if administrator is not None:
+        request.user._state.fields_cache['administrator'] = administrator
 
     context = {
-        'pending_count': pending_count,
-        'webinar_discussion': webinar_discussion
+        'pending_count': get_admin_pending_count(),
+        'Administrator': administrator,
     }
 
-    return render(request, 'admin_templates/analysis_article/webinar_data_management.html', context)
+    return render(request, template_name, context)
 
 
-class Update_webinar_discussion(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-    redirect_field_name = '/authentication_required/'
+@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
+@require_GET
+def webinar_discussion_management_data(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {'detail': 'You do not have permission to manage panel discussions.'},
+            status=403,
+        )
+
+    return JsonResponse(build_webinar_management_payload(request))
+
+
+class Update_webinar_discussion(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
+    redirect_field_name = 'authentication_required'
     template_name = 'admin_templates/analysis_article/update_webinar_discussion.html'
     model = Webinar
     form_class = Webinar_discussion_Form
     success_message = 'Panel discussion updated successfully'
 
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Webinar, id=id_)
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('author')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
+        administrator = Administrator.objects.filter(
+            user=self.request.user,
+        ).first()
+        if administrator is not None:
+            self.request.user._state.fields_cache[
+                'administrator'
+            ] = administrator
+        context['Administrator'] = administrator
+        context['pending_count'] = get_admin_pending_count()
         return context
 
     def get_success_url(self):
-
         return reverse('webinar-discussion-management')
 
 
-class Delete_Webinar_discussion(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
-    redirect_field_name = '/authentication_required/'
-    template_name = 'admin_templates/analysis_article/delete_webinar_discussion.html'
-    model = Webinar_discussion_Form
-    success_message = 'Panel discussion deleted successfully'
+@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
+@require_POST
+def delete_webinar_discussion(request, pk):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {'detail': 'You do not have permission to delete panel discussions.'},
+            status=403,
+        )
 
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Webinar, id=id_)
+    webinar = get_object_or_404(
+        Webinar.objects.only('id', 'webinar_title'),
+        id=pk,
+    )
+    webinar_title = webinar.webinar_title
+    webinar.delete()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-        return context 
-
-    def get_success_url(self):
-
-        return reverse('webinar-discussion-management')
+    return JsonResponse({
+        'message': f'{webinar_title} was deleted successfully.',
+    })
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Archive_create_photo(request):

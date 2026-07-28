@@ -12,3 +12,4 @@ django-ckeditor
 django-tinymce
 openpyxl
 reportlab
+whitenoise>=6.6,<7
