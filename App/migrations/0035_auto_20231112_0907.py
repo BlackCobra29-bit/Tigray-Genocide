@@ -2,7 +2,6 @@
 
 from django.db import migrations, models
 import django.utils.timezone
-import froala_editor.fields
 import uuid
 
 
@@ -19,7 +18,7 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('title', models.CharField(max_length=255)),
                 ('thumbnail', models.ImageField(upload_to='articles_thumbnail')),
-                ('content', froala_editor.fields.FroalaField()),
+                ('content', models.TextField()),
                 ('date_created', models.DateTimeField(default=django.utils.timezone.now)),
             ],
         ),

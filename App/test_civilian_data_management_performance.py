@@ -114,7 +114,6 @@ class CivilianDataManagementPerformanceTests(TestCase):
         response = self.client.get(reverse("civilian-data-management"))
         html = response.content.decode()
 
-        self.assertNotIn("/static/froala_editor/", html)
         self.assertNotIn("/static/admin/js/vendor/jquery/jquery.js", html)
         self.assertNotIn("/static/admin_static/js/parsley.min.js", html)
         self.assertNotIn("/static/js/select.js", html)

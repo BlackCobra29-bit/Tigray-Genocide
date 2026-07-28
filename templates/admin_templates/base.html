@@ -6,63 +6,6 @@
   {% load static %}
   {% block admin_form_head_assets %}
   {{ form.media }}
-
-  <script src="/admin/jsi18n/"></script>
-  <link href="/static/froala_editor/css/froala_editor.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/froala_style.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/froala-django.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/themes/dark.min.css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/char_counter.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/code_view.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/colors.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/draggable.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/emoticons.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/file.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/fullscreen.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/image_manager.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/image.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/line_breaker.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/quick_insert.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/table.min.css" type="text/css" media="all" rel="stylesheet">
-  <link href="/static/froala_editor/css/plugins/video.min.css" type="text/css" media="all" rel="stylesheet">
-  <script src="/static/admin/js/vendor/jquery/jquery.js"></script>
-  <script src="/static/froala_editor/js/froala_editor.min.js"></script>
-  <script src="/static/admin/js/calendar.js"></script>
-  <script src="/static/admin/js/jquery.init.js"></script>
-  <script src="/static/froala_editor/js/froala-django.js"></script>
-  <script src="/static/admin/js/admin/DateTimeShortcuts.js"></script>
-  <script src="/static/admin/js/core.js"></script>
-  <script src="/static/froala_editor/js/plugins/align.min.js"></script>
-  <script src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
-  <script src="/static/froala_editor/js/plugins/char_counter.min.js"></script>
-  <script src="/static/admin/js/actions.js"></script>
-  <script src="/static/froala_editor/js/plugins/code_beautifier.min.js"></script>
-  <script src="/static/admin/js/urlify.js"></script>
-  <script src="/static/froala_editor/js/plugins/code_view.min.js"></script>
-  <script src="/static/admin/js/prepopulate.js"></script>
-  <script src="/static/froala_editor/js/plugins/colors.min.js"></script>
-  <script src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
-  <script src="/static/froala_editor/js/plugins/draggable.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/emoticons.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/entities.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/file.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/font_family.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/font_size.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/fullscreen.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/image_manager.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/image.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/inline_style.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/line_breaker.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/link.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/lists.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/paragraph_format.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/paragraph_style.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/quick_insert.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/quote.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/save.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/table.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/url.min.js"></script>
-  <script src="/static/froala_editor/js/plugins/video.min.js"></script>
   {% endblock admin_form_head_assets %}
 
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -293,21 +236,6 @@
       <!-- /footer content -->
     </div>
   </div>
-  
-<!-- hide some default froala elements -->
-<style>
-    div[style*="background:#EF5350"] {
-      display: none;
-    }
-    .fr-wrapper div:nth-child(1) {
-      display: none;
-    }
-    #fr-logo{
-        display: none;
-    }
-
-</style>
-
   
   <!-- jQuery -->
   <script src="{% static 'admin_static/js/jquery.min.js' %}"></script>

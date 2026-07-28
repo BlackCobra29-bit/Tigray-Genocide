@@ -1,6 +1,5 @@
 Pillow
 Django>=4.2,<7
-django-froala-editor
 folium
 django-simple-captcha
 plotly

@@ -217,7 +217,16 @@ class AnalysisArticlesAdmin(SummernoteModelAdmin):
     formatted_date_created.short_description = 'Created At'
     
 admin.site.register(Article_comments)
-admin.site.register(Webinar)
+@admin.register(Webinar)
+class WebinarAdmin(SummernoteModelAdmin):
+    list_display = (
+        'webinar_title',
+        'author',
+        'date_created',
+    )
+    ordering = ('-date_created',)
+    search_fields = ('webinar_title', 'webinar_content', 'author__username')
+    summernote_fields = ('webinar_content',)
 admin.site.register(Video_archive)
 admin.site.register(Administrator)
 admin.site.register(Tigray_woreda)

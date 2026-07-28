@@ -8,7 +8,6 @@ from .models import Administrator
 from .models import Tigray_woreda
 from .models import Unverified_civilian
 from django import forms
-from froala_editor.widgets import FroalaEditor
 from django.utils import timezone
 from django.utils import timezone
 from captcha.fields import CaptchaField
@@ -168,6 +167,7 @@ class Webinar_discussion_Form(forms.ModelForm):
     fields = ['webinar_title', 'webinar_content', 'webinar_video_url']
     widgets = {
       'webinar_title': forms.Textarea(attrs={'class': 'form-control', 'rows': '2'}),
+      'webinar_content': SummernoteWidget(),
       'webinar_video_url': forms.TextInput(attrs={'class': 'form-control'}),
     }
 

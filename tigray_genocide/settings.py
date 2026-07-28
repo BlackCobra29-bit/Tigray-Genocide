@@ -125,8 +125,6 @@ EMAIL_USE_SSL = True
 RECAPTCHA_PUBLIC_KEY = '6LfhhCspAAAAAIDS8i87B1LMcnmRwK2eUzv_2H71'
 RECAPTCHA_PRIVATE_KEY = '6LfhhCspAAAAAFBxuITDIweCuUAhJxBeAiv0htDd'
 
-FRAOLA_EDITOR_THIRD_PARTY = ('image_aviary', 'spell_checker')
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 

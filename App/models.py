@@ -2,8 +2,6 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
 import uuid
-# froala models
-from froala_editor.fields import FroalaField
 
 class Tigray_woreda(models.Model):
     woreda_name = models.CharField(primary_key=True, max_length = 255)
@@ -158,7 +156,7 @@ class Webinar(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
     webinar_title = models.TextField()
-    webinar_content = FroalaField(theme = 'dark')
+    webinar_content = models.TextField()
     webinar_video_url = models.CharField(max_length=255, null=True, blank=True)
     date_created = models.DateTimeField(default=timezone.now)
 

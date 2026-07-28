@@ -63,7 +63,6 @@ class AddUnverifiedCivilianPerformanceTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertNotIn("/static/froala_editor/", html)
         self.assertNotIn("/static/admin/js/vendor/jquery/jquery.js", html)
         self.assertNotIn("/static/admin_static/datatable/", html)
         self.assertNotIn("ajax.googleapis.com/ajax/libs/jquery", html)

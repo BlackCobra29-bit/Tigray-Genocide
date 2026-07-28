@@ -72,7 +72,6 @@ class WriteArticlePerformanceTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="id_content_iframe"')
-        self.assertNotIn("/static/froala_editor/", html)
         self.assertNotIn("/static/admin/js/vendor/jquery/jquery.js", html)
         self.assertNotIn("/static/admin_static/datatable/", html)
         self.assertNotIn("/static/js/select.js", html)
