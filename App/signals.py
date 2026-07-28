@@ -59,8 +59,6 @@ def schedule_woreda_map_refresh():
 @receiver(post_delete, sender=Photo_archive)
 @receiver(post_save, sender=Video_archive)
 @receiver(post_delete, sender=Video_archive)
-@receiver(post_save, sender=Webinar)
-@receiver(post_delete, sender=Webinar)
 @receiver(post_save, sender=Hero_images)
 @receiver(post_delete, sender=Hero_images)
 def refresh_homepage_on_change(sender, **kwargs):
@@ -81,6 +79,14 @@ def invalidate_homepage_after_civilian_change(sender, **kwargs):
 @receiver(post_delete, sender=Analysis_articles)
 def invalidate_homepage_after_article_change(sender, **kwargs):
     # Article writing should not wait for the homepage summary to be rebuilt.
+    # The next homepage request will repopulate the invalidated cache.
+    schedule_homepage_invalidation()
+
+
+@receiver(post_save, sender=Webinar)
+@receiver(post_delete, sender=Webinar)
+def invalidate_homepage_after_webinar_change(sender, **kwargs):
+    # Panel discussion changes should not wait for the homepage summary rebuild.
     # The next homepage request will repopulate the invalidated cache.
     schedule_homepage_invalidation()
 

@@ -1,5 +1,10 @@
 {% extends 'admin_templates/base.html' %}
 
+{% block admin_table_head_assets %}{% endblock admin_table_head_assets %}
+{% block admin_table_scripts %}{% endblock admin_table_scripts %}
+{% block admin_form_control_head_assets %}{% endblock admin_form_control_head_assets %}
+{% block admin_form_control_scripts %}{% endblock admin_form_control_scripts %}
+
 {% block admin_page_content %}
 
 {% if request.user.is_superuser == True %}
@@ -39,7 +44,7 @@
           <div class="x_content">
             <div class="row">
 
-              <form action="" data-parsley-validate method="POST" enctype="multipart/form-data">
+              <form action="" data-parsley-validate method="POST">
                 {% csrf_token %}
 
                 <div class="col-md-12 col-sm-12  form-group">

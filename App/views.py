@@ -1787,7 +1787,12 @@ class Update_webinar_discussion(
         return self.request.user.is_superuser
 
     def get_queryset(self):
-        return super().get_queryset().select_related('author')
+        return super().get_queryset().only(
+            'id',
+            'webinar_title',
+            'webinar_content',
+            'webinar_video_url',
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -1,4 +1,5 @@
 import re
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -10,6 +11,7 @@ from django.urls import reverse
 from django_summernote.widgets import SummernoteWidget
 
 from .forms import Webinar_discussion_Form
+from .homepage import HOMEPAGE_SUMMARY_CACHE_KEY
 from .models import Administrator, Webinar
 
 
@@ -84,6 +86,65 @@ class WebinarSummernoteTests(TestCase):
             "/summernote/editor/id_webinar_content/",
         )
         self.assertLessEqual(len(asset_urls), 20)
+
+    def test_edit_page_loads_only_the_assets_used_by_the_form(self):
+        response = self.client.get(
+            reverse(
+                "update-webinar-discussion",
+                args=[self.webinar.pk],
+            ),
+        )
+        html = response.content.decode()
+        asset_urls = set(
+            re.findall(
+                r'<(?:script[^>]*src|link[^>]*href)="([^"]+)"',
+                html,
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("/static/admin_static/datatable/", html)
+        self.assertNotIn("/static/js/select.js", html)
+        self.assertNotIn("/static/css/select.css", html)
+        self.assertNotIn("multipart/form-data", html)
+        self.assertEqual(html.count("parsley.min.js"), 1)
+        self.assertContains(
+            response,
+            "/summernote/editor/id_webinar_content/",
+        )
+        self.assertLessEqual(len(asset_urls), 20)
+
+    def test_edit_page_reuses_cached_count_and_limits_object_query(self):
+        self.client.get(
+            reverse(
+                "update-webinar-discussion",
+                args=[self.webinar.pk],
+            ),
+        )
+
+        with CaptureQueriesContext(connection) as warm_queries:
+            response = self.client.get(
+                reverse(
+                    "update-webinar-discussion",
+                    args=[self.webinar.pk],
+                ),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        sql = " ".join(query["sql"] for query in warm_queries)
+        self.assertNotIn("COUNT(", sql.upper())
+        webinar_selects = [
+            query["sql"]
+            for query in warm_queries
+            if (
+                query["sql"].lstrip().upper().startswith("SELECT")
+                and "app_webinar" in query["sql"].lower()
+            )
+        ]
+        self.assertEqual(len(webinar_selects), 1)
+        self.assertNotIn("JOIN `auth_user`", webinar_selects[0])
+        self.assertNotIn("date_created", webinar_selects[0])
+        self.assertLessEqual(len(warm_queries), 4)
 
     def test_add_page_reuses_the_cached_pending_count(self):
         with CaptureQueriesContext(connection) as cold_queries:
@@ -175,17 +236,26 @@ class WebinarSummernoteTests(TestCase):
         )
 
     def test_edit_page_saves_summernote_html(self):
-        response = self.client.post(
-            reverse(
-                "update-webinar-discussion",
-                args=[self.webinar.pk],
-            ),
-            {
-                "webinar_title": "Updated panel",
-                "webinar_content": "<p>Updated panel content</p>",
-                "webinar_video_url": "https://example.com/updated-panel",
-            },
-        )
+        cache.set(HOMEPAGE_SUMMARY_CACHE_KEY, {"cached": True}, 60)
+
+        with patch("App.signals.get_homepage_summary") as rebuild:
+            with CaptureQueriesContext(connection) as queries:
+                with self.captureOnCommitCallbacks(execute=True):
+                    response = self.client.post(
+                        reverse(
+                            "update-webinar-discussion",
+                            args=[self.webinar.pk],
+                        ),
+                        {
+                            "webinar_title": "Updated panel",
+                            "webinar_content": (
+                                "<p>Updated panel content</p>"
+                            ),
+                            "webinar_video_url": (
+                                "https://example.com/updated-panel"
+                            ),
+                        },
+                    )
 
         self.assertRedirects(
             response,
@@ -198,3 +268,19 @@ class WebinarSummernoteTests(TestCase):
             self.webinar.webinar_content,
             "<p>Updated panel content</p>",
         )
+        rebuild.assert_not_called()
+        self.assertIsNone(cache.get(HOMEPAGE_SUMMARY_CACHE_KEY))
+
+        sql = " ".join(query["sql"] for query in queries)
+        self.assertNotIn("COUNT(", sql.upper())
+        webinar_selects = [
+            query["sql"]
+            for query in queries
+            if (
+                query["sql"].lstrip().upper().startswith("SELECT")
+                and "app_webinar" in query["sql"].lower()
+            )
+        ]
+        self.assertEqual(len(webinar_selects), 1)
+        self.assertNotIn("JOIN `auth_user`", webinar_selects[0])
+        self.assertLessEqual(len(queries), 5)
