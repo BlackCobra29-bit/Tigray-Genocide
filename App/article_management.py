@@ -93,17 +93,10 @@ def _ordered_article_queryset(queryset, params):
 
 
 def _article_action(article, user):
-    update_name = (
-        "update-draft-article"
-        if article.draft
-        else "update-analysis-article"
-    )
-    update_title = "Edit draft" if article.draft else "Update article"
     action = format_html(
         '<a href="{}" data-toggle="tooltip" data-placement="top" '
-        'title="{}"><i class="bi bi-pencil-fill"></i></a>',
-        reverse(update_name, args=[article.id]),
-        update_title,
+        'title="Edit article"><i class="bi bi-pencil-fill"></i></a>',
+        reverse("update-analysis-article", args=[article.id]),
     )
 
     if user.is_superuser or article.draft:

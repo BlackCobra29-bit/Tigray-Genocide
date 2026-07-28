@@ -1603,53 +1603,73 @@ def Draft_articles_management(request):
     return redirect('analysis-article-management')
 
 
-class Update_Article_Analysis(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-    redirect_field_name = '/authentication_required/'
+class Update_Article_Analysis(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
+    redirect_field_name = 'authentication_required'
     template_name = 'admin_templates/analysis_article/update_analysis_article.html'
     model = Analysis_articles
     form_class = AnalysisArticleForm
     success_message = 'Analysis Article updated successfully'
 
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Analysis_articles, id=id_)
+    def test_func(self):
+        self.administrator = Administrator.objects.filter(
+            user=self.request.user,
+        ).first()
+        if self.administrator is not None:
+            self.request.user._state.fields_cache[
+                'administrator'
+            ] = self.administrator
+        return self.request.user.is_superuser or bool(
+            self.administrator and self.administrator.analysis_role
+        )
+
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related('author')
+        if self.request.user.is_superuser:
+            return queryset
+        return queryset.filter(author=self.request.user)
+
+    def get_object(self, queryset=None):
+        article = super().get_object(queryset)
+        self.original_draft_state = article.draft
+        return article
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Status is controlled only by the action buttons below, never by
+        # client-supplied approval or draft fields.
+        form.fields.pop('approval', None)
+        form.fields.pop('draft', None)
+        return form
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
+        context['Administrator'] = self.administrator
+        context['pending_count'] = get_admin_pending_count()
         return context
 
     def get_success_url(self):
-
         return reverse('analysis-article-management')
 
-
-class Update_Draft_Analysis(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-    redirect_field_name = '/authentication_required/'
-    template_name = 'admin_templates/analysis_article/update_draft_article.html'
-    model = Analysis_articles
-    form_class = AnalysisArticleForm
-    success_message = 'Draft Article updated successfully'
-
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Analysis_articles, id=id_)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-        return context
-
-    def get_success_url(self):
-
-        return reverse('analysis-article-management')
-        
     def form_valid(self, form):
-        form.instance.draft = 'publish' not in self.request.POST
+        if 'save_draft' in self.request.POST:
+            form.instance.draft = True
+            self.success_message = 'Analysis Article saved to draft successfully'
+        elif 'publish' in self.request.POST and self.original_draft_state:
+            form.instance.draft = False
+            if self.request.user.is_superuser:
+                form.instance.approval = True
+                self.success_message = 'Analysis Article published successfully'
+            else:
+                self.success_message = (
+                    'Analysis Article submitted for approval successfully'
+                )
+        else:
+            form.instance.draft = self.original_draft_state
         return super().form_valid(form)
 
 

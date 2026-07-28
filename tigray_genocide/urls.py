@@ -158,8 +158,6 @@ from App.views import analysis_article_management_data
 
 from App.views import Update_Article_Analysis
 
-from App.views import Update_Draft_Analysis
-
 from App.views import delete_analysis_article
 
 from App.views import Add_webinar_discussion
@@ -349,8 +347,6 @@ urlpatterns = [
     path('Draft-data-management/', Draft_articles_management, name = 'draft-article-management'),
 
     path('Update-analysis-article/<slug:pk>', Update_Article_Analysis.as_view(), name = 'update-analysis-article'),
-
-    path('Update-draft-article/<slug:pk>', Update_Draft_Analysis.as_view(), name = 'update-draft-article'),
 
     path('Delete-analysis-article/<slug:pk>', delete_analysis_article, name = 'delete-analysis-article'),
 

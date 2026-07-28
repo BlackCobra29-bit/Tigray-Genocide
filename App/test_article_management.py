@@ -162,6 +162,9 @@ class ArticleManagementTests(TestCase):
         published_action = next(
             row[0] for row in rows if row[3] == "Published article"
         )
+        draft_action = next(
+            row[0] for row in rows if row[3] == "Manager draft"
+        )
         self.assertIn('class="article-delete-trigger"', published_action)
         self.assertIn(
             reverse(
@@ -170,6 +173,12 @@ class ArticleManagementTests(TestCase):
             ),
             published_action,
         )
+        unified_update_url = reverse(
+            "update-analysis-article",
+            args=[self.manager_draft.pk],
+        )
+        self.assertIn(unified_update_url, draft_action)
+        self.assertNotIn("/Update-draft-article/", draft_action)
         self.assertTrue(
             any(
                 row[2] == "Unknown"
@@ -323,19 +332,48 @@ class ArticleManagementTests(TestCase):
             fetch_redirect_response=False,
         )
 
-    def test_editing_a_draft_preserves_or_changes_its_status_by_button(self):
+    def test_unified_editor_uses_one_page_for_drafts_and_published_articles(self):
         self.client.force_login(self.analyst)
-        edit_url = reverse(
-            "update-draft-article",
+
+        draft_response = self.client.get(
+            reverse(
+                "update-analysis-article",
+                args=[self.analyst_draft.pk],
+            ),
+        )
+        published_response = self.client.get(
+            reverse(
+                "update-analysis-article",
+                args=[self.published_article.pk],
+            ),
+        )
+
+        self.assertEqual(draft_response.status_code, 200)
+        self.assertEqual(published_response.status_code, 200)
+        self.assertTemplateUsed(
+            draft_response,
+            "admin_templates/analysis_article/update_analysis_article.html",
+        )
+        self.assertContains(draft_response, 'name="save_draft"')
+        self.assertContains(draft_response, 'name="update"')
+        self.assertContains(draft_response, 'name="publish"')
+        self.assertNotContains(published_response, 'name="publish"')
+        self.assertNotContains(draft_response, 'name="approval"')
+        self.assertNotContains(draft_response, 'name="draft"')
+
+    def test_update_preserves_state_and_save_as_draft_forces_draft_state(self):
+        self.client.force_login(self.analyst)
+        draft_edit_url = reverse(
+            "update-analysis-article",
             args=[self.analyst_draft.pk],
         )
-        payload = {
+        draft_payload = {
             "title": self.analyst_draft.title,
             "content": self.analyst_draft.content,
-            "save_draft": "true",
+            "update": "true",
         }
 
-        response = self.client.post(edit_url, payload)
+        response = self.client.post(draft_edit_url, draft_payload)
 
         self.assertRedirects(
             response,
@@ -345,14 +383,105 @@ class ArticleManagementTests(TestCase):
         self.analyst_draft.refresh_from_db()
         self.assertTrue(self.analyst_draft.draft)
 
-        payload.pop("save_draft")
-        payload["publish"] = "true"
-        response = self.client.post(edit_url, payload)
+        published_edit_url = reverse(
+            "update-analysis-article",
+            args=[self.published_article.pk],
+        )
+        published_payload = {
+            "title": self.published_article.title,
+            "content": self.published_article.content,
+            "update": "true",
+        }
+        response = self.client.post(
+            published_edit_url,
+            published_payload,
+        )
 
         self.assertRedirects(
             response,
             reverse("analysis-article-management"),
             fetch_redirect_response=False,
         )
+        self.published_article.refresh_from_db()
+        self.assertFalse(self.published_article.draft)
+        self.assertTrue(self.published_article.approval)
+
+        published_payload.pop("update")
+        published_payload["save_draft"] = "true"
+        response = self.client.post(
+            published_edit_url,
+            published_payload,
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("analysis-article-management"),
+            fetch_redirect_response=False,
+        )
+        self.published_article.refresh_from_db()
+        self.assertTrue(self.published_article.draft)
+        self.assertTrue(self.published_article.approval)
+
+    def test_publish_button_moves_draft_through_the_approval_workflow(self):
+        self.client.force_login(self.analyst)
+        analyst_response = self.client.post(
+            reverse(
+                "update-analysis-article",
+                args=[self.analyst_draft.pk],
+            ),
+            {
+                "title": self.analyst_draft.title,
+                "content": self.analyst_draft.content,
+                "publish": "true",
+            },
+        )
+
+        self.assertRedirects(
+            analyst_response,
+            reverse("analysis-article-management"),
+            fetch_redirect_response=False,
+        )
         self.analyst_draft.refresh_from_db()
         self.assertFalse(self.analyst_draft.draft)
+        self.assertFalse(self.analyst_draft.approval)
+
+        self.client.force_login(self.superuser)
+        manager_response = self.client.post(
+            reverse(
+                "update-analysis-article",
+                args=[self.manager_draft.pk],
+            ),
+            {
+                "title": self.manager_draft.title,
+                "content": self.manager_draft.content,
+                "publish": "true",
+            },
+        )
+
+        self.assertRedirects(
+            manager_response,
+            reverse("analysis-article-management"),
+            fetch_redirect_response=False,
+        )
+        self.manager_draft.refresh_from_db()
+        self.assertFalse(self.manager_draft.draft)
+        self.assertTrue(self.manager_draft.approval)
+
+    def test_unified_editor_enforces_analysis_permissions_and_ownership(self):
+        self.client.force_login(self.denied_user)
+        denied_response = self.client.get(
+            reverse(
+                "update-analysis-article",
+                args=[self.published_article.pk],
+            ),
+        )
+        self.assertEqual(denied_response.status_code, 403)
+
+        self.client.force_login(self.analyst)
+        other_author_response = self.client.get(
+            reverse(
+                "update-analysis-article",
+                args=[self.manager_draft.pk],
+            ),
+        )
+        self.assertEqual(other_author_response.status_code, 404)
