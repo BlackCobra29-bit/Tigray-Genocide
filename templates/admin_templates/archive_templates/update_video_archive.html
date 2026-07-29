@@ -1,5 +1,10 @@
 {% extends 'admin_templates/base.html' %}
 
+{% block admin_table_head_assets %}{% endblock admin_table_head_assets %}
+{% block admin_table_scripts %}{% endblock admin_table_scripts %}
+{% block admin_form_control_head_assets %}{% endblock admin_form_control_head_assets %}
+{% block admin_form_control_scripts %}{% endblock admin_form_control_scripts %}
+
 {% block admin_page_content %}
 
 {% if request.user.is_superuser == True %}
@@ -19,7 +24,7 @@
         {% for message in messages %}
         {% if message.tags == 'success' %}
         <div class="alert alert-success alert-dismissible " role="alert">
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span>
           </button>
           <span class="fa fa-check-circle"></span> {{ message }}
         </div>
@@ -43,32 +48,45 @@
                 <code>*</code> Optional fields can be empty
               </p>
 
-              <form action="" data-parsley-validate method="POST" enctype="multipart/form-data">
+              <form action="" data-parsley-validate method="POST">
                 {% csrf_token %}
+                {{ form.non_field_errors }}
 
               <div class="col-md-6 col-sm-12  form-group">
                 Location: <span class="required" style="color: #dc3545;">*</span> 
                 {{ form.location }}
+                {{ form.location.errors }}
               </div>
 
               <div class="col-md-6 col-sm-12  form-group">
                 Woreda: <span class="required" style="color: #dc3545;">*</span> 
-                {{ form.woreda }}
+                {% with selected_woreda=form.woreda.value %}
+                <select class="selectpicker form-control" name="woreda" required>
+                  <option value="" {% if not selected_woreda %}selected{% endif %} disabled></option>
+                  {% for woreda_name in woreda_list %}
+                    <option value="{{ woreda_name }}"{% if selected_woreda == woreda_name %} selected{% endif %}>{{ woreda_name }}</option>
+                  {% endfor %}
+                </select>
+                {% endwith %}
+                {{ form.woreda.errors }}
               </div>
 
               <div class="col-md-6 col-sm-12  form-group">
-                Date of Event: <span class="required" style="color: #dc3545;">*</span> 
+                Date of Event: (<i>optional</i>)
                 {{ form.date_of_event }}
+                {{ form.date_of_event.errors }}
               </div>
 
               <div class="col-md-6 col-sm-12  form-group">
                 Description : <span class="required" style="color: #dc3545;">*</span> 
                 {{ form.description }}
+                {{ form.description.errors }}
               </div>
 
               <div class="col-md-6 col-sm-12  form-group">
                 Youtube URL: <span class="required" style="color: #dc3545;">*</span>
                 {{ form.online_link }}
+                {{ form.online_link.errors }}
               </div>
 
               
@@ -85,7 +103,7 @@
 
                   <div class="modal-header">
                     <h4 class="modal-title" id="myModalLabel2"><i class="fas fa-exclamation-triangle text-warning"></i> Warning</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
                     </button>
                   </div>
                   <div class="modal-body">

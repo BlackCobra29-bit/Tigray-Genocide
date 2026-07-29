@@ -2064,6 +2064,7 @@ class Update_video_archive(
             ] = administrator
         context['Administrator'] = administrator
         context['pending_count'] = get_admin_pending_count()
+        context['woreda_list'] = get_admin_civilian_woreda_names()
         return context
 
     def get_success_url(self):

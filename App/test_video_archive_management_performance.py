@@ -211,6 +211,93 @@ class VideoArchiveManagementPerformanceTests(TestCase):
             Video_archive.objects.filter(id=video_archive.id).exists()
         )
 
+    def test_update_page_uses_cached_woredas_and_only_form_assets(self):
+        video_archive = Video_archive.objects.get(
+            location="Video archive location 02",
+        )
+        update_url = reverse(
+            "update-video-archive",
+            args=[video_archive.id],
+        )
+
+        cold_response = self.client.get(update_url)
+        with CaptureQueriesContext(connection) as warm_queries:
+            warm_response = self.client.get(update_url)
+
+        html = warm_response.content.decode()
+        asset_urls = set(
+            re.findall(
+                r'<(?:script[^>]*src|link[^>]*href)="([^"]+)"',
+                html,
+            )
+        )
+
+        self.assertEqual(cold_response.status_code, 200)
+        self.assertEqual(warm_response.status_code, 200)
+        self.assertNotIn("/static/admin_static/datatable/", html)
+        self.assertNotIn("/static/js/select.js", html)
+        self.assertNotIn("/static/css/select.css", html)
+        self.assertEqual(html.count("parsley.min.js"), 1)
+        self.assertNotIn('enctype="multipart/form-data"', html)
+        self.assertContains(warm_response, "Date of Event: (<i>optional</i>)")
+        self.assertEqual(
+            html.count(f'value="{self.woreda.woreda_name}"'),
+            1,
+        )
+        self.assertContains(
+            warm_response,
+            f'value="{self.woreda.woreda_name}" selected',
+        )
+        self.assertLessEqual(len(asset_urls), 20)
+        self.assertLessEqual(len(warm_queries), 4)
+
+        warm_sql = " ".join(
+            query["sql"] for query in warm_queries
+        ).upper()
+        self.assertNotIn("COUNT(", warm_sql)
+        self.assertNotIn("APP_TIGRAY_WOREDA", warm_sql)
+
+    def test_invalid_update_displays_errors_and_preserves_record(self):
+        video_archive = Video_archive.objects.get(
+            location="Video archive location 03",
+        )
+        update_url = reverse(
+            "update-video-archive",
+            args=[video_archive.id],
+        )
+
+        response = self.client.post(
+            update_url,
+            {
+                "location": "Preserved video update location",
+                "woreda": self.woreda.woreda_name,
+                "date_of_event": "",
+                "description": "Preserved invalid video description",
+                "online_link": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("online_link", response.context["form"].errors)
+        self.assertContains(response, "This field is required.")
+        self.assertContains(
+            response,
+            'value="Preserved video update location"',
+        )
+        self.assertContains(
+            response,
+            "Preserved invalid video description",
+        )
+        self.assertContains(
+            response,
+            f'value="{self.woreda.woreda_name}" selected',
+        )
+        video_archive.refresh_from_db()
+        self.assertEqual(
+            video_archive.location,
+            "Video archive location 03",
+        )
+
     def test_update_uses_video_model_and_correct_heading(self):
         video_archive = Video_archive.objects.get(
             location="Video archive location 02",
