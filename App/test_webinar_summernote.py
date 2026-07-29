@@ -107,6 +107,12 @@ class WebinarSummernoteTests(TestCase):
         self.assertNotIn("/static/js/select.js", html)
         self.assertNotIn("/static/css/select.css", html)
         self.assertNotIn("multipart/form-data", html)
+        self.assertNotIn("bs-example-modal-sm", html)
+        self.assertNotIn("Are you sure to update this data?", html)
+        self.assertIn(
+            '<button type="submit" class="btn btn-success">Update</button>',
+            html,
+        )
         self.assertEqual(html.count("parsley.min.js"), 1)
         self.assertContains(
             response,
