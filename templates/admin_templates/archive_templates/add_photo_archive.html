@@ -1,5 +1,10 @@
 {% extends 'admin_templates/base.html' %}
 
+{% block admin_table_head_assets %}{% endblock admin_table_head_assets %}
+{% block admin_table_scripts %}{% endblock admin_table_scripts %}
+{% block admin_form_control_head_assets %}{% endblock admin_form_control_head_assets %}
+{% block admin_form_control_scripts %}{% endblock admin_form_control_scripts %}
+
 {% block admin_page_content %}
 
 {% if request.user.is_superuser == True %}
@@ -45,42 +50,51 @@
 
               <form action="" data-parsley-validate method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
+                {{ photo_archive_form.non_field_errors }}
 
               <div class="col-md-6 col-sm-12  form-group">
                 Location : <span class="required" style="color: #dc3545;">*</span> 
-                <input type="text" class="form-control" name="archive_location" required>
+                {{ photo_archive_form.location }}
+                {{ photo_archive_form.location.errors }}
               </div>
 
               <div class="col-md-6 col-sm-12  form-group">
                 Woreda : <span class="required" style="color: #dc3545;">*</span>
-                <select class="selectpicker form-control" name = "archive_woreda" required="">
-                  <option selected="" disabled=""></option>
-                  {% for woreda in woreda_list%}
-                    <option value="{{ woreda.woreda_name }}">{{ woreda.woreda_name }}</option>
+                {% with selected_woreda=photo_archive_form.woreda.value %}
+                <select class="selectpicker form-control" name="woreda" required>
+                  <option value="" {% if not selected_woreda %}selected{% endif %} disabled></option>
+                  {% for woreda_name in woreda_list %}
+                    <option value="{{ woreda_name }}"{% if selected_woreda == woreda_name %} selected{% endif %}>{{ woreda_name }}</option>
                   {% endfor %}
                 </select>
+                {% endwith %}
+                {{ photo_archive_form.woreda.errors }}
               </div>
 
               <div class="col-md-6 col-sm-12  form-group">
                 Date of Event: (<i>optional</i>) 
-                <input type="date" class="form-control" name="archive_date_of_event">
+                {{ photo_archive_form.date_of_event }}
+                {{ photo_archive_form.date_of_event.errors }}
               </div>
 
               <div class="col-md-6 col-sm-12  form-group">
                 Description : <span class="required" style="color: #dc3545;">*</span> 
-                <textarea name="archive_description" class="form-control" rows="3" required></textarea>
+                {{ photo_archive_form.description }}
+                {{ photo_archive_form.description.errors }}
               </div>
 
               <div class="col-md-6">
                 Photo : <span class="required" style="color: #dc3545;">*</span> 
-                <input type="file" class="form-control" accept="image/*" name="archive_photo" required>
+                {{ photo_archive_form.photo }}
+                {{ photo_archive_form.photo.errors }}
               </div>
 
               <div class="col-md-12 form-group">
                 <br>
                 Is it a graphic photo? (<i>optional</i>) 
                <br>
-                <input type="checkbox" name="is_graphic" id=""> <i>Graphic</i>
+                {{ photo_archive_form.graphic }} <i>Graphic</i>
+                {{ photo_archive_form.graphic.errors }}
               </div>
 
               <div class="form-group">

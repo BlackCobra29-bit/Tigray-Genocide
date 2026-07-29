@@ -1833,37 +1833,35 @@ def delete_webinar_discussion(request, pk):
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Archive_create_photo(request):
+    template_name = 'admin_templates/archive_templates/add_photo_archive.html'
 
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    context = {
-        'pending_count': pending_count,
-        'Administrator': Administrator.objects.get(user=request.user),
-        'woreda_list': Tigray_woreda.objects.all(),
-    }
+    if not request.user.is_superuser:
+        return render(request, template_name, status=403)
 
     if request.method == 'POST':
-
-        archive_model = Photo_archive()
-        archive_model.author = User.objects.get(username=request.user)
-        archive_model.location = request.POST.get('archive_location')
-        woreda_obj = Tigray_woreda.objects.get(woreda_name = request.POST.get('archive_woreda'))
-        archive_model.woreda = woreda_obj
-        archive_model.date_of_event = request.POST.get('archive_date_of_event') or None
-        archive_model.description = request.POST.get('archive_description')
-        archive_model.photo = request.FILES.get('archive_photo')
-        if request.POST.get('is_graphic'):
-            archive_model.graphic = True
-
-        archive_model.save()
-
-        messages.success(
-            request, 'New photo archive shared successfully...')
-
-        return render(request, 'admin_templates/archive_templates/add_photo_archive.html', context)
-
+        photo_archive_form = Photo_Archive_Form(request.POST, request.FILES)
+        if photo_archive_form.is_valid():
+            archive_model = photo_archive_form.save(commit=False)
+            archive_model.author = request.user
+            archive_model.save()
+            messages.success(
+                request, 'New photo archive shared successfully...')
+            return redirect('add-photo-archive')
     else:
-        return render(request, 'admin_templates/archive_templates/add_photo_archive.html', context)
+        photo_archive_form = Photo_Archive_Form()
+
+    administrator = Administrator.objects.filter(user=request.user).first()
+    if administrator is not None:
+        request.user._state.fields_cache['administrator'] = administrator
+
+    context = {
+        'pending_count': get_admin_pending_count(),
+        'Administrator': administrator,
+        'woreda_list': get_admin_civilian_woreda_names(),
+        'photo_archive_form': photo_archive_form,
+    }
+
+    return render(request, template_name, context)
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Archive_manage_photo(request):

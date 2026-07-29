@@ -195,7 +195,9 @@ class Photo_Archive_Form(forms.ModelForm):
       'location': forms.TextInput(attrs={'class': 'form-control'}),
       'woreda': forms.Select(attrs={'class': 'selectpicker form-control'}),
       'date_of_event': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-      'description': forms.Textarea(attrs={'class': 'form-control', 'rows': '3'})
+      'description': forms.Textarea(attrs={'class': 'form-control', 'rows': '3'}),
+      'photo': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+      'graphic': forms.CheckboxInput(),
     }
 
 class Video_Archive_Form(forms.ModelForm):
