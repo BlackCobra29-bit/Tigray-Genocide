@@ -75,6 +75,7 @@ from .dashboard_summary import get_admin_dashboard_summary
 from .homepage import get_homepage_summary
 from .image_optimization import get_optimized_image_url
 from .photo_archive_management import build_photo_archive_management_payload
+from .video_archive_management import build_video_archive_management_payload
 from .victim_map_cache import (
     VICTIM_MAP_HTML_CACHE_TIMEOUT,
     get_victim_map_cache_version,
@@ -1903,7 +1904,7 @@ class Update_photo_archive(
     SuccessMessageMixin,
     UpdateView,
 ):
-    redirect_field_name = '/authentication_required/'
+    redirect_field_name = 'authentication_required'
     template_name = 'admin_templates/archive_templates/update_photo_archive.html'
     model = Photo_archive
     form_class = Photo_Archive_Form
@@ -1934,6 +1935,7 @@ class Update_photo_archive(
             ] = administrator
         context['Administrator'] = administrator
         context['pending_count'] = get_admin_pending_count()
+        context['woreda_list'] = get_admin_civilian_woreda_names()
         return context
 
     def get_success_url(self):
@@ -1962,96 +1964,131 @@ def delete_photo_archive(request, pk):
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Archive_create_video(request):
+    template_name = 'admin_templates/archive_templates/add_video_archive.html'
 
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-
-    context = {
-        'pending_count': pending_count,
-        'Administrator': Administrator.objects.get(user=request.user),
-        'woreda_list': Tigray_woreda.objects.all(),
-    }
+    if not request.user.is_superuser:
+        return render(request, template_name, status=403)
 
     if request.method == 'POST':
-
-        archive_model = Video_archive()
-        archive_model.author = User.objects.get(username=request.user)
-        archive_model.location = request.POST.get('archive_location')
-        woreda_obj = Tigray_woreda.objects.get(woreda_name = request.POST.get('archive_woreda'))
-        archive_model.woreda = woreda_obj
-        archive_model.date_of_event = request.POST.get('archive_date_of_event') or None
-        archive_model.description = request.POST.get('archive_description')
-        archive_model.online_link = request.POST.get('online_link')
-
-        archive_model.save()
-
-        messages.success(
-            request, 'New Video archive shared successfully...')
-
-        return render(request, 'admin_templates/archive_templates/add_video_archive.html', context)
-
+        video_archive_form = Video_Archive_Form(request.POST)
+        if video_archive_form.is_valid():
+            archive_model = video_archive_form.save(commit=False)
+            archive_model.author = request.user
+            archive_model.save()
+            messages.success(
+                request, 'New Video archive shared successfully...')
+            return redirect('add-video-archive')
     else:
-        return render(request, 'admin_templates/archive_templates/add_video_archive.html', context)
+        video_archive_form = Video_Archive_Form()
+
+    administrator = Administrator.objects.filter(user=request.user).first()
+    if administrator is not None:
+        request.user._state.fields_cache['administrator'] = administrator
+
+    context = {
+        'pending_count': get_admin_pending_count(),
+        'Administrator': administrator,
+        'woreda_list': get_admin_civilian_woreda_names(),
+        'video_archive_form': video_archive_form,
+    }
+
+    return render(request, template_name, context)
 
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Archive_manage_video(request):
+    template_name = 'admin_templates/archive_templates/video_archive_management.html'
 
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
+    if not request.user.is_superuser:
+        return render(request, template_name, status=403)
 
-    video_archive = Video_archive.objects.all()
+    administrator = Administrator.objects.filter(
+        user=request.user,
+    ).first()
+    if administrator is not None:
+        request.user._state.fields_cache['administrator'] = administrator
 
     context = {
-        'pending_count': pending_count,
-        'video_archive': video_archive,
-        'Administrator': Administrator.objects.get(user=request.user)
+        'pending_count': get_admin_pending_count(),
+        'Administrator': administrator,
     }
 
-    return render(request, 'admin_templates/archive_templates/video_archive_management.html', context)
+    return render(request, template_name, context)
 
 
-class Update_video_archive(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
-    redirect_field_name = '/authentication_required/'
+@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
+@require_GET
+def video_archive_management_data(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {'detail': 'You do not have permission to manage video archives.'},
+            status=403,
+        )
+
+    return JsonResponse(build_video_archive_management_payload(request))
+
+
+class Update_video_archive(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
+    redirect_field_name = 'authentication_required'
     template_name = 'admin_templates/archive_templates/update_video_archive.html'
-    model = Photo_archive
+    model = Video_archive
     form_class = Video_Archive_Form
     success_message = 'Video archive updated successfully'
 
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Video_archive, id=id_)
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def get_queryset(self):
+        return super().get_queryset().only(
+            'id',
+            'location',
+            'woreda',
+            'date_of_event',
+            'description',
+            'online_link',
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
+        administrator = Administrator.objects.filter(
+            user=self.request.user,
+        ).first()
+        if administrator is not None:
+            self.request.user._state.fields_cache[
+                'administrator'
+            ] = administrator
+        context['Administrator'] = administrator
+        context['pending_count'] = get_admin_pending_count()
         return context
 
     def get_success_url(self):
-
         return reverse('manage-video-archive')
 
 
-class Delete_video_archive(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
-    redirect_field_name = '/authentication_required/'
-    template_name = 'admin_templates/archive_templates/delete_video_archive.html'
-    model = Video_archive
-    success_message = 'Video archive deleted successfully'
+@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
+@require_POST
+def delete_video_archive(request, pk):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {'detail': 'You do not have permission to delete video archives.'},
+            status=403,
+        )
 
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Video_archive, id=id_)
+    video_archive = get_object_or_404(
+        Video_archive.objects.only('id', 'location'),
+        id=pk,
+    )
+    archive_label = video_archive.location or 'Video archive'
+    video_archive.delete()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-        return context
-
-    def get_success_url(self):
-
-        return reverse('manage-video-archive')
+    return JsonResponse({
+        'message': f'{archive_label} was deleted successfully.',
+    })
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Create_admin_account(request):

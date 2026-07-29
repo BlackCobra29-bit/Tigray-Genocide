@@ -186,9 +186,11 @@ from App.views import Archive_create_video
 
 from App.views import Archive_manage_video
 
+from App.views import video_archive_management_data
+
 from App.views import Update_video_archive
 
-from App.views import Delete_video_archive
+from App.views import delete_video_archive
 
 # admin account views
 
@@ -378,9 +380,11 @@ urlpatterns = [
 
     path('Video-archive-management/', Archive_manage_video, name = 'manage-video-archive'),
 
+    path('Video-archive-management/data/', video_archive_management_data, name = 'video-archive-management-data'),
+
     path('Update-video-archive/<slug:pk>', Update_video_archive.as_view(), name = 'update-video-archive'),
 
-    path('Delete-video-archive/<slug:pk>', Delete_video_archive.as_view(), name = 'Delete-video-archive'),
+    path('Delete-video-archive/<slug:pk>', delete_video_archive, name = 'delete-video-archive'),
 
     path('Add-video-archive/', Archive_create_video, name = 'add-video-archive'),
 

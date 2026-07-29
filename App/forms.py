@@ -203,7 +203,7 @@ class Photo_Archive_Form(forms.ModelForm):
 class Video_Archive_Form(forms.ModelForm):
   class Meta:
     model = Video_archive
-    fields = ['location', 'woreda', 'date_of_event', 'description', 'online_link', 'description']
+    fields = ['location', 'woreda', 'date_of_event', 'description', 'online_link']
     widgets = {
       'location': forms.TextInput(attrs={'class': 'form-control'}),
       'woreda': forms.Select(attrs={'class': 'selectpicker form-control'}),

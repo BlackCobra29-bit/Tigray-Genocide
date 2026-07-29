@@ -213,6 +213,10 @@ class Video_archive(models.Model):
         verbose_name_plural = 'Video archives'
         indexes = [
             models.Index(fields=["woreda", "date_created"]),
+            models.Index(
+                fields=["date_created"],
+                name="video_archive_created_idx",
+            ),
         ]
 
     def __str__(self):

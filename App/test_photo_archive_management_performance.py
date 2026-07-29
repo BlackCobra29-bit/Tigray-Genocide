@@ -215,6 +215,106 @@ class PhotoArchiveManagementPerformanceTests(TestCase):
             Photo_archive.objects.filter(id=photo_archive.id).exists()
         )
 
+    def test_update_page_uses_cached_woredas_and_only_form_assets(self):
+        photo_archive = Photo_archive.objects.get(
+            location="Photo archive location 02",
+        )
+        update_url = reverse(
+            "update-photo-archive",
+            args=[photo_archive.id],
+        )
+
+        cold_response = self.client.get(update_url)
+        with CaptureQueriesContext(connection) as warm_queries:
+            warm_response = self.client.get(update_url)
+
+        html = warm_response.content.decode()
+        asset_urls = set(
+            re.findall(
+                r'<(?:script[^>]*src|link[^>]*href)="([^"]+)"',
+                html,
+            )
+        )
+
+        self.assertEqual(cold_response.status_code, 200)
+        self.assertEqual(warm_response.status_code, 200)
+        self.assertNotIn("/static/admin_static/datatable/", html)
+        self.assertNotIn("/static/js/select.js", html)
+        self.assertNotIn("/static/css/select.css", html)
+        self.assertEqual(html.count("parsley.min.js"), 1)
+        self.assertEqual(
+            html.count(f'value="{self.woreda.woreda_name}"'),
+            1,
+        )
+        self.assertContains(
+            warm_response,
+            f'value="{self.woreda.woreda_name}" selected',
+        )
+        self.assertLessEqual(len(asset_urls), 20)
+        self.assertLessEqual(len(warm_queries), 4)
+
+        warm_sql = " ".join(
+            query["sql"] for query in warm_queries
+        ).upper()
+        self.assertNotIn("COUNT(", warm_sql)
+        self.assertNotIn("APP_TIGRAY_WOREDA", warm_sql)
+
+    def test_invalid_update_displays_errors_and_preserves_record(self):
+        photo_archive = Photo_archive.objects.get(
+            location="Photo archive location 03",
+        )
+        update_url = reverse(
+            "update-photo-archive",
+            args=[photo_archive.id],
+        )
+
+        response = self.client.post(
+            update_url,
+            {
+                "location": "",
+                "woreda": self.woreda.woreda_name,
+                "date_of_event": "2021-03-04",
+                "description": "Preserved invalid update description",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("location", response.context["form"].errors)
+        self.assertContains(response, "This field is required.")
+        self.assertContains(
+            response,
+            "Preserved invalid update description",
+        )
+        self.assertContains(
+            response,
+            f'value="{self.woreda.woreda_name}" selected',
+        )
+        photo_archive.refresh_from_db()
+        self.assertEqual(
+            photo_archive.location,
+            "Photo archive location 03",
+        )
+
+    def test_anonymous_update_redirect_uses_valid_query_parameter(self):
+        photo_archive = Photo_archive.objects.get(
+            location="Photo archive location 04",
+        )
+        self.client.logout()
+
+        response = self.client.get(
+            reverse(
+                "update-photo-archive",
+                args=[photo_archive.id],
+            ),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("authentication_required=", response["Location"])
+        self.assertNotIn(
+            "%2Fauthentication_required%2F",
+            response["Location"],
+        )
+
     def test_superuser_can_still_update_photo_archive(self):
         photo_archive = Photo_archive.objects.get(
             location="Photo archive location 02",

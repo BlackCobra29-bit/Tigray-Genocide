@@ -55,12 +55,18 @@ def schedule_woreda_map_refresh():
     transaction.on_commit(refresh_woreda_map_data)
 
 
-@receiver(post_save, sender=Video_archive)
-@receiver(post_delete, sender=Video_archive)
 @receiver(post_save, sender=Hero_images)
 @receiver(post_delete, sender=Hero_images)
 def refresh_homepage_on_change(sender, **kwargs):
     schedule_homepage_refresh()
+
+
+@receiver(post_save, sender=Video_archive)
+@receiver(post_delete, sender=Video_archive)
+def invalidate_homepage_after_video_archive_change(sender, **kwargs):
+    # Video archive changes should not wait for the homepage summary rebuild.
+    # The next homepage request will repopulate the invalidated cache.
+    schedule_homepage_invalidation()
 
 
 @receiver(post_save, sender=Photo_archive)
