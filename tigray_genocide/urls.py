@@ -32,11 +32,9 @@ Including another URLconf
 
 from django.contrib import admin
 
-from django.conf.urls.static import static
-
 from django.conf import settings
 
-from django.urls import path, include
+from django.urls import path, include, re_path
 
 from django.contrib.auth.views import PasswordResetView
 
@@ -45,6 +43,8 @@ from django.contrib.auth.views import PasswordResetDoneView
 from django.contrib.auth.views import PasswordResetConfirmView
 
 from django.contrib.auth.views import PasswordResetCompleteView
+
+from django.views.static import serve as serve_media
 
 from App.views import index
 
@@ -414,6 +414,17 @@ urlpatterns = [
     
     path('export_database/', export_database, name = 'export-database')
 
-] + static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
+]
+
+# Passenger currently routes media requests through Django. Keep those files
+# available when DEBUG is disabled; the cache-header middleware applies the
+# browser policy. A dedicated web server or CDN can replace this route later.
+urlpatterns += [
+    re_path(
+        r'^media/(?P<path>.*)$',
+        serve_media,
+        {'document_root': settings.MEDIA_ROOT},
+    ),
+]
 
 handler404 = custom_404_view

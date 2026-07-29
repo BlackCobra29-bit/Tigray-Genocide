@@ -320,7 +320,7 @@ def build_victim_map(selected_woreda=None):
     return rendered_map, woreda_list
 
 
-@cache_page(60)
+@cache_page(settings.PUBLIC_HTML_CACHE_SECONDS)
 def index(request):
     random_hero_image = get_random_instance(Hero_images.objects.only('hero_image'))
     hero_image_url = (

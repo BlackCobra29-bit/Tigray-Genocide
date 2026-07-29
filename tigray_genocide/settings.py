@@ -11,7 +11,10 @@ https://docs.djangoproject.com/n/4.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
+
+from tigray_genocide.cache_headers import add_whitenoise_cache_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,14 +26,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-7_x5(j(l5mbrt6%g(f0r02j2&bhu%2%ws4d^x*$gmx-wgek92j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in {
+_default_debug = 'True' if {'runserver', 'test'}.intersection(sys.argv) else 'False'
+DEBUG = os.environ.get('DJANGO_DEBUG', _default_debug).lower() in {
     '1',
     'true',
     'yes',
     'on',
 }
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        'DJANGO_ALLOWED_HOSTS',
+        'tigraygenocide.com,www.tigraygenocide.com,localhost,127.0.0.1,[::1],testserver',
+    ).split(',')
+    if host.strip()
+]
 
 
 # Application definition
@@ -57,6 +68,7 @@ CAPTCHA_BACKGROUND_COLOR = '#FFFFFF'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'tigray_genocide.cache_headers.MediaCacheControlMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -153,10 +165,20 @@ STORAGES = {
     },
 }
 
-WHITENOISE_MAX_AGE = 31536000
+# Non-fingerprinted static files may change without their URL changing, so they
+# receive a shorter cache lifetime. Fingerprinted files are overridden to one
+# year and marked immutable by add_whitenoise_cache_headers().
+WHITENOISE_MAX_AGE = 604800
+WHITENOISE_ADD_HEADERS_FUNCTION = add_whitenoise_cache_headers
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+# Public homepage HTML can be reused briefly while still surfacing updates
+# within five minutes.
+PUBLIC_HTML_CACHE_SECONDS = int(
+    os.environ.get('PUBLIC_HTML_CACHE_SECONDS', '300')
+)
 
 LANGUAGE_CODE = 'en-us'
 

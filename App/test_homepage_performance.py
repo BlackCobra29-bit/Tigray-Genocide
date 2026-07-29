@@ -23,3 +23,8 @@ class HomepagePayloadTests(TestCase):
         response = self.client.get(reverse("app-index"))
 
         self.assertLess(len(response.content), 200_000)
+
+    def test_homepage_is_browser_cacheable_for_five_minutes(self):
+        response = self.client.get(reverse("app-index"))
+
+        self.assertEqual(response["Cache-Control"], "max-age=300")
