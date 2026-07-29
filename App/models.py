@@ -189,6 +189,10 @@ class Photo_archive(models.Model):
         verbose_name_plural = 'Photo archives'
         indexes = [
             models.Index(fields=["woreda", "date_created"]),
+            models.Index(
+                fields=["date_created"],
+                name="photo_archive_created_idx",
+            ),
         ]
 
     def __str__(self):

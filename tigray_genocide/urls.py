@@ -176,9 +176,11 @@ from App.views import Archive_create_photo
 
 from App.views import Archive_manage_photo
 
+from App.views import photo_archive_management_data
+
 from App.views import Update_photo_archive
 
-from App.views import Delete_photo_archive
+from App.views import delete_photo_archive
 
 from App.views import Archive_create_video
 
@@ -368,9 +370,11 @@ urlpatterns = [
 
     path('Photo-archive-management/', Archive_manage_photo, name = 'manage-photo-archive'),
 
+    path('Photo-archive-management/data/', photo_archive_management_data, name = 'photo-archive-management-data'),
+
     path('Update-photo-archive/<slug:pk>', Update_photo_archive.as_view(), name = 'update-photo-archive'),
 
-    path('Delete-photo-archive/<slug:pk>', Delete_photo_archive.as_view(), name = 'Delete-photo-archive'),
+    path('Delete-photo-archive/<slug:pk>', delete_photo_archive, name = 'delete-photo-archive'),
 
     path('Video-archive-management/', Archive_manage_video, name = 'manage-video-archive'),
 

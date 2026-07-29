@@ -74,6 +74,7 @@ from .civilian_management import (
 from .dashboard_summary import get_admin_dashboard_summary
 from .homepage import get_homepage_summary
 from .image_optimization import get_optimized_image_url
+from .photo_archive_management import build_photo_archive_management_payload
 from .victim_map_cache import (
     VICTIM_MAP_HTML_CACHE_TIMEOUT,
     get_victim_map_cache_version,
@@ -1865,63 +1866,99 @@ def Archive_create_photo(request):
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Archive_manage_photo(request):
+    template_name = 'admin_templates/archive_templates/photo_archive_management.html'
 
-    pending_count = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
+    if not request.user.is_superuser:
+        return render(request, template_name, status=403)
 
-    photo_archive = Photo_archive.objects.all()
+    administrator = Administrator.objects.filter(
+        user=request.user,
+    ).first()
+    if administrator is not None:
+        request.user._state.fields_cache['administrator'] = administrator
 
     context = {
-        'pending_count': pending_count,
-        'photo_archive': photo_archive,
-        'Administrator': Administrator.objects.get(user=request.user)
+        'pending_count': get_admin_pending_count(),
+        'Administrator': administrator,
     }
 
-    return render(request, 'admin_templates/archive_templates/photo_archive_management.html', context)
+    return render(request, template_name, context)
 
 
-class Update_photo_archive(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
+@require_GET
+def photo_archive_management_data(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {'detail': 'You do not have permission to manage photo archives.'},
+            status=403,
+        )
+
+    return JsonResponse(build_photo_archive_management_payload(request))
+
+
+class Update_photo_archive(
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
     redirect_field_name = '/authentication_required/'
     template_name = 'admin_templates/archive_templates/update_photo_archive.html'
     model = Photo_archive
     form_class = Photo_Archive_Form
     success_message = 'Photo Archive updated successfully'
 
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Photo_archive, id=id_)
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def get_queryset(self):
+        return super().get_queryset().only(
+            'id',
+            'location',
+            'woreda',
+            'date_of_event',
+            'description',
+            'photo',
+            'graphic',
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
+        administrator = Administrator.objects.filter(
+            user=self.request.user,
+        ).first()
+        if administrator is not None:
+            self.request.user._state.fields_cache[
+                'administrator'
+            ] = administrator
+        context['Administrator'] = administrator
+        context['pending_count'] = get_admin_pending_count()
         return context
 
     def get_success_url(self):
-
         return reverse('manage-photo-archive')
 
 
-class Delete_photo_archive(LoginRequiredMixin, SuccessMessageMixin, DeleteView):
-    redirect_field_name = '/authentication_required/'
-    template_name = 'admin_templates/archive_templates/delete_photo_archive.html'
-    model = Photo_archive
-    success_message = 'Photo Archive deleted successfully'
+@login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
+@require_POST
+def delete_photo_archive(request, pk):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {'detail': 'You do not have permission to delete photo archives.'},
+            status=403,
+        )
 
-    def get_object(self, *args, **kwargs):
-        id_ = self.kwargs.get('pk')
-        return get_object_or_404(Photo_archive, id=id_)
+    photo_archive = get_object_or_404(
+        Photo_archive.objects.only('id', 'location'),
+        id=pk,
+    )
+    archive_label = photo_archive.location or 'Photo archive'
+    photo_archive.delete()
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['Administrator'] = Administrator.objects.get(
-            user=self.request.user)
-        context['pending_count'] = Civilian_victims.objects.filter(approval = False).count() + Analysis_articles.objects.filter(approval=False, draft=False).count()
-        return context
-
-    def get_success_url(self):
-
-        return reverse('manage-photo-archive')
+    return JsonResponse({
+        'message': f'{archive_label} was deleted successfully.',
+    })
 
 @login_required(login_url='/Adminstrator-login-page', redirect_field_name='authentication_required')
 def Archive_create_video(request):
