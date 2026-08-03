@@ -66,12 +66,14 @@ class AddUnverifiedCivilianPerformanceTests(TestCase):
         self.assertNotIn("/static/admin/js/vendor/jquery/jquery.js", html)
         self.assertNotIn("/static/admin_static/datatable/", html)
         self.assertNotIn("ajax.googleapis.com/ajax/libs/jquery", html)
-        self.assertNotIn("Spinner-loading.gif", html)
-        self.assertContains(response, "unverified-submit-spinner")
+        self.assertContains(response, "Spinner-loading.gif")
+        self.assertNotContains(response, "unverified-submit-spinner")
         self.assertEqual(html.count("/static/js/select.js"), 1)
-        self.assertEqual(html.count("sweetalert2@10"), 1)
+        self.assertNotIn("sweetalert2", html)
+        self.assertEqual(html.count("notyf@3"), 2)
+        self.assertContains(response, "admin-feedback.js")
         self.assertEqual(html.count("parsley.min.js"), 1)
-        self.assertLessEqual(len(asset_urls), 20)
+        self.assertLessEqual(len(asset_urls), 23)
         self.assertLess(len(response.content), 40_000)
 
     def test_woreda_options_are_rendered_from_the_cached_name_list(self):

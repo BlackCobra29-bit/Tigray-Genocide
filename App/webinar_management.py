@@ -72,13 +72,14 @@ def _webinar_action(webinar):
         '<a href="{}" data-toggle="tooltip" data-placement="top" '
         'title="Update Item"><i class="bi bi-pencil-fill"></i></a>'
         "&nbsp; "
-        '<a href="#" class="webinar-delete-trigger" '
-        'data-delete-url="{}" data-delete-title="{}" '
+        '<a href="#" class="webinar-delete-trigger admin-delete-trigger" '
+        'data-delete-url="{}" data-delete-title="{}" data-delete-label="{}" '
         'data-toggle="tooltip" data-placement="top" '
         'title="Delete Item" aria-label="Delete {}">'
         '<i class="bi bi-trash"></i></a>',
         reverse("update-webinar-discussion", args=[webinar.id]),
         reverse("delete-webinar-discussion", args=[webinar.id]),
+        webinar.webinar_title,
         webinar.webinar_title,
         webinar.webinar_title,
     )

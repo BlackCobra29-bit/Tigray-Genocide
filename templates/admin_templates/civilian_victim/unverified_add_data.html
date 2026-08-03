@@ -9,33 +9,6 @@
 {% block admin_page_content %}
 {% if request.user.is_superuser == True %}
 
- <style>
-  #loadingIndicator {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 9999;
-  }
-
-  .unverified-submit-spinner {
-    animation: unverified-submit-spin 0.7s linear infinite;
-    border: 4px solid rgba(26, 187, 156, 0.22);
-    border-radius: 50%;
-    border-top-color: #1abb9c;
-    display: block;
-    height: 42px;
-    width: 42px;
-  }
-
-  @keyframes unverified-submit-spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-</style>
-
 <!-- page content -->
 <div class="right_col" role="main">
   <div class="">
@@ -47,18 +20,6 @@
 
       <div class="col-md-12 col-sm-12">
         
-        {% if messages %}
-        {% for message in messages %}
-        {% if message.tags == 'success' %}
-        <div class="alert alert-success alert-dismissible " role="alert">
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
-          </button>
-          <span class="fa fa-check-circle"></span> {{ message }}
-        </div>
-        {% endif %}
-        {% endfor %}
-        {% endif %}
-
         <div class="x_panel">
           <div class="x_title">
             <h2><small>Add unidentified civilian Victims</small></h2>
@@ -71,7 +32,7 @@
           <div class="x_content">
             <div class="row">
 
-              <form action="" data-parsley-validate method="POST" enctype="multipart/form-data" id="myForm">
+              <form action="" data-parsley-validate method="POST" enctype="multipart/form-data" id="myForm" data-admin-ajax="true">
                 {% csrf_token %}
 
               <div class="col-md-6 col-sm-12  form-group">
@@ -138,15 +99,6 @@
   </div>
 </div>
 
-<!-- Your loading indicator -->
-    <div id="loadingIndicator">
-      <span
-        class="unverified-submit-spinner"
-        role="status"
-        aria-label="Saving data"
-      ></span>
-    </div>
-
 {% else %}
 <!-- page content -->
 <div class="right_col" role="main">
@@ -169,46 +121,11 @@
 {% if request.user.is_superuser == True %}
 <script>
 $(document).ready(function() {
-  var sweetAlertPromise = null;
-
-  function loadSweetAlert() {
-    if (window.Swal) {
-      return Promise.resolve(window.Swal);
-    }
-    if (sweetAlertPromise) {
-      return sweetAlertPromise;
-    }
-
-    sweetAlertPromise = new Promise(function(resolve, reject) {
-      var script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@10';
-      script.async = true;
-      script.onload = function() {
-        resolve(window.Swal);
-      };
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
-
-    return sweetAlertPromise;
-  }
-
-  function showSubmissionResult(options, fallbackMessage) {
-    loadSweetAlert()
-      .then(function(Swal) {
-        Swal.fire(options);
-      })
-      .catch(function() {
-        window.alert(fallbackMessage);
-      });
-  }
-
   $('#myForm').submit(function(event) {
     event.preventDefault();
-    $('#loadingIndicator').show();
+    AdminUI.showLoading();
 
     var form = this;
-    loadSweetAlert();
 
     $.ajax({
       url: "{% url 'add-unverified-civilian' %}",
@@ -219,29 +136,19 @@ $(document).ready(function() {
       contentType: false,
       processData: false,
       success: function(response) {
-        $('#loadingIndicator').hide();
-        showSubmissionResult(
-          {
-            icon: 'success',
-            title: 'Success',
-            html: response.success_message
-          },
-          response.success_message
-        );
+        AdminUI.success(response.success_message || 'The unidentified civilian data was saved successfully.');
 
         form.reset();
         $('.selectpicker').val(null).trigger('change');
       },
-      error: function() {
-        $('#loadingIndicator').hide();
-        showSubmissionResult(
-          {
-            icon: 'error',
-            title: 'Error',
-            text: 'Error submitting the data'
-          },
-          'Error submitting the data'
+      error: function(xhr) {
+        AdminUI.error(
+          AdminUI.errorMessage(xhr.responseJSON, 'Unable to save the unidentified civilian data.'),
+          { duration: 6500 }
         );
+      },
+      complete: function() {
+        AdminUI.hideLoading();
       }
     });
 

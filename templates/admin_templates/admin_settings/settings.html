@@ -19,26 +19,6 @@
 
             <div class="col-md-12 col-sm-6  ">
 
-                {% if messages %}
-                {% for message in messages %}
-                {% if message.tags == 'success' %}
-                <div class="alert alert-success alert-dismissible " role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
-                            aria-hidden="true">×</span>
-                    </button>
-                    <span class="fa fa-check-circle"></span> {{ message }}
-                </div>
-                {% else %}
-                <div class="alert alert-danger alert-dismissible " role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
-                            aria-hidden="true">×</span>
-                    </button>
-                    <span class="fa fa-question-circle"></span> {{ message }}
-                </div>
-                {% endif %}
-                {% endfor %}
-                {% endif %}
-
                 <div class="x_panel">
                     <div class="x_title">
                         <h2><small>Account settings</small></h2>
@@ -149,33 +129,10 @@
               
                                         <div class="form-group">
                                           <div class="col-md-11 col-sm-9  offset-md-5"><br>
-                                            <!-- Small modal -->
-                                            <button type="button" class="btn btn-success" data-toggle="modal" data-target=".bs-example-modal-sm">Update</button>
+                                            <button type="submit" class="btn btn-success">Update</button>
                                           </div>
                                         </div>
                         
-                                      <div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-hidden="true">
-                                        <div class="modal-dialog modal-sm">
-                                          <div class="modal-content">
-                        
-                                            <div class="modal-header">
-                                              <h4 class="modal-title" id="myModalLabel2"><i class="fas fa-exclamation-triangle text-warning"></i> Warning</h4>
-                                              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span>
-                                              </button>
-                                            </div>
-                                            <div class="modal-body">
-                                              <p>Are you sure to update your profile picture?</p>
-                                            </div>
-                                            <div class="modal-footer">
-                                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                              <button type="submit" class="btn btn-info">Confirm</button>
-                                            </div>
-                        
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <!-- /modals -->
-
                                     </form>
                                 </div>
                             </div>

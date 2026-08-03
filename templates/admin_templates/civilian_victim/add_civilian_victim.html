@@ -9,17 +9,6 @@
 {% block admin_page_content %}
 {% if Administrator.civilian_role == True or request.user.is_superuser == True %}
 
- <style>
-  #loadingIndicator {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 9999;
-  }
-</style>
-
 <!-- page content -->
 <div class="right_col" role="main">
   <div class="">
@@ -31,18 +20,6 @@
 
       <div class="col-md-12 col-sm-12">
         
-        {% if messages %}
-        {% for message in messages %}
-        {% if message.tags == 'success' %}
-        <div class="alert alert-success alert-dismissible " role="alert">
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
-          </button>
-          <span class="fa fa-check-circle"></span> {{ message }}
-        </div>
-        {% endif %}
-        {% endfor %}
-        {% endif %}
-
         <div class="x_panel">
           <div class="x_title">
             <h2><small>Add civilian Victims information</small></h2>
@@ -59,7 +36,7 @@
                 <code>*</code> Optional fields can be empty
               </p>
 
-              <form action="" data-parsley-validate method="POST" enctype="multipart/form-data" id="myForm">
+              <form action="" data-parsley-validate method="POST" enctype="multipart/form-data" id="myForm" data-admin-ajax="true">
                 {% csrf_token %}
 
               <div class="col-md-6 col-sm-12  form-group">
@@ -151,11 +128,6 @@
   </div>
 </div>
 
-<!-- Your loading indicator -->
-    <div id="loadingIndicator">
-      <img src="{% static 'img/Spinner-loading.gif' %}" alt="Loading...">
-    </div>
-
 <style>
     #parsley-id-15 {
         position: absolute;
@@ -189,7 +161,6 @@
 
 {% block admin_page_scripts %}
 {% if Administrator.civilian_role == True or request.user.is_superuser == True %}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 <script>
 $(document).ready(function() {
   var duplicateDeleteUrlTemplate =
@@ -202,7 +173,7 @@ $(document).ready(function() {
 
   $('#myForm').submit(function(event) {
     event.preventDefault();
-    $('#loadingIndicator').show();
+    AdminUI.showLoading();
 
     $.ajax({
       url: "{% url 'admin-add-civilian' %}",
@@ -213,24 +184,16 @@ $(document).ready(function() {
       contentType: false,
       processData: false,
       success: function(response) {
-        $('#loadingIndicator').hide();
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          html: response.success_message,
-        });
+        AdminUI.success(response.success_message || 'The civilian victim was saved successfully.');
         resetCivilianForm();
       },
       error: function(xhr) {
-        $('#loadingIndicator').hide();
-
         var errorMessage = xhr.responseJSON || {};
         if (!errorMessage.message || !errorMessage.new_duplicate_id) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Unable to save data',
-            text: 'Please try again.',
-          });
+          AdminUI.error(
+            AdminUI.errorMessage(errorMessage, 'Unable to save the civilian victim. Please try again.'),
+            { duration: 6500 }
+          );
           return;
         }
 
@@ -239,19 +202,23 @@ $(document).ready(function() {
           encodeURIComponent(errorMessage.new_duplicate_id)
         );
 
-        Swal.fire({
-          icon: 'error',
-          title: 'Duplicate Entry Detected',
-          html: errorMessage.message,
-          footer: '<a href="' + duplicateDeleteUrl + '" class="text-danger"><span class="bi bi-trash"></span> Click here to cancel this duplicate entry </a>',
-          confirmButtonText: 'Save Data',
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.reload();
-          }
-        });
+        var duplicateNotice = AdminUI.error(
+          errorMessage.message + ' Click this notification to remove the newly created duplicate.',
+          { duration: 10000 }
+        );
+        var removeDuplicate = function() {
+          window.location.assign(duplicateDeleteUrl);
+        };
+        if (duplicateNotice && typeof duplicateNotice.on === 'function') {
+          duplicateNotice.on('click', removeDuplicate);
+        } else if (duplicateNotice && duplicateNotice.addEventListener) {
+          duplicateNotice.addEventListener('click', removeDuplicate);
+        }
 
         resetCivilianForm();
+      },
+      complete: function() {
+        AdminUI.hideLoading();
       }
     });
 

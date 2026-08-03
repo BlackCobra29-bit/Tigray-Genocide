@@ -278,10 +278,11 @@ class UnverifiedCivilianDataManagementPerformanceTests(TestCase):
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
         )
 
-        self.assertContains(page_response, 'id="unverified-delete-modal"')
-        self.assertContains(page_response, 'id="unverified-delete-form"')
+        self.assertNotContains(page_response, 'id="unverified-delete-modal"')
+        self.assertContains(page_response, "admin-feedback.js")
+        self.assertContains(page_response, "Spinner-loading.gif")
         action_cell = data_response.json()["data"][0][0]
-        self.assertIn('class="unverified-delete-trigger"', action_cell)
+        self.assertIn("unverified-delete-trigger admin-delete-trigger", action_cell)
         self.assertIn(f'data-delete-url="{delete_url}"', action_cell)
         self.assertEqual(get_delete_response.status_code, 405)
         self.assertEqual(post_delete_response.status_code, 200)

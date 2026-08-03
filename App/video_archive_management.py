@@ -76,13 +76,14 @@ def _video_archive_action(video_archive):
         '<a href="{}" data-toggle="tooltip" data-placement="top" '
         'title="Update Item"><i class="bi bi-pencil-fill"></i></a>'
         "&nbsp; "
-        '<a href="#" class="video-archive-delete-trigger" '
-        'data-delete-url="{}" data-delete-title="{}" '
+        '<a href="#" class="video-archive-delete-trigger admin-delete-trigger" '
+        'data-delete-url="{}" data-delete-title="{}" data-delete-label="{}" '
         'data-toggle="tooltip" data-placement="top" '
         'title="Delete Item" aria-label="Delete {}">'
         '<i class="bi bi-trash"></i></a>',
         reverse("update-video-archive", args=[video_archive.id]),
         reverse("delete-video-archive", args=[video_archive.id]),
+        archive_label,
         archive_label,
         archive_label,
     )

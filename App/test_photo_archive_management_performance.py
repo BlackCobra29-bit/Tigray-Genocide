@@ -97,8 +97,9 @@ class PhotoArchiveManagementPerformanceTests(TestCase):
             reverse("photo-archive-management-data"),
         )
         self.assertContains(response, "<tbody></tbody>")
-        self.assertContains(response, 'id="photo-archive-delete-modal"')
-        self.assertContains(response, 'id="photo-archive-delete-form"')
+        self.assertNotContains(response, 'id="photo-archive-delete-modal"')
+        self.assertContains(response, "admin-feedback.js")
+        self.assertContains(response, "Spinner-loading.gif")
         self.assertNotContains(response, "Photo archive description 00")
 
         sql = " ".join(query["sql"] for query in queries).upper()
@@ -132,7 +133,7 @@ class PhotoArchiveManagementPerformanceTests(TestCase):
         self.assertNotIn("pdfmake.min.js", html)
         self.assertNotIn("vfs_fonts.js", html)
         self.assertIn("dataTables.responsive.min.js", html)
-        self.assertLessEqual(len(asset_urls), 20)
+        self.assertLessEqual(len(asset_urls), 23)
 
     def test_pending_count_is_reused_from_cache(self):
         self.client.get(reverse("manage-photo-archive"))

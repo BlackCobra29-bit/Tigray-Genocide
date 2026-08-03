@@ -1,0 +1,59 @@
+.admin-operation-loader {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.78);
+  display: none;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: 10000;
+}
+
+.admin-operation-loader.is-visible {
+  display: flex;
+}
+
+.admin-operation-loader img {
+  height: auto;
+  max-width: 110px;
+  width: 22vw;
+}
+
+.admin-inline-loader {
+  display: inline-block;
+  height: auto;
+  max-width: 64px;
+  width: 64px;
+}
+
+.notyf {
+  z-index: 11000;
+}
+
+.admin-fallback-toast-container {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  width: min(360px, calc(100vw - 40px));
+  z-index: 11000;
+}
+
+.admin-fallback-toast {
+  background: #34495e;
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  color: #fff;
+  margin-bottom: 10px;
+  padding: 14px 16px;
+}
+
+.admin-fallback-toast--success {
+  background: #26b99a;
+}
+
+.admin-fallback-toast--error {
+  background: #d9534f;
+}
+
+.admin-fallback-toast--warning {
+  background: #f0ad4e;
+}

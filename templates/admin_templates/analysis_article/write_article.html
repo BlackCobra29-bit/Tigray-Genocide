@@ -12,29 +12,6 @@
 {% if Administrator.analysis_role == True or request.user.is_superuser == True %}
 
 <style>
-  .article-saving-indicator {
-    align-items: center;
-    background: rgba(255, 255, 255, 0.72);
-    display: none;
-    inset: 0;
-    justify-content: center;
-    position: fixed;
-    z-index: 99999;
-  }
-
-  .article-saving-indicator.is-visible {
-    display: flex;
-  }
-
-  .article-saving-spinner {
-    animation: article-spinner 0.75s linear infinite;
-    border: 4px solid rgba(38, 185, 154, 0.22);
-    border-radius: 50%;
-    border-top-color: #26b99a;
-    height: 46px;
-    width: 46px;
-  }
-
   .article-options {
     margin: 24px 0 8px;
   }
@@ -125,11 +102,6 @@
     }
   }
 
-  @keyframes article-spinner {
-    to {
-      transform: rotate(360deg);
-    }
-  }
 </style>
 
 <!-- page content -->
@@ -143,18 +115,6 @@
 
       <div class="col-md-12 col-sm-12 ">
 
-        {% if messages %}
-        {% for message in messages %}
-        {% if message.tags == 'success' %}
-        <div class="alert alert-success alert-dismissible " role="alert">
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
-          </button>
-          <span class="fa fa-check-circle"></span> {{ message }}
-        </div>
-        {% endif %}
-        {% endfor %}
-        {% endif %}
-
         <div class="x_panel">
           <div class="x_title">
             <h2><small>Write analysis article</small></h2>
@@ -167,7 +127,7 @@
           <div class="x_content">
             <div class="row">
 
-              <form action="{% url 'write-article' %}" id="article_form" data-parsley-validate method="POST" enctype="multipart/form-data">
+              <form action="{% url 'write-article' %}" id="article_form" data-parsley-validate method="POST" enctype="multipart/form-data" data-admin-ajax="true">
                 {% csrf_token %}
 
                 <div class="col-md-12 col-sm-12  form-group">
@@ -234,9 +194,6 @@
   </div>
 </div>
 <!-- /page content -->
-<div class="article-saving-indicator" id="article-saving-indicator" aria-hidden="true">
-  <div class="article-saving-spinner" role="status" aria-label="Saving article"></div>
-</div>
 {% else %}
 <!-- page content -->
 <div class="right_col" role="main">
@@ -265,39 +222,7 @@
       return;
     }
 
-    var sweetAlertPromise = null;
-    var sweetAlertUrl = 'https://cdn.jsdelivr.net/npm/sweetalert2@10';
-    var savingIndicator = document.getElementById('article-saving-indicator');
     var submitButtons = form.querySelectorAll('.article-submit-button');
-
-    function loadSweetAlert() {
-      if (window.Swal) {
-        return Promise.resolve(window.Swal);
-      }
-      if (!sweetAlertPromise) {
-        sweetAlertPromise = new Promise(function (resolve, reject) {
-          var script = document.createElement('script');
-          script.src = sweetAlertUrl;
-          script.onload = function () { resolve(window.Swal); };
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
-      return sweetAlertPromise;
-    }
-
-    function showMessage(icon, title, message) {
-      return loadSweetAlert().then(function (Swal) {
-        return Swal.fire({
-          icon: icon,
-          title: title,
-          text: message,
-          confirmButtonColor: '#26b99a'
-        });
-      }).catch(function () {
-        window.alert(message);
-      });
-    }
 
     function syncSummernoteContent() {
       var textarea = document.getElementById('id_content');
@@ -327,8 +252,11 @@
     }
 
     function setSaving(saving) {
-      savingIndicator.classList.toggle('is-visible', saving);
-      savingIndicator.setAttribute('aria-hidden', saving ? 'false' : 'true');
+      if (saving) {
+        AdminUI.showLoading();
+      } else {
+        AdminUI.hideLoading();
+      }
       Array.prototype.forEach.call(submitButtons, function (button) {
         button.disabled = saving;
       });
@@ -339,7 +267,7 @@
       syncSummernoteContent();
 
       if ($.fn.parsley && !$(form).parsley().validate()) {
-        showMessage('error', 'Article not saved', 'Please complete all required fields.');
+        AdminUI.error('Please complete all required article fields.', { duration: 6500 });
         return;
       }
 
@@ -358,10 +286,13 @@
       }).done(function (response) {
         form.reset();
         resetSummernote();
-        showMessage('success', 'Saved', response.message || 'The article was saved successfully.');
+        AdminUI.success(response.message || 'The article was saved successfully.');
       }).fail(function (xhr) {
         var response = xhr.responseJSON || {};
-        showMessage('error', 'Article not saved', response.message || 'Something went wrong while saving the article.');
+        AdminUI.error(
+          AdminUI.errorMessage(response, 'Something went wrong while saving the article.'),
+          { duration: 6500 }
+        );
       }).always(function () {
         setSaving(false);
       });

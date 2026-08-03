@@ -13,6 +13,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="admin-csrf-token" content="{{ csrf_token }}">
 
   <title>Tigray Genocide</title>
 
@@ -24,6 +25,9 @@
   <link href="{% static 'admin_static/css/nprogress.css' %}" rel="stylesheet">
   <!-- bootstrap icons -->
   <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <!-- Unified admin notifications and operation loader -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+  <link href="{% static 'admin_static/css/admin-feedback.css' %}" rel="stylesheet">
   {% block admin_table_head_assets %}
   <!-- datatable css files -->
   <link rel="stylesheet" href="{% static 'admin_static/datatable/css/dataTables.bootstrap.min.css' %}">
@@ -50,6 +54,22 @@
 </style>
 
 <body class="nav-md">
+  <div
+    id="admin-operation-loader"
+    class="admin-operation-loader"
+    role="status"
+    aria-label="Processing request"
+    aria-hidden="true"
+  >
+    <img src="{% static 'img/Spinner-loading.gif' %}" alt="Loading...">
+  </div>
+
+  <div id="admin-server-messages" hidden>
+    {% for message in messages %}
+    <span data-admin-message data-message-tags="{{ message.tags|default:'info' }}">{{ message }}</span>
+    {% endfor %}
+  </div>
+
   <div class="container body">
     <div class="main_container">
       <div class="col-md-3 left_col menu_fixed">
@@ -239,6 +259,9 @@
   
   <!-- jQuery -->
   <script src="{% static 'admin_static/js/jquery.min.js' %}"></script>
+  <!-- Unified admin notifications and operation loader -->
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+  <script src="{% static 'admin_static/js/admin-feedback.js' %}"></script>
   <!-- Bootstrap -->
   <script src="{% static 'admin_static/js/bootstrap.bundle.min.js' %}"></script>
   <!-- FastClick -->

@@ -100,8 +100,9 @@ class ArticleManagementTests(TestCase):
             reverse("analysis-article-management-data"),
         )
         self.assertContains(response, "<tbody></tbody>")
-        self.assertContains(response, 'id="article-delete-modal"')
-        self.assertContains(response, 'id="article-delete-form"')
+        self.assertNotContains(response, 'id="article-delete-modal"')
+        self.assertContains(response, "admin-feedback.js")
+        self.assertContains(response, "Spinner-loading.gif")
         self.assertNotContains(response, "Published article")
         self.assertNotContains(response, "Analyst draft")
         self.assertNotContains(response, "Pending article")
@@ -165,7 +166,7 @@ class ArticleManagementTests(TestCase):
         draft_action = next(
             row[0] for row in rows if row[3] == "Manager draft"
         )
-        self.assertIn('class="article-delete-trigger"', published_action)
+        self.assertIn("article-delete-trigger admin-delete-trigger", published_action)
         self.assertIn(
             reverse(
                 "delete-analysis-article",

@@ -21,16 +21,6 @@
 
         <div class="col-md-12 col-sm-6  ">
           
-          {% if messages %}
-          {% for message in messages %}
-          <div class="alert alert-success alert-dismissible " role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
-            </button>
-            <span class="fa fa-check-circle"></span> {{ message }}
-          </div>
-          {% endfor %}
-          {% endif %}
-
             <div class="x_panel">
               <div class="x_title">
                 <h2><small>Pending posts management</small></h2>
@@ -81,7 +71,15 @@
                                   <td>
                                     <a href="/Approve-civilian-victim-information/{{ victim.id }}" data-toggle="tooltip" data-placement="top" title="Approve Item"><i class="bi bi-check-circle-fill"></i></a>
                                     &nbsp;
-                                    <a href="/Delete-civilian-victim/{{ victim.id }}" data-toggle="tooltip" data-placement="top" title="Delete Item"><i class="bi bi-trash"></i></a>
+                                    <a
+                                      href="{% url 'delete-civilian-victim' victim.id %}"
+                                      class="admin-delete-trigger"
+                                      data-delete-url="{% url 'delete-civilian-victim' victim.id %}"
+                                      data-delete-label="{{ victim.full_name }}"
+                                      data-toggle="tooltip"
+                                      data-placement="top"
+                                      title="Delete Item"
+                                    ><i class="bi bi-trash"></i></a>
                                   </td>
                                   <td style="white-space: nowrap;">{{ victim.full_name }}</td>
                                   <td>{{ victim.gender }}</td>
@@ -135,7 +133,15 @@
                               <td>
                                 <a href="/Approve-analysis-articles/{{ item.id }}" data-toggle="tooltip" data-placement="top" title="Approve Item"><i class="bi bi-check-circle-fill"></i></a>
                                 &nbsp;
-                                <a href="/Delete-analysis-article/{{ item.id }}" data-toggle="tooltip" data-placement="top" title="Delete Item"><i class="bi bi-trash"></i></a>
+                                <a
+                                  href="{% url 'delete-analysis-article' item.id %}"
+                                  class="admin-delete-trigger"
+                                  data-delete-url="{% url 'delete-analysis-article' item.id %}"
+                                  data-delete-label="{{ item.title }}"
+                                  data-toggle="tooltip"
+                                  data-placement="top"
+                                  title="Delete Item"
+                                ><i class="bi bi-trash"></i></a>
                               </td>
                               <td style="white-space: nowrap;">{{ item.author.first_name }} {{ item.author.last_name }}</td>
                               <td>{{ item.title }}</td>

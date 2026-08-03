@@ -86,9 +86,12 @@ class AddCivilianVictimPerformanceTests(TestCase):
             html,
         )
         self.assertEqual(html.count("/static/js/select.js"), 1)
-        self.assertEqual(html.count("sweetalert2@10"), 1)
+        self.assertNotIn("sweetalert2", html)
+        self.assertEqual(html.count("notyf@3"), 2)
+        self.assertContains(response, "admin-feedback.js")
+        self.assertContains(response, "Spinner-loading.gif")
         self.assertEqual(html.count("parsley.min.js"), 1)
-        self.assertLessEqual(len(asset_urls), 20)
+        self.assertLessEqual(len(asset_urls), 23)
         self.assertLess(len(response.content), 40_000)
 
     def test_woreda_options_are_rendered_once(self):

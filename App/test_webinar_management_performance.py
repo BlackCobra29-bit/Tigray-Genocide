@@ -95,8 +95,9 @@ class WebinarManagementPerformanceTests(TestCase):
             reverse("webinar-discussion-management-data"),
         )
         self.assertContains(response, "<tbody></tbody>")
-        self.assertContains(response, 'id="webinar-delete-modal"')
-        self.assertContains(response, 'id="webinar-delete-form"')
+        self.assertNotContains(response, 'id="webinar-delete-modal"')
+        self.assertContains(response, "admin-feedback.js")
+        self.assertContains(response, "Spinner-loading.gif")
         self.assertNotContains(response, "Panel discussion 00")
 
         sql = " ".join(query["sql"] for query in queries).upper()

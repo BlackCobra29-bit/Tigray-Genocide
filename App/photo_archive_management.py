@@ -76,13 +76,14 @@ def _photo_archive_action(photo_archive):
         '<a href="{}" data-toggle="tooltip" data-placement="top" '
         'title="Update Item"><i class="bi bi-pencil-fill"></i></a>'
         "&nbsp; "
-        '<a href="#" class="photo-archive-delete-trigger" '
-        'data-delete-url="{}" data-delete-title="{}" '
+        '<a href="#" class="photo-archive-delete-trigger admin-delete-trigger" '
+        'data-delete-url="{}" data-delete-title="{}" data-delete-label="{}" '
         'data-toggle="tooltip" data-placement="top" '
         'title="Delete Item" aria-label="Delete {}">'
         '<i class="bi bi-trash"></i></a>',
         reverse("update-photo-archive", args=[photo_archive.id]),
         reverse("delete-photo-archive", args=[photo_archive.id]),
+        archive_label,
         archive_label,
         archive_label,
     )

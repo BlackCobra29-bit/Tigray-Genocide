@@ -77,13 +77,12 @@ class WriteArticlePerformanceTests(TestCase):
         self.assertNotIn("/static/js/select.js", html)
         self.assertNotIn("/static/css/select.css", html)
         self.assertEqual(html.count("parsley.min.js"), 1)
-        self.assertIn("sweetalert2@10", html)
-        self.assertNotIn(
-            '<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"',
-            html,
-        )
-        self.assertContains(response, "article-saving-spinner")
-        self.assertLessEqual(len(asset_urls), 20)
+        self.assertNotIn("sweetalert2", html)
+        self.assertEqual(html.count("notyf@3"), 2)
+        self.assertContains(response, "admin-feedback.js")
+        self.assertContains(response, "Spinner-loading.gif")
+        self.assertNotContains(response, "article-saving-spinner")
+        self.assertLessEqual(len(asset_urls), 23)
         self.assertLess(len(response.content), 40_000)
 
     def test_page_reuses_cached_pending_count_and_administrator(self):
