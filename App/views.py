@@ -719,7 +719,9 @@ def View_article(request, id):
         'author__administrator__admin_photo',
     )
     random_analysis_articles = get_random_queryset(
-        article_queryset.only('id', 'title', 'thumbnail', 'date_created'),
+        article_queryset.select_related(None).only(
+            'id', 'title', 'thumbnail', 'date_created'
+        ),
         exclude_id=id,
         sample_size=10,
     )

@@ -3,6 +3,8 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 import uuid
 
+from .fields import Char32UUIDField
+
 class Tigray_woreda(models.Model):
     woreda_name = models.CharField(primary_key=True, max_length = 255)
     latitude = models.CharField(max_length=255)
@@ -17,7 +19,7 @@ class Tigray_woreda(models.Model):
         return f'{self.woreda_name}'
 
 class Civilian_victims(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = Char32UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # sender options
     sender_fullname = models.CharField(max_length=255, null=True, blank=True)
     sender_location = models.CharField(max_length=255, null=True, blank=True)
@@ -73,7 +75,7 @@ class Civilian_victims(models.Model):
         return f'{self.full_name}'
 
 class Analysis_articles(models.Model):
-    id = models.UUIDField(
+    id = Char32UUIDField(
         primary_key=True,
         default=uuid.uuid4,
         editable=False,
@@ -153,7 +155,7 @@ class Article_comments(models.Model):
         return f'{self.article} comment'
 
 class Webinar(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = Char32UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
     webinar_title = models.TextField()
     webinar_content = models.TextField()
@@ -174,7 +176,7 @@ class Webinar(models.Model):
         return f'{self.webinar_title} comment'
 
 class Photo_archive(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = Char32UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
     location = models.CharField(max_length=255)
     woreda = models.ForeignKey(Tigray_woreda, null=True, on_delete=models.DO_NOTHING)
@@ -199,7 +201,7 @@ class Photo_archive(models.Model):
         return f'{self.description}'
 
 class Video_archive(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = Char32UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
     location = models.CharField(max_length=255)
     woreda = models.ForeignKey(Tigray_woreda, null=True, on_delete=models.DO_NOTHING)
@@ -252,7 +254,7 @@ class Webmail_password_manager(models.Model):
     date_created = models.DateTimeField(default=timezone.now)
         
 class Unverified_civilian(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = Char32UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     location = models.CharField(max_length=255)
     number_of_civilian = models.IntegerField()
     Perpetrator_Choices = [
