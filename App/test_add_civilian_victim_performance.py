@@ -139,7 +139,7 @@ class AddCivilianVictimPerformanceTests(TestCase):
         self.assertTrue(victim.approval)
         self.assertLessEqual(len(queries), 6)
 
-    def test_duplicate_detection_uses_the_exact_name_and_woreda_pair(self):
+    def test_duplicate_name_and_woreda_pair_is_allowed(self):
         existing_victim = Civilian_victims.objects.create(
             author=self.superuser,
             full_name="Exact Duplicate Victim",
@@ -150,19 +150,15 @@ class AddCivilianVictimPerformanceTests(TestCase):
             approval=True,
         )
 
-        response = self.client.post(
-            reverse("admin-add-civilian"),
-            self.build_payload(fullname=existing_victim.full_name),
-            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-        )
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.post(
+                reverse("admin-add-civilian"),
+                self.build_payload(fullname=existing_victim.full_name),
+                HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            )
 
-        payload = response.json()
-        self.assertEqual(response.status_code, 400)
-        self.assertIn(str(existing_victim.id), payload["message"])
-        self.assertNotEqual(
-            str(existing_victim.id),
-            str(payload["new_duplicate_id"]),
-        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["message"], "Success!")
         self.assertEqual(
             Civilian_victims.objects.filter(
                 full_name=existing_victim.full_name,
@@ -170,6 +166,7 @@ class AddCivilianVictimPerformanceTests(TestCase):
             ).count(),
             2,
         )
+        self.assertLessEqual(len(queries), 5)
 
     def test_name_and_woreda_existing_on_different_rows_is_not_a_duplicate(self):
         Civilian_victims.objects.create(

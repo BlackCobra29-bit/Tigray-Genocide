@@ -128,8 +128,6 @@ from App.views import civilian_data_management_export_data
 
 from App.views import delete_civilian_victim_item
 
-from App.views import delete_duplicate_civilian_victim_item
-
 from App.views import Update_Civilian_Victim
 
 from App.views import Add_unverified_civilian
@@ -320,8 +318,6 @@ urlpatterns = [
 
     # Loaded on demand so the legacy export design does not slow the table page.
     path('Civilian-data-management/export-data/', civilian_data_management_export_data, name = 'civilian-data-management-export-data'),
-
-    path('Delete-duplicate-civilian-victim/<slug:pk>', delete_duplicate_civilian_victim_item, name = 'delete-duplicate-civilian-victim'),
 
     path('Delete-civilian-victim/<slug:pk>', delete_civilian_victim_item, name = 'delete-civilian-victim'),
 

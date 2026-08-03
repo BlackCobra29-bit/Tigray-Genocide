@@ -1170,34 +1170,8 @@ def add_civilian_victim(request):
         civilian_model.source_link = request.POST.get('source_link')
         civilian_model.remark = request.POST.get('remark')
 
-        previous_existed_civilian_victim = Civilian_victims.objects.filter(
-            full_name=civilian_model.full_name,
-            woreda=woreda_obj,
-        ).order_by().only('id').first()
-
         civilian_model.approval = request.user.is_superuser
         civilian_model.save()
-
-        if previous_existed_civilian_victim is not None:
-            existing_victim_url = request.build_absolute_uri(
-                reverse(
-                    'view-victim-info',
-                    kwargs={'id': previous_existed_civilian_victim.id},
-                )
-            )
-            error_message = (
-                'A civilian victim with the provided full name and Woreda '
-                f'already exists. <a href="{existing_victim_url}" '
-                'target="_blank"><u>Click here to view the existing '
-                'victim</u></a>.'
-            )
-            return JsonResponse(
-                {
-                    'message': error_message,
-                    'new_duplicate_id': civilian_model.id,
-                },
-                status=400,
-            )
 
         if request.user.is_superuser:
             success_message = 'New civilian victim data added successfully.'
@@ -1324,14 +1298,6 @@ class Update_Civilian_Victim(
     def get_success_url(self):
 
         return reverse('civilian-data-management')
-
-@login_required
-def delete_duplicate_civilian_victim_item(request, pk):
-    civilian_victim = get_object_or_404(Civilian_victims, id=pk)
-
-    civilian_victim.delete()
-
-    return redirect('admin-add-civilian')
 
 @login_required(
     login_url=settings.LOGIN_URL,

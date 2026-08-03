@@ -163,9 +163,6 @@
 {% if Administrator.civilian_role == True or request.user.is_superuser == True %}
 <script>
 $(document).ready(function() {
-  var duplicateDeleteUrlTemplate =
-    "{% url 'delete-duplicate-civilian-victim' 'duplicate-id-placeholder' %}";
-
   function resetCivilianForm() {
     $('#myForm')[0].reset();
     $('.selectpicker').val(null).trigger('change');
@@ -173,14 +170,19 @@ $(document).ready(function() {
 
   $('#myForm').submit(function(event) {
     event.preventDefault();
+    var form = this;
+    if (form.dataset.submitting === 'true') {
+      return false;
+    }
+
+    form.dataset.submitting = 'true';
+    $(form).find('button[type="submit"], input[type="submit"]').prop('disabled', true);
     AdminUI.showLoading();
 
     $.ajax({
       url: "{% url 'admin-add-civilian' %}",
       type: 'POST',
-      data: new FormData(this),
-      async: true,
-      cache: false,
+      data: new FormData(form),
       contentType: false,
       processData: false,
       success: function(response) {
@@ -189,35 +191,14 @@ $(document).ready(function() {
       },
       error: function(xhr) {
         var errorMessage = xhr.responseJSON || {};
-        if (!errorMessage.message || !errorMessage.new_duplicate_id) {
-          AdminUI.error(
-            AdminUI.errorMessage(errorMessage, 'Unable to save the civilian victim. Please try again.'),
-            { duration: 6500 }
-          );
-          return;
-        }
-
-        var duplicateDeleteUrl = duplicateDeleteUrlTemplate.replace(
-          'duplicate-id-placeholder',
-          encodeURIComponent(errorMessage.new_duplicate_id)
-        );
-
-        var duplicateNotice = AdminUI.error(
-          errorMessage.message + ' Click this notification to remove the newly created duplicate.',
+        AdminUI.error(
+          AdminUI.errorMessage(errorMessage, 'Unable to save the civilian victim. Please try again.'),
           { duration: 10000 }
         );
-        var removeDuplicate = function() {
-          window.location.assign(duplicateDeleteUrl);
-        };
-        if (duplicateNotice && typeof duplicateNotice.on === 'function') {
-          duplicateNotice.on('click', removeDuplicate);
-        } else if (duplicateNotice && duplicateNotice.addEventListener) {
-          duplicateNotice.addEventListener('click', removeDuplicate);
-        }
-
-        resetCivilianForm();
       },
       complete: function() {
+        delete form.dataset.submitting;
+        $(form).find('button[type="submit"], input[type="submit"]').prop('disabled', false);
         AdminUI.hideLoading();
       }
     });
