@@ -1,12 +1,10 @@
 import shutil
 import tempfile
-from io import BytesIO
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from PIL import Image
 
 from .models import Civilian_victims, Tigray_woreda
 
@@ -31,11 +29,9 @@ class PublicPerformanceViewTests(TestCase):
         )
 
     def _create_victim(self, index):
-        image_data = BytesIO()
-        Image.new("RGB", (2, 2), color="blue").save(image_data, format="JPEG")
         image = SimpleUploadedFile(
             f'victim-{index}.jpg',
-            image_data.getvalue(),
+            b'filecontent',
             content_type='image/jpeg',
         )
         return Civilian_victims.objects.create(
