@@ -101,6 +101,134 @@
     return payload.message || payload.detail || payload.error || fallback;
   }
 
+  function setFormSubmitting(form, submitting) {
+    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (button) {
+      button.disabled = submitting;
+    });
+  }
+
+  function responseFeedback(body, contentType) {
+    if (contentType.indexOf('application/json') !== -1) {
+      var payload = {};
+      try {
+        payload = JSON.parse(body || '{}');
+      } catch (parseError) {
+        payload = {};
+      }
+      return {
+        message: payload.success_message || errorMessage(payload, ''),
+        payload: payload,
+        type: payload.error || payload.detail ? 'error' : 'success'
+      };
+    }
+
+    var parsed = new window.DOMParser().parseFromString(body || '', 'text/html');
+    var messages = Array.prototype.map.call(
+      parsed.querySelectorAll('[data-admin-message]'),
+      function (element) {
+        var tags = (element.dataset.messageTags || 'info').toLowerCase();
+        return {
+          message: (element.textContent || '').trim(),
+          type: tags.indexOf('error') !== -1 ? 'error' :
+            tags.indexOf('warning') !== -1 ? 'warning' :
+              tags.indexOf('success') !== -1 ? 'success' : 'info'
+        };
+      }
+    ).filter(function (item) { return item.message; });
+
+    var errorItems = Array.prototype.map.call(
+      parsed.querySelectorAll('.errorlist li'),
+      function (element) { return (element.textContent || '').trim(); }
+    ).filter(Boolean);
+
+    return {
+      document: parsed,
+      message: errorItems.length ? errorItems.join(' ') :
+        messages.map(function (item) { return item.message; }).join(' '),
+      type: errorItems.length ? 'error' :
+        (messages.some(function (item) { return item.type === 'error'; }) ? 'error' :
+          (messages[0] ? messages[0].type : 'success'))
+    };
+  }
+
+  function automaticSuccessMessage(submitter) {
+    var label = submitter && (submitter.textContent || submitter.value);
+    label = (label || 'Changes').trim();
+    return label + ' completed successfully.';
+  }
+
+  function submitAdminForm(form, submitter) {
+    var action = submitter && submitter.formAction ? submitter.formAction :
+      (form.action || window.location.href);
+    var method = (form.method || 'POST').toUpperCase();
+    var formData = new window.FormData(form);
+    var keepDisabled = false;
+
+    if (submitter && submitter.name && !formData.has(submitter.name)) {
+      formData.append(submitter.name, submitter.value);
+    }
+
+    showLoading();
+    setFormSubmitting(form, true);
+
+    window.fetch(action, {
+      method: method,
+      body: formData,
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json, text/html',
+        'X-CSRFToken': csrfToken(),
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    }).then(function (response) {
+      return response.text().then(function (body) {
+        var feedback = responseFeedback(
+          body,
+          response.headers.get('content-type') || ''
+        );
+
+        if (
+          feedback.document &&
+          feedback.document.querySelector('input[name="login_username"]')
+        ) {
+          window.location.assign(response.url);
+          throw new Error('Your session expired. Please sign in again.');
+        }
+
+        if (!response.ok || feedback.type === 'error') {
+          throw new Error(
+            feedback.message || 'The changes could not be saved. Please check the form and try again.'
+          );
+        }
+
+        return feedback;
+      });
+    }).then(function (feedback) {
+      notify(
+        feedback.type === 'warning' ? 'warning' : 'success',
+        feedback.message || automaticSuccessMessage(submitter)
+      );
+      if (form.dataset.adminResetOnSuccess === 'true') {
+        form.reset();
+        if (window.jQuery) {
+          window.jQuery(form).find('.selectpicker').val(null).trigger('change');
+        }
+      }
+      keepDisabled = form.dataset.adminLockOnSuccess === 'true';
+    }).catch(function (requestError) {
+      notify(
+        'error',
+        requestError.message || 'The request could not be completed. Please try again.',
+        { duration: 6500 }
+      );
+    }).finally(function () {
+      if (!keepDisabled) {
+        setFormSubmitting(form, false);
+      }
+      hideLoading();
+    });
+  }
+
   function reloadContainingTable(trigger) {
     if (!window.jQuery || !window.jQuery.fn.DataTable) {
       return;
@@ -218,14 +346,25 @@
 
   document.addEventListener('submit', function (event) {
     var form = event.target;
-    if (!(form instanceof window.HTMLFormElement) || form.dataset.adminAjax === 'true') {
+    if (
+      !(form instanceof window.HTMLFormElement) ||
+      !form.closest('.main_container') ||
+      form.dataset.adminAjax === 'true' ||
+      form.dataset.adminNative === 'true' ||
+      (form.method || 'GET').toUpperCase() === 'GET' ||
+      form.target === '_blank' ||
+      event.defaultPrevented
+    ) {
       return;
     }
-    window.setTimeout(function () {
-      if (!event.defaultPrevented) {
-        showLoading();
-      }
-    }, 0);
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    event.preventDefault();
+    submitAdminForm(form, event.submitter || document.activeElement);
   });
 
   document.addEventListener('DOMContentLoaded', consumeDjangoMessages);

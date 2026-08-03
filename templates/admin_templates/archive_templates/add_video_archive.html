@@ -36,7 +36,7 @@
                 <code>*</code> Optional fields can be empty
               </p>
 
-              <form action="" data-parsley-validate method="POST">
+              <form action="" data-parsley-validate method="POST" data-admin-reset-on-success="true">
                 {% csrf_token %}
                 {{ video_archive_form.non_field_errors }}
 
