@@ -1,12 +1,20 @@
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
+from django_summernote.utils import get_attachment_model
 
 from .admin_civilian_form import invalidate_admin_civilian_woreda_names
 from .admin_metrics import invalidate_admin_pending_count
 from .dashboard_summary import invalidate_admin_dashboard_summary
 from .homepage import get_homepage_summary, invalidate_homepage_summary
+from .image_cleanup import (
+    remember_deleted_images,
+    remember_replaced_images,
+    schedule_deleted_image_cleanup,
+    schedule_replaced_image_cleanup,
+)
+from .image_uploads import replace_field_file_with_webp
 from .models import (
     Analysis_articles,
     Civilian_victims,
@@ -18,6 +26,53 @@ from .models import (
     Webinar,
 )
 from .victim_map_cache import invalidate_victim_map_cache
+
+
+SummernoteAttachment = get_attachment_model()
+
+
+@receiver(
+    pre_save,
+    sender=SummernoteAttachment,
+    dispatch_uid="convert_summernote_image_upload_to_webp",
+)
+def convert_summernote_image_upload_to_webp(sender, instance, **kwargs):
+    """Normalize images inserted inside article and webinar editors too."""
+    if kwargs.get("raw", False):
+        return
+
+    attachment = instance.file
+    if attachment and not attachment._committed:
+        original_name = attachment.name
+        replace_field_file_with_webp(attachment)
+        if not instance.name or instance.name == original_name:
+            instance.name = attachment.name
+
+
+@receiver(pre_save, dispatch_uid="remember_replaced_webp_images")
+def remember_replaced_webp_images(sender, instance, **kwargs):
+    if not kwargs.get("raw", False):
+        remember_replaced_images(
+            sender,
+            instance,
+            update_fields=kwargs.get("update_fields"),
+        )
+
+
+@receiver(post_save, dispatch_uid="cleanup_replaced_webp_images")
+def cleanup_replaced_webp_images(sender, instance, **kwargs):
+    if not kwargs.get("raw", False):
+        schedule_replaced_image_cleanup(sender, instance)
+
+
+@receiver(pre_delete, dispatch_uid="remember_deleted_webp_images")
+def remember_deleted_webp_images(sender, instance, **kwargs):
+    remember_deleted_images(sender, instance)
+
+
+@receiver(post_delete, dispatch_uid="cleanup_deleted_webp_images")
+def cleanup_deleted_webp_images(sender, instance, **kwargs):
+    schedule_deleted_image_cleanup(sender, instance)
 
 
 def refresh_homepage_summary():

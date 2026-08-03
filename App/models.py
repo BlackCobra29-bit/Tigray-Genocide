@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 import uuid
 
-from .fields import Char32UUIDField
+from .fields import Char32UUIDField, WebPImageField
 
 class Tigray_woreda(models.Model):
     woreda_name = models.CharField(primary_key=True, max_length = 255)
@@ -51,7 +51,7 @@ class Civilian_victims(models.Model):
     perpetrator = models.CharField(max_length=255, choices=Perpetrator_Choices)
     date_of_event = models.DateField(null=True, blank=True)
     remark = models.TextField(null=True, blank=True)
-    picture = models.ImageField(default = 'civilian_victims_pic/default.png', upload_to = 'civilian_victims_pic', blank = True)
+    picture = WebPImageField(default='civilian_victims_pic/default.png', upload_to='civilian_victims_pic', blank=True)
     approval = models.BooleanField(default=False)
     date_created = models.DateTimeField(default=timezone.now)
 
@@ -93,7 +93,7 @@ class Analysis_articles(models.Model):
         help_text="Enter a clear and descriptive title for the article."
     )
 
-    thumbnail = models.ImageField(
+    thumbnail = WebPImageField(
         upload_to='articles_thumbnail',
         help_text="Upload a thumbnail image for this article."
     )
@@ -182,7 +182,7 @@ class Photo_archive(models.Model):
     woreda = models.ForeignKey(Tigray_woreda, null=True, on_delete=models.DO_NOTHING)
     date_of_event = models.DateField(null=True, blank=True)
     description = models.TextField()
-    photo = models.ImageField(upload_to = 'photo_archive')
+    photo = WebPImageField(upload_to='photo_archive')
     graphic = models.BooleanField(default=False)
     date_created = models.DateTimeField(default=timezone.now)
 
@@ -228,7 +228,7 @@ class Administrator(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     civilian_role = models.BooleanField(default=False)
     analysis_role = models.BooleanField(default=False)
-    admin_photo = models.ImageField(upload_to = 'admin_pic', default = 'admin_pic/default.png')
+    admin_photo = WebPImageField(upload_to='admin_pic', default='admin_pic/default.png')
     date_created = models.DateTimeField(default=timezone.now)
 
     class Meta:
@@ -239,7 +239,7 @@ class Administrator(models.Model):
         return f'{self.user.username}'
 
 class Hero_images(models.Model):
-    hero_image = models.ImageField(upload_to = 'hero-images')
+    hero_image = WebPImageField(upload_to='hero-images')
     date_created = models.DateTimeField(default=timezone.now)
 
     class Meta:
